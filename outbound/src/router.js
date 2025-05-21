@@ -1,24 +1,15 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
-import Dashboard from './views/Dashboard.vue';
-// Tambahkan rute lain di sini sesuai kebutuhan
+import { createRouter, createWebHashHistory } from 'vue-router'
+import Dashboard from './views/Dashboard.vue'
+// Tambahkan import lain jika sudah ada
 
 const routes = [
   { path: '/', component: Dashboard },
-];
+  // ...rute lain nanti
+]
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes,
-});
+})
 
-// Middleware: Cek jika belum login, redirect ke halaman login utama
-router.beforeEach((to, from, next) => {
-  const user = JSON.parse(localStorage.getItem('user') || 'null');
-  if (!user) {
-    window.location.href = '/'; // root login
-  } else {
-    next();
-  }
-});
-
-export default router;
+export default router
