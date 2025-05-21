@@ -1,7 +1,5 @@
 <template>
-  <router-view />
-</template>
-
-<script setup>
-// Kosong, hanya untuk routing
-</script>
+  <div>
+    <h2>Dashboard Outbound</h2>
+    <p>Selamat datang di aplikasi monitoring outbound!</p>
+  </div>
