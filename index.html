@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login Page</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="login-container">
+    <!-- Logo brand (opsional) -->
+    <!-- <img src="img/logo.png" alt="Company Logo" class="login-logo"> -->
+    <h2>🔷 Outbound Monitoring</h2>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="shift">Shift:</label>
+        <select id="shift" required>
+          <option value="">Pilih Shift</option>
+          <option value="BLUE TEAM">BLUE TEAM</option>
+          <option value="GREEN TEAM">GREEN TEAM</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="position">Position:</label>
+        <select id="position" required>
+          <option value="">Pilih Posisi</option>
+          <option value="OPERATOR">OPERATOR</option>
+          <option value="TEAM LEADER">TEAM LEADER</option>
+          <option value="SPV">SPV</option>
+          <option value="ASST MANAGER">ASST MANAGER</option>
+          <option value="MANAGER">MANAGER</option>
+        </select>
+      </div>
+
+      <!-- Tambahan untuk OPERATOR -->
+      <div id="operatorFields" style="display: none; margin-top: 10px;">
+        <label for="teamSelect">Team:</label>
+        <select id="teamSelect">
+          <option value="">-- Pilih Team --</option>
+          <option value="Sugity">Team Sugity</option>
+          <option value="Reguler">Team Reguler</option>
+        </select>
+        <label for="picInput">PIC:</label>
+        <input type="text" id="picInput" placeholder="Nama PIC">
+      </div>
+
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+      </div>
+      <div class="error-message" id="errorMsg" style="display:none;"></div>
+      <button type="submit" id="loginBtn">
+        <span id="loginBtnText">Login</span>
+        <span class="loader" id="loginLoader" style="display:none;"></span>
+      </button>
+    </form>
+  </div>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>
