@@ -1,0 +1,369 @@
+/* ========== Global & Container ========== */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  margin: 0;
+  padding: 0;
+  color: #333;
+}
+
+.container {
+  max-width: 1920px;
+  width: 100%;
+  margin: 40px auto;
+  background-color: #ffffff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  overflow: visible;
+}
+
+/* ========== Notification Bar ========== */
+.notification-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  max-width: 1920px;    /* Sesuaikan jika container kamu ada max-width */
+  margin: 0 auto;
+  right: 0;
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+  padding: 6px 12px;
+  border-radius: 0 0 6px 6px;  /* Supaya sudut bawah tetap membulat */
+  text-align: center;
+  font-size: 16px;
+  display: none;
+  z-index: 999;
+  animation: slideFadeIn 0.3s ease;
+}
+.notification-bar.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border-color: #f5c6cb;
+}
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ========== Top Bar: Upload & Plan Target ========== */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 90;
+  padding: 10px 20px;
+  border-bottom: 1px solid #ccc;
+}
+.upload-section {
+  display: flex;
+  gap: 10px;
+}
+.upload-section input,
+.upload-section button {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+.plan-target-container {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 280px;
+}
+.plan-target-container input,
+.plan-target-container select {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.plan-target-container button {
+  padding: 6px 14px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.plan-target-container button:hover {
+  background-color: #2980b9;
+}
+
+/* ========== Toolbar & Team Buttons ========== */
+.toolbar {
+  position: sticky;
+  top: 56px;
+  background-color: #ffffff;
+  z-index: 80;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #ddd;
+}
+.team-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+/* ========== General Button ========== */
+button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+button:hover {
+  background-color: #3498db;
+}
+.toolbar button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  background-color: #2ecc71;
+  color: white;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+.toolbar button:hover {
+  background-color: #27ae60;
+}
+button.blue {
+  background-color: #0307e9;
+  color: white;
+}
+button.blue:hover {
+  background-color: #0237c7b0;
+}
+button.red,
+#logoutBtn,
+#clearDatabaseBtn {
+  background-color: #e74c3c;
+  color: white;
+  font-weight: bold;
+}
+button.red:hover,
+#logoutBtn:hover,
+#clearDatabaseBtn:hover {
+  background-color: #c0392b;
+}
+
+/* ========== Dropdown ========== */
+.dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 5px;
+  z-index: 100;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.dropdown-container.show .dropdown-menu {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========== Filter Indicator & Loading ========== */
+.filter-indicator {
+  margin-bottom: 10px;
+  font-style: italic;
+  color: #2c3e50;
+}
+.loading-indicator {
+  display: none;
+  color: gray;
+  margin-top: 10px;
+}
+
+/* ========== Table ========== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  background-color: #3498db;
+  color: white;
+  padding: 12px;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+}
+td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+thead th {
+  position: sticky;
+  top: 112px; /* top-bar (56) + toolbar (56) */
+  z-index: 70;
+  background-color: #29bbff;
+  font-weight: bold;
+  color: #2c3e50;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+}
+tr:hover {
+  background-color: #f1f1f1;
+}
+#jobTable th, #jobTable td {
+  font-weight: bold;
+  border: 1px solid #ddd;
+}
+
+/* Kolom 1: Checkbox */
+#jobTable th:nth-child(1),
+#jobTable td:nth-child(1) {
+  width: 20px;
+}
+
+/* Kolom 2: Job No */
+#jobTable th:nth-child(2),
+#jobTable td:nth-child(2) {
+  width: 90px;
+}
+
+/* Kolom 3: Delivery Date */
+#jobTable th:nth-child(3),
+#jobTable td:nth-child(3) {
+  width: 120px;
+}
+
+/* Kolom 4: Delivery Note */
+#jobTable th:nth-child(4),
+#jobTable td:nth-child(4) {
+  width: 160px;
+}
+
+/* Kolom 5: Remark */
+#jobTable td:nth-child(5) {
+  width: 250px;
+  text-align: left;
+}
+
+#jobTable th:nth-child(5) {
+  width: 250px;
+  text-align: center; /* atau left, sesuai preferensi */
+}
+
+/* Kolom 6: Status */
+#jobTable th:nth-child(6),
+#jobTable td:nth-child(6) {
+  width: 75px;
+}
+
+/* Kolom 7: Qty */
+#jobTable th:nth-child(7),
+#jobTable td:nth-child(7) {
+  width: 70px;
+}
+
+/* Kolom 8: Team */
+#jobTable th:nth-child(8),
+#jobTable td:nth-child(8) {
+  width: 70px;
+}
+
+/* Kolom 9: Action */
+#jobTable th:nth-child(9),
+#jobTable td:nth-child(9) {
+  width: 150px;
+}
+
+/* ========== Modal ========== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 100;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0,0,0,0.5);
+}
+.modal-content {
+  background-color: #fff;
+  margin: 10% auto;
+  padding: 30px;
+  border-radius: 12px;
+  width: 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 101;
+}
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.close:hover {
+  color: #e74c3c;
+}
+.modal-content label {
+  display: block;
+  margin-top: 15px;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+.modal-content select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 15px;
+}
+#confirmAdd {
+  background-color: #34495e;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+#confirmAdd:hover {
+  background-color: #2c3e50;
+}
+
+/* ========== Responsive (Mobile) ========== */
+@media (max-width: 768px) {
+  .top-bar,
+  .toolbar,
+  .plan-target-container,
+  .team-buttons {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+  .upload-section {
+    flex-direction: column;
+    width: 100%;
+  }
+  .toolbar button,
+  .plan-target-container input,
+  .plan-target-container select {
+    width: 100%;
+  }
+}

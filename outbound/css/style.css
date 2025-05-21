@@ -1,0 +1,140 @@
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #2176ae 0%, #5ea9dd 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-container {
+  background: #fff;
+  padding: 2.5rem 2.2rem 2rem 2.2rem;
+  border-radius: 20px;
+  box-shadow: 0 10px 32px 0 rgba(33, 118, 174, 0.16);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 330px;
+  animation: fadeSlideIn 0.8s cubic-bezier(.4,2,.4,1) forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-logo {
+  width: 60px;
+  margin-bottom: 18px;
+  border-radius: 12px;
+}
+
+.login-container h2 {
+  color: #2176ae;
+  font-size: 2rem;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+}
+
+form {
+  width: 100%;
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+}
+
+label {
+  display: block;
+  margin-bottom: 0.4rem;
+  color: #2176ae;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="password"],
+select {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1.5px solid #d6eaff;
+  border-radius: 8px;
+  background-color: #f6fbff;
+  transition: border-color 0.3s, background 0.3s;
+  font-size: 1rem;
+  color: #222;
+}
+
+input:focus,
+select:focus {
+  border-color: #2176ae;
+  background: #fff;
+  outline: none;
+}
+
+button[type="submit"] {
+  width: 100%;
+  padding: 0.8rem;
+  background: linear-gradient(90deg, #2176ae 60%, #5ea9dd 100%);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 0.5rem;
+  transition: background 0.3s, transform 0.1s;
+  box-shadow: 0 2px 8px rgba(33,118,174,0.06);
+}
+button[type="submit"]:hover {
+  background: linear-gradient(90deg, #16548a 60%, #298acb 100%);
+  transform: translateY(-2px) scale(1.02);
+}
+
+@media (max-width: 480px) {
+  .login-container {
+    padding: 1.2rem .7rem 1.5rem .7rem;
+    min-width: 90vw;
+  }
+  .login-container h2 {
+    font-size: 1.2rem;
+  }
+}
+
+/* Loader (lingkaran putar kecil) */
+.loader {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2.5px solid #fff;
+  border-top: 2.5px solid #2176ae;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Error message */
+.error-message {
+  background: #ffeaea;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  border-radius: 6px;
+  padding: 0.7rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  text-align: center;
+  display: none;
+  animation: fadeIn 0.4s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

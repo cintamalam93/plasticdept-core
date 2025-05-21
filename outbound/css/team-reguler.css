@@ -1,0 +1,192 @@
+/* =======================================
+   Styling for Container and Info Section
+======================================= */
+.container {
+  font-family: 'Roboto', sans-serif;
+  padding: 30px;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* =======================================
+   Header Styling
+======================================= */
+h1 {
+  font-size: 2em;
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+#infoContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+.metrics-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0 30px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  flex: 1;
+}
+
+.metric-box {
+  flex: 1 1 200px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  text-align: center;
+  border-top: 2px solid #2980b9;
+}
+
+.metric-box .icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.metric-box .label {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #2c3e50;
+}
+
+.metric-box .value {
+  font-size: 18px;
+  color: #34495e;
+}
+
+.chart-section {
+  width: 180px;
+  height: 180px;
+  flex-shrink: 0;
+}
+
+#backToSortirBtn {
+  margin-bottom: 20px;
+  padding: 8px 16px;
+  background-color: #2980b9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#backToSortirBtn:hover {
+  background-color: #2471a3;
+}
+
+/* =======================================
+   Table Styling
+======================================= */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #3498db;
+  color: white;
+  padding: 12px;
+  text-align: center;
+  border-radius: 6px;
+}
+
+td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+table.dataTable thead th {
+  text-align: center !important;
+}
+
+#teamTable td:nth-child(4) {
+  text-align: left;
+}
+
+/* =======================================
+   Status Label Styling
+======================================= */
+.status-label {
+  padding: 5px 12px;
+  border-radius: 6px;
+  color: white;
+}
+
+.status-label.newjob {
+  background-color: #e74c3c;
+}
+
+.status-label.partialpicked {
+  background-color: #f39c12;
+}
+
+.status-label.downloaded {
+  background-color: #f1c40f;
+}
+
+.status-label.packed,
+.status-label.loaded {
+  background-color: #2ecc71;
+}
+
+/* =======================================
+   Job Type Styling
+======================================= */
+.job-type {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 0.85em;
+}
+
+.job-type.OT {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.job-type.H-1 {
+  background-color: #f39c12;
+  color: white;
+}
+
+.job-type.Additional {
+  background-color: #2ecc71;
+  color: white;
+}
+
+.job-type.Remaining {
+  background-color: #7f8c8d;
+  color: white;
+}
+
+/* =======================================
+   General Button Styling
+======================================= */
+button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #3498db;
+}
