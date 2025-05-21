@@ -7,7 +7,7 @@
   <!-- Cek login sebelum render halaman -->
   <script>
     if (!localStorage.getItem("username")) {
-      window.location.href = "index.html";
+      window.location.href = "../index.html";
     }
   </script>
   <link rel="stylesheet" href="css/sortir.css" />
@@ -111,7 +111,7 @@
       <tbody></tbody>
     </table>
 
-    <!-- Modal Pop-up -->
+    <!-- Modal Pop-up Assign Job -->
     <div id="addModal" class="modal">
       <div class="modal-content">
         <span class="close" id="closeModal">&times;</span>
@@ -131,6 +131,32 @@
         <button id="confirmAdd">Assign Job</button>
         <div id="loadingIndicator" class="loading-indicator">
           ⏳ Menyimpan data ke Firebase...
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Konfirmasi Universal -->
+    <div id="confirmModal" class="modal">
+      <div class="modal-content">
+        <h3 id="confirmModalTitle">Konfirmasi</h3>
+        <p id="confirmModalMessage"></p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:24px;">
+          <button id="cancelConfirmBtn" class="modal-btn">Batal</button>
+          <button id="okConfirmBtn" class="modal-btn logout">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Logout Profesional -->
+    <div id="logoutModal" class="modal">
+      <div class="modal-content">
+        <h3>Konfirmasi Logout</h3>
+        <p>Apakah Anda yakin ingin keluar dari aplikasi?<br>
+           <small>Semua sesi Anda akan diakhiri.</small>
+        </p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:24px;">
+          <button id="cancelLogoutBtn" class="modal-btn">Batal</button>
+          <button id="confirmLogoutBtn" class="modal-btn logout">Logout</button>
         </div>
       </div>
     </div>
