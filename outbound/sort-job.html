@@ -4,21 +4,31 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sortir Outbound Job</title>
-  <!-- Cek login sebelum render halaman -->
   <script>
     if (!localStorage.getItem("username")) {
       window.location.href = "../index.html";
     }
   </script>
   <link rel="stylesheet" href="css/sortir.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,500,700&display=swap" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="container">
-    <!-- Notifikasi -->
+    <div class="header-bar">
+      <div class="logo-title">
+        <img src="https://img.icons8.com/color/48/000000/warehouse.png" width="36" />
+        Sortir Outbound Job
+      </div>
+      <button id="logoutBtn" class="logout-absolute">Logout</button>
+      <div class="user-profile">
+        <span class="avatar">P</span>
+        <span style="font-weight:500;">PlasticDept</span>
+      </div>
+    </div>
+
     <div id="notification" class="notification-bar"></div>
 
-    <!-- Top Bar: Upload & Plan Target -->
     <div class="top-bar">
       <div class="upload-section">
         <input type="file" id="fileInput" accept=".xlsx, .xls" />
@@ -35,14 +45,10 @@
       </div>
     </div>
 
-    <!-- Toolbar Section -->
     <div class="toolbar">
-      <button id="logoutBtn">🚪 Logout</button>
       <button id="bulkAddBtn">Assign Job Selected</button>
-
-      <!-- Dropdown: Status -->
       <div class="dropdown-container">
-        <button id="sortStatusBtn">Filter by Status</button>
+        <button id="sortStatusBtn">Filter by Status ▼</button>
         <div id="statusDropdown" class="dropdown-menu">
           <select id="statusOptions">
             <option value="all">-- Show All --</option>
@@ -55,20 +61,16 @@
           </select>
         </div>
       </div>
-
-      <!-- Dropdown: Date -->
       <div class="dropdown-container">
-        <button id="sortDateBtn">Filter by Date</button>
+        <button id="sortDateBtn">Filter by Date ▼</button>
         <div id="dateDropdown" class="dropdown-menu">
           <select id="dateOptions">
             <option value="all">-- Show All --</option>
           </select>
         </div>
       </div>
-
-      <!-- Dropdown: Team -->
       <div class="dropdown-container">
-        <button id="sortTeamBtn">Filter by Team</button>
+        <button id="sortTeamBtn">Filter by Team ▼</button>
         <div id="teamDropdown" class="dropdown-menu">
           <select id="teamOptions">
             <option value="all">-- Show All --</option>
@@ -78,22 +80,16 @@
           </select>
         </div>
       </div>
-
-      <!-- Navigasi -->
       <div class="team-buttons">
         <button onclick="navigateTo('team-sugity.html')">Team Sugity Target</button>
         <button onclick="navigateTo('team-reguler.html')">Team Reguler Target</button>
         <button onclick="navigateTo('dashboard.html')">Outbound Dashboard</button>
       </div>
-
-      <!-- Tombol Hapus -->
-      <button id="clearDatabaseBtn">🧹 Hapus Semua Job</button>
+      <button id="clearDatabaseBtn" class="danger">Hapus Semua Job</button>
     </div>
 
-    <!-- Filter Indicator -->
     <div id="filterIndicator" class="filter-indicator"></div>
 
-    <!-- Table -->
     <table id="jobTable">
       <thead>
         <tr>
@@ -156,21 +152,20 @@
         </p>
         <div style="display:flex;gap:10px;justify-content:center;margin-top:24px;">
           <button id="cancelLogoutBtn" class="modal-btn">Batal</button>
-          <button id="confirmLogoutBtn" class="modal-btn logout">Logout</button>
+          <button id="logoutBtn" class="logout-absolute" title="Logout"><span>🚪</span></button>
         </div>
       </div>
     </div>
-  </div> <!-- /container -->
-
-  <!-- Script: Firebase config dan app logic -->
+  </div>
   <script type="module" src="js/config.js"></script>
   <script type="module" src="js/sortir.js"></script>
   <script>
+    // Dropdown filter logic
     document.addEventListener("DOMContentLoaded", function () {
       document.querySelectorAll(".dropdown-container").forEach(container => {
         const button = container.querySelector("button");
-        const menu = container.querySelector(".dropdown-menu");
         button.addEventListener("click", (e) => {
+          e.stopPropagation();
           document.querySelectorAll(".dropdown-container").forEach(c => {
             if (c !== container) c.classList.remove("show");
           });
