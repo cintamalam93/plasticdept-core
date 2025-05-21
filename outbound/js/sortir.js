@@ -1,10 +1,11 @@
 // sortir.js
 import { db } from "./config.js";
-import {ref, set, get, update, onValue, remove} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 /* =========================
     FUNGSI UTILITY/HELPER
 ========================= */
+
 // Notifikasi di atas header
 function showNotification(message, isError = false) {
   const notification = document.getElementById('notification');
@@ -15,6 +16,50 @@ function showNotification(message, isError = false) {
   setTimeout(() => {
     notification.style.display = 'none';
   }, 4000);
+}
+
+// Modal konfirmasi universal
+function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?", okText = "OK", cancelText = "Batal", okClass = "", onConfirm, onCancel }) {
+  const modal = document.getElementById("confirmModal");
+  const titleElem = document.getElementById("confirmModalTitle");
+  const msgElem = document.getElementById("confirmModalMessage");
+  const okBtn = document.getElementById("okConfirmBtn");
+  const cancelBtn = document.getElementById("cancelConfirmBtn");
+
+  titleElem.textContent = title;
+  msgElem.innerHTML = message;
+  okBtn.textContent = okText;
+  cancelBtn.textContent = cancelText;
+
+  // Reset class
+  okBtn.className = "modal-btn";
+  if (okClass) okBtn.classList.add(okClass);
+
+  // Remove previous listeners
+  const newOkBtn = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+  const newCancelBtn = cancelBtn.cloneNode(true);
+  cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+  newOkBtn.onclick = () => {
+    modal.style.display = "none";
+    if (typeof onConfirm === "function") onConfirm();
+  };
+  newCancelBtn.onclick = () => {
+    modal.style.display = "none";
+    if (typeof onCancel === "function") onCancel();
+  };
+
+  modal.style.display = "block";
+
+  // Tutup modal jika klik luar area
+  window.addEventListener("click", function handler(e) {
+    if (e.target === modal) {
+      modal.style.display = "none";
+      window.removeEventListener("click", handler);
+    }
+  });
 }
 
 // Fungsi bantu untuk membersihkan nilai dari Excel
@@ -82,8 +127,8 @@ function createTableRow(job) {
 // Fungsi menyimpan target ke Firebase
 function savePlanTargetToFirebase(team, value) {
   set(ref(db, `planTargets/${team.toLowerCase()}`), value)
-    .then(() => alert(`Target plan untuk team ${team} telah disimpan: ${value} kg.`))
-    .catch((err) => alert("Gagal menyimpan plan target: " + err.message));
+    .then(() => showNotification(`Target plan untuk team ${team} telah disimpan: ${value} kg.`))
+    .catch((err) => showNotification("Gagal menyimpan plan target: " + err.message, true));
 }
 
 // Fungsi mengatur target plan dari input
@@ -92,12 +137,19 @@ function handleSetPlanTarget() {
   const target = parseInt(planTargetInput.value);
 
   if (isNaN(target) || target <= 0) {
-    alert("Masukkan nilai target yang valid.");
+    showNotification("Masukkan nilai target yang valid.", true);
     return;
   }
 
-  savePlanTargetToFirebase(team, target);
-  planTargetInput.value = "";
+  showConfirmModal({
+    title: "Konfirmasi Set Target",
+    message: `Anda yakin ingin menyimpan target plan <b>${target} kg</b> untuk team <b>${team}</b>?`,
+    okText: "Simpan",
+    onConfirm: () => {
+      savePlanTargetToFirebase(team, target);
+      planTargetInput.value = "";
+    }
+  });
 }
 
 // Isi opsi tanggal di dropdown
@@ -131,23 +183,29 @@ function getSelectedJobs() {
   return Array.from(checkboxes).map(cb => cb.getAttribute("data-jobno"));
 }
 
-// Tampilkan / sembunyikan modal
+// Tampilkan / sembunyikan modal assign
 function showModal() { modal.style.display = "block"; }
 function hideModal() { modal.style.display = "none"; }
 
 // Fungsi untuk hapus semua job di database
 function clearAllJobs() {
-  if (confirm("Apakah kamu yakin ingin menghapus SEMUA job dari database?")) {
-    remove(ref(db, "outboundJobs"))
-      .then(() => {
-        showNotification("✅ Semua job berhasil dihapus.");
-        loadJobsFromFirebase(); // Refresh tampilan tabel
-      })
-      .catch((err) => {
-        console.error(err);
-        showNotification("❌ Gagal menghapus job!", true);
-      });
-  }
+  showConfirmModal({
+    title: "Konfirmasi Hapus Semua",
+    message: "Apakah Anda yakin ingin <b>MENGHAPUS SEMUA</b> job dari database?",
+    okText: "Hapus",
+    okClass: "logout",
+    onConfirm: () => {
+      remove(ref(db, "outboundJobs"))
+        .then(() => {
+          showNotification("✅ Semua job berhasil dihapus.");
+          loadJobsFromFirebase(); // Refresh tampilan tabel
+        })
+        .catch((err) => {
+          console.error(err);
+          showNotification("❌ Gagal menghapus job!", true);
+        });
+    }
+  });
 }
 
 // Fungsi sortir tabel berdasarkan kolom
@@ -282,7 +340,6 @@ function syncJobsToFirebase(jobs) {
 
 // Load data dari Firebase
 function loadJobsFromFirebase() {
-  const debugDiv = document.getElementById("debugLog");
   jobTable.innerHTML = "";
   allJobsData = [];
 
@@ -361,7 +418,6 @@ function updateFilterIndicator() {
   const team = teamOptions.value;
 
   const filters = [];
-
   if (status !== "all") filters.push(`Status: ${status}`);
   if (date !== "all") filters.push(`Date: ${date}`);
   if (team !== "all") {
@@ -383,7 +439,7 @@ function closeAllDropdowns() {
 }
 
 // Navigasi
-window.navigateTo = function(page) {
+window.navigateTo = function (page) {
   window.location.href = page;
 };
 
@@ -431,9 +487,40 @@ uploadBtn.addEventListener("click", () => {
   else showNotification("Pilih file Excel terlebih dahulu.", true);
 });
 
-bulkAddBtn.addEventListener("click", () => {
+bulkAddBtn.addEventListener("click", async () => {
   const selectedJobs = getSelectedJobs();
-  if (selectedJobs.length === 0) return showNotification("Pilih minimal satu job.", true);
+  if (selectedJobs.length === 0) {
+    showNotification("Pilih minimal satu job.", true);
+    return;
+  }
+
+  // Cek semua job yang dipilih, pastikan BELUM ada team
+  let jobsWithTeam = [];
+  await Promise.all(
+    selectedJobs.map(async (jobNo) => {
+      const jobRef = ref(db, "outboundJobs/" + jobNo);
+      const snap = await get(jobRef);
+      if (snap.exists()) {
+        const data = snap.val();
+        if (data.team && data.team.trim() !== "") {
+          jobsWithTeam.push({ jobNo, team: data.team });
+        }
+      }
+    })
+  );
+
+  if (jobsWithTeam.length > 0) {
+    showNotification(
+      "Terdapat job yang sudah di-assign ke team dan tidak dapat lanjut bulk assign:\n" +
+      jobsWithTeam.map(j => `- ${j.jobNo} (Team: ${j.team})`).join("\n"),
+      true
+    );
+    return;
+  }
+
+  // Semua job belum di-assign, boleh lanjut assign
+  selectedSingleJob = null; // supaya di modal assign mode bulk
+  window.jobsToBulkAssign = selectedJobs;
   showModal();
 });
 
@@ -442,13 +529,26 @@ jobTable.addEventListener("click", e => {
   if (e.target.classList.contains("add-single")) {
     const anyChecked = document.querySelector("tbody input[type='checkbox']:checked");
     if (anyChecked) return showNotification("Kosongkan centang terlebih dahulu.", true);
-    selectedSingleJob = e.target.getAttribute("data-jobno");
-    showModal();
+
+    const jobNo = e.target.getAttribute("data-jobno");
+    const jobRef = ref(db, "outboundJobs/" + jobNo);
+
+    get(jobRef).then(snapshot => {
+      if (!snapshot.exists()) {
+        return showNotification("❌ Job tidak ditemukan di database.", true);
+      }
+      const jobData = snapshot.val();
+      if (jobData.team && jobData.team.trim() !== "") {
+        showNotification("⚠️ Job ini sudah di-assign ke team " + jobData.team, true);
+        return;
+      }
+      selectedSingleJob = jobNo;
+      showModal();
+    });
   }
   // Handler Unassign Job
   if (e.target.classList.contains("unassign-single")) {
     const jobNo = e.target.getAttribute("data-jobno");
-
     const jobRef = ref(db, "outboundJobs/" + jobNo);
     get(jobRef).then(snapshot => {
       if (!snapshot.exists()) {
@@ -460,20 +560,23 @@ jobTable.addEventListener("click", e => {
         return showNotification("⚠️ Job ini belum di-assign ke team manapun.", true);
       }
 
-      if (confirm("Apakah kamu yakin ingin membatalkan assignment job ini?")) {
-        update(jobRef, {
-          team: "",
-          jobType: ""
-        })
-        .then(() => {
-          showNotification("✅ Job berhasil di-unassign.");
-          refreshDataWithoutReset();
-        })
-        .catch(err => {
-          console.error(err);
-          showNotification("❌ Gagal menghapus assignment job.", true);
-        });
-      }
+      showConfirmModal({
+        title: "Konfirmasi Unassign",
+        message: "Apakah Anda yakin ingin membatalkan assignment job ini?",
+        okText: "Unassign",
+        okClass: "logout",
+        onConfirm: () => {
+          update(jobRef, { team: "", jobType: "" })
+            .then(() => {
+              showNotification("✅ Job berhasil di-unassign.");
+              refreshDataWithoutReset();
+            })
+            .catch(err => {
+              console.error(err);
+              showNotification("❌ Gagal menghapus assignment job.", true);
+            });
+        }
+      });
     });
   }
 });
@@ -569,11 +672,32 @@ loadJobsFromFirebase();
 // Event listener tombol
 document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
 
-// Tambahkan event listener logout di bagian paling bawah
+// ========== Logout Modal ==========
+
 const logoutBtn = document.getElementById("logoutBtn");
+const logoutModal = document.getElementById("logoutModal");
+const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
+const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
+
+// Show modal logout saat klik tombol logout
 logoutBtn?.addEventListener("click", () => {
-  if (confirm("Apakah kamu yakin ingin logout?")) {
-    localStorage.clear();
-    window.location.href = "../index.html";
+  logoutModal.style.display = "block";
+});
+
+// Batal logout
+cancelLogoutBtn?.addEventListener("click", () => {
+  logoutModal.style.display = "none";
+});
+
+// Konfirmasi logout
+confirmLogoutBtn?.addEventListener("click", () => {
+  localStorage.clear();
+  window.location.href = "../index.html";
+});
+
+// Tutup modal jika klik di luar area modal-content
+window.addEventListener("click", (e) => {
+  if (e.target === logoutModal) {
+    logoutModal.style.display = "none";
   }
 });
