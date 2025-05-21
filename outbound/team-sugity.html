@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Sugity</title>
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="css/team-sugity.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Team Sugity - Outbound Jobs</h1>
+    <button id="backToSortirBtn" style="display: none;">← Kembali ke Sortir Job</button>
+    <div class="metrics-container">
+      <div class="metrics">
+        <div class="metric-box">
+          <div class="icon">🗺️</div>
+          <div class="label">Plan Target</div>
+          <div class="value" id="planTarget">0 kg</div>
+        </div>
+        <div class="metric-box">
+          <div class="icon">🎯</div>
+          <div class="label">Actual Target</div>
+          <div class="value" id="actualTarget">0 kg</div>
+        </div>
+        <div class="metric-box">
+          <div class="icon">📋</div>
+          <div class="label">Actual Target Achieved</div>
+          <div class="value" id="achievedTarget">0 kg</div>
+        </div>
+        <div class="metric-box">
+          <div class="icon">📅</div>
+          <div class="label">Actual Target Remaining</div>
+          <div class="value" id="remainingTarget">0 kg</div>
+        </div>
+      </div>
+      <div class="chart-section">
+        <canvas id="progressChart" width="180" height="180"></canvas>
+      </div>
+  </div>
+
+
+    <table id="teamTable">
+      <thead>
+        <tr>
+          <th>Job No</th>
+          <th>Delivery Date</th>
+          <th>Delivery Note</th>
+          <th>Remark</th>
+          <th>Status</th>
+          <th>Qty</th>
+          <th>Job Type</th> <!-- ✅ Tambahan -->
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+    <!-- jQuery & DataTables JS -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+  <!-- ✅ Chart.js global (tidak pakai module) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ✅ Firebase config -->
+  <script type="module" src="js/config.js"></script>
+
+  <!-- ✅ Script utama untuk halaman team sugity -->
+  <script type="module" src="js/team-sugity.js"></script>
+</body>
+</html>
