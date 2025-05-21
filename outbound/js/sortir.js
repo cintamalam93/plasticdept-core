@@ -574,6 +574,6 @@ const logoutBtn = document.getElementById("logoutBtn");
 logoutBtn?.addEventListener("click", () => {
   if (confirm("Apakah kamu yakin ingin logout?")) {
     localStorage.clear();
-    window.location.href = "index.html";
+    window.location.href = "../index.html";
   }
 });
