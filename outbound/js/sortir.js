@@ -1,12 +1,10 @@
 // sortir.js
 import { db } from "./config.js";
-import { ref, set, get, update, onValue, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { ref, set, get, update, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 /* =========================
     FUNGSI UTILITY/HELPER
 ========================= */
-
-// Notifikasi di atas header
 function showNotification(message, isError = false) {
   const notification = document.getElementById('notification');
   notification.textContent = message;
@@ -18,7 +16,6 @@ function showNotification(message, isError = false) {
   }, 4000);
 }
 
-// Modal konfirmasi universal
 function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?", okText = "OK", cancelText = "Batal", okClass = "", onConfirm, onCancel }) {
   const modal = document.getElementById("confirmModal");
   const titleElem = document.getElementById("confirmModalTitle");
@@ -31,14 +28,11 @@ function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?"
   okBtn.textContent = okText;
   cancelBtn.textContent = cancelText;
 
-  // Reset class
   okBtn.className = "modal-btn";
   if (okClass) okBtn.classList.add(okClass);
 
-  // Remove previous listeners
   const newOkBtn = okBtn.cloneNode(true);
   okBtn.parentNode.replaceChild(newOkBtn, okBtn);
-
   const newCancelBtn = cancelBtn.cloneNode(true);
   cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
@@ -52,8 +46,6 @@ function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?"
   };
 
   modal.style.display = "block";
-
-  // Tutup modal jika klik luar area
   window.addEventListener("click", function handler(e) {
     if (e.target === modal) {
       modal.style.display = "none";
@@ -62,14 +54,12 @@ function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?"
   });
 }
 
-// Fungsi bantu untuk membersihkan nilai dari Excel
 function sanitizeValue(value) {
-  if (typeof value === "object") return ""; // Hindari stringify object
+  if (typeof value === "object") return "";
   if (typeof value === "function") return "";
   return value ?? "";
 }
 
-// Format tanggal ke "dd-MMM-yyyy"
 function formatToCustomDate(date) {
   const day = String(date.getUTCDate()).padStart(2, "0");
   const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
@@ -77,20 +67,16 @@ function formatToCustomDate(date) {
   return `${day}-${month}-${year}`;
 }
 
-// Memformat nilai tanggal dari Excel
 function formatDate(input) {
   if (!input) return "";
-
   if (typeof input === "number") {
-    const date = new Date(Math.round((input - 25569) * 86400 * 1000)); // Convert from Excel serial date
+    const date = new Date(Math.round((input - 25569) * 86400 * 1000));
     return formatToCustomDate(date);
   }
-
   const parsed = new Date(input);
   if (!isNaN(parsed)) {
     return formatToCustomDate(parsed);
   }
-
   const parts = input.split(/[-/]/);
   if (parts.length >= 2) {
     const day = parseInt(parts[0]);
@@ -104,43 +90,91 @@ function formatDate(input) {
   return input;
 }
 
-// Buat baris tabel
+function badgeForStatus(status) {
+  switch (status) {
+    case "NewJob": return "badge-info";
+    case "Downloaded":
+    case "Picked":
+    case "PartialPicked": return "badge-warning";
+    case "Packed":
+    case "Loaded": return "badge-success";
+    default: return "badge-info";
+  }
+}
+
 function createTableRow(job) {
   const row = document.createElement("tr");
+  const badgeClass = badgeForStatus(job.status);
   row.innerHTML = `
     <td><input type="checkbox" data-jobno="${job.jobNo}"></td>
     <td>${job.jobNo}</td>
     <td>${job.deliveryDate}</td>
     <td>${job.deliveryNote}</td>
     <td>${job.remark}</td>
-    <td>${job.status}</td>
+    <td><span class="badge ${badgeClass}">${job.status}</span></td>
     <td>${Number(job.qty).toLocaleString()}</td>
     <td>${job.team}</td>
-    <td>
-      <button class="add-single" data-jobno="${job.jobNo}">Assign</button>
-      <button class="unassign-single" data-jobno="${job.jobNo}">Unassign</button>
+    <td class="table-actions">
+      <button class="assign">Assign</button>
+      <button class="unassign">Unassign</button>
     </td>
   `;
+  row.querySelector(".assign").addEventListener("click", async (e) => {
+    const jobNo = job.jobNo;
+    if (job.team && job.team.trim() !== "") {
+      showNotification("⚠️ Job ini sudah di-assign ke team: " + job.team, true);
+      return;
+    }
+    selectedSingleJob = jobNo;
+    showModal();
+  });
+
+  row.querySelector(".unassign").addEventListener("click", async (e) => {
+    const jobNo = job.jobNo;
+    const jobRef = ref(db, "outboundJobs/" + jobNo);
+    get(jobRef).then(snapshot => {
+      if (!snapshot.exists()) {
+        return showNotification("❌ Job tidak ditemukan di database.", true);
+      }
+      const jobData = snapshot.val();
+      if (!jobData.team) {
+        return showNotification("⚠️ Job ini belum di-assign ke team manapun.", true);
+      }
+      showConfirmModal({
+        title: "Konfirmasi Unassign",
+        message: "Apakah Anda yakin ingin membatalkan assignment job ini?",
+        okText: "Unassign",
+        okClass: "logout",
+        onConfirm: () => {
+          update(jobRef, { team: "", jobType: "" })
+            .then(() => {
+              showNotification("✅ Job berhasil di-unassign.");
+              refreshDataWithoutReset();
+            })
+            .catch(err => {
+              showNotification("❌ Gagal menghapus assignment job.", true);
+            });
+        }
+      });
+    });
+  });
+
   return row;
 }
 
-// Fungsi menyimpan target ke Firebase
 function savePlanTargetToFirebase(team, value) {
   set(ref(db, `planTargets/${team.toLowerCase()}`), value)
     .then(() => showNotification(`Target plan untuk team ${team} telah disimpan: ${value} kg.`))
     .catch((err) => showNotification("Gagal menyimpan plan target: " + err.message, true));
 }
 
-// Fungsi mengatur target plan dari input
 function handleSetPlanTarget() {
   const team = planTeamSelector.value;
   const target = parseInt(planTargetInput.value);
-
   if (isNaN(target) || target <= 0) {
     showNotification("Masukkan nilai target yang valid.", true);
     return;
   }
-
   showConfirmModal({
     title: "Konfirmasi Set Target",
     message: `Anda yakin ingin menyimpan target plan <b>${target} kg</b> untuk team <b>${team}</b>?`,
@@ -152,7 +186,6 @@ function handleSetPlanTarget() {
   });
 }
 
-// Isi opsi tanggal di dropdown
 function populateDateOptions(dates) {
   dateOptions.innerHTML = '<option value="all">-- Show All --</option>';
   [...dates].sort().forEach(date => {
@@ -163,7 +196,6 @@ function populateDateOptions(dates) {
   });
 }
 
-// Isi opsi team di dropdown
 function populateTeamOptions(teams) {
   teamOptions.innerHTML = '<option value="all">-- Show All --</option>';
   const uniqueTeams = new Set(teams);
@@ -177,17 +209,14 @@ function populateTeamOptions(teams) {
   });
 }
 
-// Ambil job yang dicentang
 function getSelectedJobs() {
   const checkboxes = document.querySelectorAll("tbody input[type='checkbox']:checked");
   return Array.from(checkboxes).map(cb => cb.getAttribute("data-jobno"));
 }
 
-// Tampilkan / sembunyikan modal assign
 function showModal() { modal.style.display = "block"; }
 function hideModal() { modal.style.display = "none"; }
 
-// Fungsi untuk hapus semua job di database
 function clearAllJobs() {
   showConfirmModal({
     title: "Konfirmasi Hapus Semua",
@@ -198,26 +227,19 @@ function clearAllJobs() {
       remove(ref(db, "outboundJobs"))
         .then(() => {
           showNotification("✅ Semua job berhasil dihapus.");
-          loadJobsFromFirebase(); // Refresh tampilan tabel
+          loadJobsFromFirebase();
         })
         .catch((err) => {
-          console.error(err);
           showNotification("❌ Gagal menghapus job!", true);
         });
     }
   });
 }
 
-// Fungsi sortir tabel berdasarkan kolom
 window.sortTableBy = function (key) {
   const tbody = document.querySelector("#jobTable tbody");
-  if (!tbody) {
-    console.warn("Tbody belum tersedia saat sort dijalankan.");
-    return;
-  }
-
+  if (!tbody) return;
   const rows = Array.from(tbody.querySelectorAll("tr"));
-
   const jobsOnScreen = rows.map(row => {
     const cells = row.querySelectorAll("td");
     return {
@@ -226,19 +248,17 @@ window.sortTableBy = function (key) {
       deliveryDate: cells[2]?.textContent.trim(),
       deliveryNote: cells[3]?.textContent.trim(),
       remark: cells[4]?.textContent.trim(),
-      status: cells[5]?.textContent.trim(),
+      status: cells[5]?.innerText.trim(),
       qty: parseInt(cells[6]?.textContent.replace(/,/g, "") || "0"),
       team: cells[7]?.textContent.trim()
     };
   });
-
   if (window.sortTableBy.lastKey === key) {
     window.sortTableBy.asc = !window.sortTableBy.asc;
   } else {
     window.sortTableBy.asc = true;
   }
   window.sortTableBy.lastKey = key;
-
   jobsOnScreen.sort((a, b) => {
     const valA = a[key]?.toUpperCase?.() || "";
     const valB = b[key]?.toUpperCase?.() || "";
@@ -246,16 +266,13 @@ window.sortTableBy = function (key) {
     if (valA > valB) return window.sortTableBy.asc ? 1 : -1;
     return 0;
   });
-
   tbody.innerHTML = "";
   jobsOnScreen.forEach(job => tbody.appendChild(job.element));
 };
 
-// Membaca dan parsing file Excel
 function parseExcel(file) {
   const reader = new FileReader();
   showNotification("Memulai proses upload file...");
-
   reader.onload = function (e) {
     try {
       const data = new Uint8Array(e.target.result);
@@ -268,46 +285,35 @@ function parseExcel(file) {
         fileInput.value = "";
         return;
       }
-
       const requiredKeys = ["Job No", "Delivery Date"];
       const firstRow = Object.keys(json[0]);
       const missingHeaders = requiredKeys.filter(key => !firstRow.includes(key));
-
       if (missingHeaders.length > 0) {
         showNotification(`File tidak bisa diproses pastikan baris pertama harus ${missingHeaders.join(", ")}`, true);
         fileInput.value = "";
         return;
       }
-
       syncJobsToFirebase(json);
     } catch (err) {
-      console.error("Gagal parsing Excel:", err);
       showNotification("Terjadi kesalahan saat membaca file Excel.", true);
     }
     fileInput.value = "";
   };
-
   reader.readAsArrayBuffer(file);
 }
 
-// Menyimpan data dari Excel ke Firebase (per job, aman)
 function syncJobsToFirebase(jobs) {
   let uploadCount = 0;
   let errorCount = 0;
-
   jobs.forEach(job => {
     const jobNo = sanitizeValue(job["Job No"]);
     if (!jobNo || /[.#$\[\]]/.test(jobNo)) {
-      console.warn("Lewatkan jobNo invalid:", jobNo);
       return;
     }
-
     const formattedDate = formatDate(job["Delivery Date"]);
     const jobRef = ref(db, "outboundJobs/" + jobNo);
-
     get(jobRef).then(existingSnap => {
       const existing = existingSnap.exists() ? existingSnap.val() : {};
-
       const jobData = {
         jobNo,
         deliveryDate: sanitizeValue(formattedDate),
@@ -318,7 +324,6 @@ function syncJobsToFirebase(jobs) {
         team: existing.team || "",
         jobType: existing.jobType || ""
       };
-
       return set(jobRef, jobData);
     })
     .then(() => {
@@ -328,9 +333,8 @@ function syncJobsToFirebase(jobs) {
         loadJobsFromFirebase();
       }
     })
-    .catch(error => {
+    .catch(() => {
       errorCount++;
-      console.error("Error update job:", jobNo, error);
       if (uploadCount + errorCount === jobs.length) {
         showNotification("Upload selesai. Berhasil: " + uploadCount + ", Gagal: " + errorCount, true);
       }
@@ -338,18 +342,15 @@ function syncJobsToFirebase(jobs) {
   });
 }
 
-// Load data dari Firebase
 function loadJobsFromFirebase() {
   jobTable.innerHTML = "";
   allJobsData = [];
-
   get(ref(db, "outboundJobs"))
     .then(snapshot => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         const uniqueDates = new Set();
         const uniqueTeams = new Set();
-
         Object.values(data).forEach(job => {
           allJobsData.push(job);
           const row = createTableRow(job);
@@ -357,32 +358,26 @@ function loadJobsFromFirebase() {
           uniqueDates.add(job.deliveryDate);
           uniqueTeams.add(job.team || "");
         });
-
         populateDateOptions(uniqueDates);
         populateTeamOptions(uniqueTeams);
       }
     })
-    .catch(error => {
-      console.error("Gagal mengambil data:", error);
+    .catch(() => {
       showNotification("Gagal mengambil data dari Firebase.", true);
     });
 }
 
-// MULTI FILTER - berdasarkan status, tanggal, dan team
 function applyMultiFilter() {
   const selectedStatus = statusOptions.value;
   const selectedDate = dateOptions.value;
   const selectedTeam = teamOptions.value;
-
   jobTable.innerHTML = "";
   filteredJobs = [];
-
   allJobsData.forEach(job => {
     const matchStatus = selectedStatus === "all" || job.status === selectedStatus;
     const matchDate = selectedDate === "all" || job.deliveryDate === selectedDate;
     const isBlankTeam = !job.team || job.team.toLowerCase() === "none";
     const matchTeam = selectedTeam === "all" || (selectedTeam === "none" && isBlankTeam) || job.team === selectedTeam;
-
     if (matchStatus && matchDate && matchTeam) {
       jobTable.appendChild(createTableRow(job));
       filteredJobs.push(job);
@@ -395,17 +390,14 @@ function refreshDataWithoutReset() {
     const data = snapshot.val();
     jobTable.innerHTML = "";
     allJobsData = [];
-
     if (data) {
       const uniqueDates = new Set();
       const uniqueTeams = new Set();
-
       Object.values(data).forEach(job => {
         allJobsData.push(job);
         uniqueDates.add(job.deliveryDate);
         uniqueTeams.add(job.team || "");
       });
-
       applyMultiFilter();
       updateFilterIndicator();
     }
@@ -416,14 +408,10 @@ function updateFilterIndicator() {
   const status = statusOptions.value;
   const date = dateOptions.value;
   const team = teamOptions.value;
-
   const filters = [];
   if (status !== "all") filters.push(`Status: ${status}`);
   if (date !== "all") filters.push(`Date: ${date}`);
-  if (team !== "all") {
-    filters.push(`Team: ${team === "none" ? "None/blank" : team}`);
-  }
-
+  if (team !== "all") filters.push(`Team: ${team === "none" ? "None/blank" : team}`);
   const filterIndicator = document.getElementById("filterIndicator");
   if (filters.length > 0) {
     filterIndicator.textContent = "Filtered by: " + filters.join(" | ");
@@ -438,7 +426,6 @@ function closeAllDropdowns() {
   teamDropdown.style.display = "none";
 }
 
-// Navigasi
 window.navigateTo = function (page) {
   window.location.href = page;
 };
@@ -446,8 +433,6 @@ window.navigateTo = function (page) {
 /* =========================
     INISIALISASI & EVENT LISTENER
 ========================= */
-
-// Ambil elemen DOM
 const fileInput = document.getElementById("fileInput");
 const uploadBtn = document.getElementById("uploadBtn");
 const jobTable = document.getElementById("jobTable").getElementsByTagName("tbody")[0];
@@ -473,28 +458,24 @@ let selectedSingleJob = null;
 let allJobsData = [];
 let filteredJobs = [];
 let currentSort = { key: null, asc: true };
-let isStatusOpen = false;
-let isDateOpen = false;
-let isTeamOpen = false;
 
-// Event listener untuk tombol set plan target
+// Plan Target
 setPlanTargetBtn?.addEventListener("click", handleSetPlanTarget);
 
-// Event utama
+// Upload Excel
 uploadBtn.addEventListener("click", () => {
   const file = fileInput.files[0];
   if (file) parseExcel(file);
   else showNotification("Pilih file Excel terlebih dahulu.", true);
 });
 
+// Bulk assign
 bulkAddBtn.addEventListener("click", async () => {
   const selectedJobs = getSelectedJobs();
   if (selectedJobs.length === 0) {
     showNotification("Pilih minimal satu job.", true);
     return;
   }
-
-  // Cek semua job yang dipilih, pastikan BELUM ada team
   let jobsWithTeam = [];
   await Promise.all(
     selectedJobs.map(async (jobNo) => {
@@ -508,7 +489,6 @@ bulkAddBtn.addEventListener("click", async () => {
       }
     })
   );
-
   if (jobsWithTeam.length > 0) {
     showNotification(
       "Terdapat job yang sudah di-assign ke team dan tidak dapat lanjut bulk assign:\n" +
@@ -517,79 +497,23 @@ bulkAddBtn.addEventListener("click", async () => {
     );
     return;
   }
-
-  // Semua job belum di-assign, boleh lanjut assign
-  selectedSingleJob = null; // supaya di modal assign mode bulk
+  selectedSingleJob = null;
   window.jobsToBulkAssign = selectedJobs;
   showModal();
 });
 
-jobTable.addEventListener("click", e => {
-  // Handler Assign Job
-  if (e.target.classList.contains("add-single")) {
-    const anyChecked = document.querySelector("tbody input[type='checkbox']:checked");
-    if (anyChecked) return showNotification("Kosongkan centang terlebih dahulu.", true);
-
-    const jobNo = e.target.getAttribute("data-jobno");
-    const jobRef = ref(db, "outboundJobs/" + jobNo);
-
-    get(jobRef).then(snapshot => {
-      if (!snapshot.exists()) {
-        return showNotification("❌ Job tidak ditemukan di database.", true);
-      }
-      const jobData = snapshot.val();
-      if (jobData.team && jobData.team.trim() !== "") {
-        showNotification("⚠️ Job ini sudah di-assign ke team " + jobData.team, true);
-        return;
-      }
-      selectedSingleJob = jobNo;
-      showModal();
-    });
-  }
-  // Handler Unassign Job
-  if (e.target.classList.contains("unassign-single")) {
-    const jobNo = e.target.getAttribute("data-jobno");
-    const jobRef = ref(db, "outboundJobs/" + jobNo);
-    get(jobRef).then(snapshot => {
-      if (!snapshot.exists()) {
-        return showNotification("❌ Job tidak ditemukan di database.", true);
-      }
-
-      const jobData = snapshot.val();
-      if (!jobData.team) {
-        return showNotification("⚠️ Job ini belum di-assign ke team manapun.", true);
-      }
-
-      showConfirmModal({
-        title: "Konfirmasi Unassign",
-        message: "Apakah Anda yakin ingin membatalkan assignment job ini?",
-        okText: "Unassign",
-        okClass: "logout",
-        onConfirm: () => {
-          update(jobRef, { team: "", jobType: "" })
-            .then(() => {
-              showNotification("✅ Job berhasil di-unassign.");
-              refreshDataWithoutReset();
-            })
-            .catch(err => {
-              console.error(err);
-              showNotification("❌ Gagal menghapus assignment job.", true);
-            });
-        }
-      });
-    });
-  }
-});
-
+// Assign Modal
 confirmAdd.addEventListener("click", async () => {
   const team = document.getElementById("teamSelect").value;
   const jobType = document.getElementById("jobTypeSelect").value;
-  const jobsToUpdate = selectedSingleJob ? [selectedSingleJob] : getSelectedJobs();
+  const jobsToUpdate =
+    window.jobsToBulkAssign && Array.isArray(window.jobsToBulkAssign) && window.jobsToBulkAssign.length > 0
+      ? window.jobsToBulkAssign
+      : (selectedSingleJob ? [selectedSingleJob] : getSelectedJobs());
   const loadingIndicator = document.getElementById("loadingIndicator");
 
   if (jobsToUpdate.length === 0) return showNotification("Tidak ada job yang dipilih.", true);
 
-  // Tampilkan loading
   loadingIndicator.style.display = "block";
   confirmAdd.disabled = true;
 
@@ -599,16 +523,13 @@ confirmAdd.addEventListener("click", async () => {
         update(ref(db, "outboundJobs/" + jobNo), { team, jobType })
       )
     );
-
     showNotification(`Job berhasil ditambahkan ke team: ${team}`);
     selectedSingleJob = null;
-
-    // Setelah sukses
+    window.jobsToBulkAssign = null;
     hideModal();
     refreshDataWithoutReset();
   } catch (error) {
     showNotification("Gagal menyimpan data ke Firebase.", true);
-    console.error(error);
   } finally {
     loadingIndicator.style.display = "none";
     confirmAdd.disabled = false;
@@ -624,7 +545,6 @@ closeModal.addEventListener("click", hideModal);
 window.addEventListener("click", (e) => { if (e.target === modal) hideModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideModal(); });
 
-// TOMBOL DROPDOWN FILTER
 sortStatusBtn.addEventListener("click", () => {
   const isCurrentlyOpen = statusDropdown.style.display === "block";
   closeAllDropdowns();
@@ -632,7 +552,6 @@ sortStatusBtn.addEventListener("click", () => {
     statusDropdown.style.display = "block";
   }
 });
-
 sortDateBtn.addEventListener("click", () => {
   const isCurrentlyOpen = dateDropdown.style.display === "block";
   closeAllDropdowns();
@@ -640,7 +559,6 @@ sortDateBtn.addEventListener("click", () => {
     dateDropdown.style.display = "block";
   }
 });
-
 sortTeamBtn.addEventListener("click", () => {
   const isCurrentlyOpen = teamDropdown.style.display === "block";
   closeAllDropdowns();
@@ -648,8 +566,6 @@ sortTeamBtn.addEventListener("click", () => {
     teamDropdown.style.display = "block";
   }
 });
-
-// FILTER saat dropdown berubah
 statusOptions.addEventListener("change", () => {
   applyMultiFilter();
   updateFilterIndicator();
@@ -666,36 +582,25 @@ teamOptions.addEventListener("change", () => {
   teamDropdown.style.display = "none";
 });
 
-// Load pertama kali saat halaman dimuat
 loadJobsFromFirebase();
-
-// Event listener tombol
 document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
 
 // ========== Logout Modal ==========
-
 const logoutBtn = document.getElementById("logoutBtn");
 const logoutModal = document.getElementById("logoutModal");
 const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
 const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
 
-// Show modal logout saat klik tombol logout
 logoutBtn?.addEventListener("click", () => {
   logoutModal.style.display = "block";
 });
-
-// Batal logout
 cancelLogoutBtn?.addEventListener("click", () => {
   logoutModal.style.display = "none";
 });
-
-// Konfirmasi logout
 confirmLogoutBtn?.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "../index.html";
 });
-
-// Tutup modal jika klik di luar area modal-content
 window.addEventListener("click", (e) => {
   if (e.target === logoutModal) {
     logoutModal.style.display = "none";
