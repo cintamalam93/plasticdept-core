@@ -28,7 +28,7 @@ form.onsubmit = (e) => {
   if (user) {
     localStorage.setItem('user', JSON.stringify(user));
     // Redirect ke outbound app (bisa diubah sesuai role)
-    window.location.href = '/outbound/';
+    window.location.href = '/outbound/index.html';
   } else {
     document.getElementById('error').textContent = 'Username/password salah';
   }
