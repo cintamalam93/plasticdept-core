@@ -606,28 +606,3 @@ window.addEventListener("click", (e) => {
     logoutModal.style.display = "none";
   }
 });
-
-
-// Menghitung top Secara Dinamis
-document.addEventListener('DOMContentLoaded', () => {
-  const headerBar = document.querySelector('.header-bar');
-  const notification = document.querySelector('#notification');
-  const topBar = document.querySelector('.top-bar');
-  const toolbar = document.querySelector('.toolbar');
-  const filter = document.querySelector('#filterIndicator');
-
-  const totalOffset =
-    (headerBar?.offsetHeight || 0) +
-    (notification?.offsetHeight || 0) +
-    (topBar?.offsetHeight || 0) +
-    (toolbar?.offsetHeight || 0) +
-    (filter?.offsetHeight || 0);
-
-  document.querySelectorAll('thead th').forEach((th) => {
-    th.style.position = 'sticky';
-    th.style.top = totalOffset + 'px';
-    th.style.background = 'white';
-    th.style.zIndex = 10;
-  });
-});
-
