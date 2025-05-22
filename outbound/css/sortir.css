@@ -82,7 +82,13 @@ body {
 .logout-absolute:hover { background: #c0392b; }
 
 .notification-bar {
+  position: sticky;
+  top: 72px;
+  z-index: 101px;
   display: none;
+  align-items: center;     /* center secara vertikal */
+  justify-content: center; /* center secara horizontal */
+  text-align: center;  
   margin-bottom: 18px;
   padding: 11px 18px;
   border-radius: 6px;
