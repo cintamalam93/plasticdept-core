@@ -22,6 +22,7 @@ body {
   align-items: center;
   justify-content: space-between;
   min-height: 56px;
+  height: 72px;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   padding: 0 24px 0 0;
@@ -151,7 +152,7 @@ body {
   z-index: 98;
   background: #e5eafc;
   border-radius: 10px;
-  box-shadow: 0 1px 8px rgba(33,118,174,0.04);
+  box-shadow: 0 2px 8px rgba(33,118,174,0.07);
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
@@ -251,7 +252,6 @@ table {
 /* Adjust top value: sum of header-bar + top-bar + toolbar */
 thead th {
   position: sticky;
-  top: 192px; /* header-bar (72) + top-bar (64) + toolbar (56) */
   z-index: 97;
   background: linear-gradient(90deg, #e5eafc 70%, #f2f8fc 100%);
   color: #2176ae;
