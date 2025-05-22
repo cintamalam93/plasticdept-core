@@ -83,7 +83,7 @@ body {
 
 .notification-bar {
   position: fixed;         /* Agar selalu terlihat di layar */
-  top: 20px;               /* Jarak dari atas layar */
+  top: 35px;               /* Jarak dari atas layar */
   left: 50%;               /* Mulai dari tengah layar */
   transform: translateX(-50%); /* Geser ke kiri setengah lebar elemen */
   z-index: 10000;          /* Pastikan di atas elemen lain */
@@ -97,6 +97,11 @@ body {
   text-align: center;      /* Teks di tengah */
   font-weight: 500;
   box-shadow: 0 4px 16px rgba(231,76,60,0.10);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.notification-bar.show {
+  opacity: 1;
 }
 .notification-bar.error {
   background: #ffebeb;
@@ -206,9 +211,9 @@ body {
   box-shadow: 0 2px 10px rgba(33,118,174,0.11);
 }
 .toolbar .team-buttons button {
-  background: #fff;
-  color: #2176ae;
-  border: 1.3px solid #2176ae;
+  background: #46cddb;
+  color: #000000;
+  border: 1.3px solid #46cddb;
   margin-right: 5px;
   transition: background 0.18s, color 0.18s;
 }
@@ -281,7 +286,7 @@ th:last-child, td:last-child {
   border-right: none;
 }
 thead th:hover {
-  background: #0a8fdc;
+  background: #179bec;
   transition: background 0.2s;
 }
 thead th:first-child, tbody td:first-child {
@@ -297,10 +302,10 @@ tbody tr:nth-child(odd) {
   background: #f6fafd;
 }
 tbody tr:hover {
-  background: #eaf6ff;
+  background: #b0c4d3;
   transition: background 0.13s;
 }
-.badge-info { background: #2176ae; color: #fff; }
+.badge-info { background: #e93434; color: #fff; }
 .badge-success { background: #2ecc71; color: #fff; }
 .badge-warning { background: #f1c40f; color: #6f580d; }
 .badge-danger { background: #e74c3c; color: #fff; }
