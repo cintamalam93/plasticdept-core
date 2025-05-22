@@ -103,7 +103,7 @@ body {
   align-items: center;
   margin-bottom: 0;
   position: sticky;
-  top: 56px;
+  top: 40px;
   z-index: 40;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
@@ -160,8 +160,8 @@ body {
   padding: 16px 10px 12px 10px;
   margin-bottom: 0;
   position: sticky;
-  top: 100px;
-  z-index: 35;
+  top: 96px;
+  z-index: 101;
 }
 
 /* Group buttons inside toolbar for better spacing */
@@ -259,8 +259,8 @@ thead th {
   padding: 12px 8px;
   border-bottom: 2px solid #c9e2f5;
   position: sticky;
-  top: 158px; /* 56(header) + 32(topbar) + 70(toolbar) approx */
-  z-index: 30;
+  top: 136px; /* 56(header) + 32(topbar) + 70(toolbar) approx */
+  z-index: 102;
   text-align: left;
   user-select: none;
   cursor: pointer;
