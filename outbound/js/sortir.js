@@ -10,10 +10,12 @@ function showNotification(message, isError = false) {
   notification.textContent = message;
   notification.style.display = 'block';
   notification.classList.toggle('error', isError);
+  notification.classList.toggle('success', !isError);
 
   setTimeout(() => {
     notification.style.display = 'none';
-  }, 4000);
+    notification.classList.remove('error', 'success');
+  }, 3000);
 }
 
 function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?", okText = "OK", cancelText = "Batal", okClass = "", onConfirm, onCancel }) {
