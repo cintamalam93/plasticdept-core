@@ -12,10 +12,15 @@ function showNotification(message, isError = false) {
   notification.classList.toggle('error', isError);
   notification.classList.toggle('success', !isError);
 
+  // Tambahkan class show (untuk animasi fade-in/fade-out jika pakai CSS)
+  notification.classList.add('show');
+
+  // Hilangkan notif setelah 4 detik
   setTimeout(() => {
+    notification.classList.remove('show', 'error', 'success');
     notification.style.display = 'none';
-    notification.classList.remove('error', 'success');
-  }, 3000);
+    notification.textContent = '';
+  }, 4000);
 }
 
 function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?", okText = "OK", cancelText = "Batal", okClass = "", onConfirm, onCancel }) {
