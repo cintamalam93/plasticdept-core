@@ -20,11 +20,12 @@ body {
   min-height: 56px;
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: 100;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
-  padding-right: 0;
-  margin-bottom: 0;   /* HILANGKAN GAP */
+  padding: 0 24px 0 0;
+  margin-bottom: 0;
+  /* Pastikan tidak ada overflow! */
 }
 .logo-title {
   display: flex;
@@ -39,7 +40,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 52px; /* space for logout */
+  margin-right: 0; /* Hapus margin supaya logout tidak ketumpuk */
 }
 .user-profile .avatar {
   width: 36px;
@@ -55,9 +56,9 @@ body {
   font-size: 1.1rem;
 }
 .logout-absolute {
-  position: absolute;
-  right: 20px;
-  top: 13px;
+  /* Ubah ke inline-flex, bukan absolute */
+  position: static;
+  margin-left: 16px;
   background: #e74c3c;
   color: #fff;
   border-radius: 50%;
@@ -65,7 +66,7 @@ body {
   font-weight: 700;
   font-size: 1.2em;
   border: none;
-  z-index: 100;
+  z-index: 101;
   box-shadow: 0 1px 4px rgba(231,76,60,0.07);
   transition: background 0.18s, color 0.18s;
   width: 38px;
@@ -98,17 +99,12 @@ body {
   border: 1.5px solid #e74c3c;
 }
 .top-bar {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-  margin-bottom: 0;
   position: sticky;
-  top: 40px;
-  z-index: 40;
+  top: 56px; /* Tinggi header-bar */
+  z-index: 90;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding: 8px 0;
 }
 .upload-section,
 .plan-target-container {
@@ -149,6 +145,9 @@ body {
 
 /* Center toolbar and tidy groups */
 .toolbar {
+  position: sticky;
+  top: 96px; /* header-bar + top-bar (56+40) */
+  z-index: 80;
   background: #e5eafc;
   border-radius: 10px;
   box-shadow: 0 1px 8px rgba(33,118,174,0.04);
@@ -159,9 +158,6 @@ body {
   justify-content: center;
   padding: 16px 10px 12px 10px;
   margin-bottom: 0;
-  position: sticky;
-  top: 96px;
-  z-index: 101;
 }
 
 /* Group buttons inside toolbar for better spacing */
@@ -253,14 +249,14 @@ table {
 
 /* Adjust top value: sum of header-bar + top-bar + toolbar */
 thead th {
+  position: sticky;
+  top: 144px; /* header-bar + top-bar + toolbar */
+  z-index: 60;
   background: linear-gradient(90deg, #e5eafc 70%, #f2f8fc 100%);
   color: #2176ae;
   font-weight: 600;
   padding: 12px 8px;
   border-bottom: 2px solid #c9e2f5;
-  position: sticky;
-  top: 136px; /* 56(header) + 32(topbar) + 70(toolbar) approx */
-  z-index: 102;
   text-align: left;
   user-select: none;
   cursor: pointer;
@@ -437,14 +433,10 @@ tbody tr:hover {
   font-size: 1.08em;
 }
 
-/* ========== Responsive ========== */
+/* Responsive tweaks */
 @media (max-width: 900px) {
-  .container { padding: 15px 7px; }
-  .top-bar, .toolbar { flex-direction: column; gap: 10px; }
-  table, thead, tbody, th, td, tr { font-size: 0.93em; }
-  .modal-content { width: 96vw; min-width: 0; }
-  .header-bar { padding-right: 0; }
-  .logout-absolute { right: 8px; top: 8px; width: 32px; height: 32px; font-size: 1em; }
-  .user-profile { margin-right: 44px; }
-  thead th { top: 168px; }
+  .header-bar { min-height: 48px; padding-right: 0; }
+  .top-bar { top: 48px; }
+  .toolbar { top: 88px; }
+  thead th { top: 136px; }
 }
