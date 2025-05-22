@@ -253,6 +253,7 @@ table {
 thead th {
   position: sticky;
   z-index: 97;
+  top: 192px; /* header-bar (72) + top-bar (64) + toolbar (56) */
   background: linear-gradient(90deg, #e5eafc 70%, #f2f8fc 100%);
   color: #2176ae;
   font-weight: 600;
