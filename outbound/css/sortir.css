@@ -18,11 +18,11 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 56px;
-  height: 72px;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   padding: 0 24px 0 0;
@@ -101,8 +101,9 @@ body {
 /* ====== TOP BAR FLEX (UPLOAD + PLAN) ====== */
 .top-bar {
   position: sticky;
-  top: 72px;
+  top: 136px; 
   z-index: 99;
+  min-height: 114px;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   display: flex;
@@ -249,7 +250,7 @@ table {
 thead th {
   position: sticky;
   z-index: 97;
-  top: 176px; /* header-bar(72) + top-bar(48) + toolbar(56), sesuaikan jika toolbar lebih tinggi */
+  top: 250px; 
   background: #fff;
   color: #2176ae;
   font-weight: 600;
