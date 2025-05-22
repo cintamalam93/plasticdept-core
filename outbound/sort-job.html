@@ -37,12 +37,13 @@
 
     <div id="notification" class="notification-bar"></div>
 
+    <!-- Upload + Plan Target in one bar, flex -->
     <div class="top-bar">
-      <div class="upload-section">
+      <div class="top-bar-left">
         <input type="file" id="fileInput" accept=".xlsx, .xls" />
         <button id="uploadBtn">Upload</button>
       </div>
-      <div class="plan-target-container" id="planTargetSection">
+      <div class="top-bar-right">
         <label for="planTargetInput"><strong>Set Plan Target (Kg):</strong></label>
         <input type="number" id="planTargetInput" placeholder="Masukkan jumlah target" min="0">
         <select id="planTeamSelector">
