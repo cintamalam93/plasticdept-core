@@ -251,7 +251,7 @@ table {
 thead th {
   position: sticky;
   z-index: 97;
-  top: 250px; 
+  top: 300px; 
   background: #fff;
   color: #2176ae;
   font-weight: 600;
