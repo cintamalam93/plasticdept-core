@@ -148,7 +148,7 @@ body {
 /* ====== TOOLBAR ====== */
 .toolbar {
   position: sticky;
-  top: 136px; /* header-bar(72) + top-bar(48) */
+  top: 146px; /* header-bar(72) + top-bar(48) */
   z-index: 98;
   min-height: 114px;
   background: #e5eafc;
