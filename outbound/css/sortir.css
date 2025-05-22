@@ -82,26 +82,31 @@ body {
 .logout-absolute:hover { background: #c0392b; }
 
 .notification-bar {
-  position: sticky;
-  top: 72px;
-  z-index: 101px;
-  display: none;
-  align-items: center;     /* center secara vertikal */
-  justify-content: center; /* center secara horizontal */
-  text-align: center;  
-  margin-bottom: 18px;
-  padding: 11px 18px;
-  border-radius: 6px;
+  position: fixed;         /* Agar selalu terlihat di layar */
+  top: 20px;               /* Jarak dari atas layar */
+  left: 50%;               /* Mulai dari tengah layar */
+  transform: translateX(-50%); /* Geser ke kiri setengah lebar elemen */
+  z-index: 10000;          /* Pastikan di atas elemen lain */
+  min-width: 300px;        /* Supaya tidak terlalu kecil */
+  max-width: 90vw;         /* Responsif */
+  background: #ffebeb;     /* Contoh warna error, sesuaikan */
+  color: #e74c3c;
+  border: 1.5px solid #e74c3c;
+  border-radius: 8px;
+  padding: 12px 28px;
+  text-align: center;      /* Teks di tengah */
   font-weight: 500;
-  font-size: 1.06em;
-  color: #215d8a;
-  background: #e5eafc;
-  box-shadow: 0 1px 7px rgba(33,118,174,0.08);
+  box-shadow: 0 4px 16px rgba(231,76,60,0.10);
 }
 .notification-bar.error {
-  color: #e74c3c;
   background: #ffebeb;
+  color: #e74c3c;
   border: 1.5px solid #e74c3c;
+}
+.notification-bar.success {
+  background: #e9f9ec;
+  color: #229954;
+  border: 1.5px solid #229954;
 }
 
 /* ====== TOP BAR FLEX (UPLOAD + PLAN) ====== */
@@ -251,6 +256,7 @@ table {
   width: 100%;
   background: #fff;
   box-shadow: 0 2px 8px rgba(23, 65, 115, 0.03);
+  font-weight: bold;
 }
 
 /* ====== TABLE HEADER STICKY ====== */
@@ -258,14 +264,25 @@ thead th {
   position: sticky;
   z-index: 97;
   top: 300px; 
-  background: #fff;
-  color: #2176ae;
+  background: #0574be;
+  color: #fafafa;
   font-weight: 600;
   padding: 12px 8px;
   border-bottom: 2px solid #c9e2f5;
   text-align: center;
   user-select: none;
   cursor: pointer;
+}
+th, td {
+  border-right: 1px solid #ccc;
+  /* opsional: hilangkan border paling kanan */
+}
+th:last-child, td:last-child {
+  border-right: none;
+}
+thead th:hover {
+  background: #0a8fdc;
+  transition: background 0.2s;
 }
 thead th:first-child, tbody td:first-child {
   text-align: center;
