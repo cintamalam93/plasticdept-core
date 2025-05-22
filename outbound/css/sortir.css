@@ -27,7 +27,6 @@ body {
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   padding: 0 24px 0 0;
   margin-bottom: 0;
-  /* Pastikan tidak ada overflow! */
 }
 .logo-title {
   display: flex;
@@ -36,13 +35,12 @@ body {
   font-size: 1.7rem;
   font-weight: 700;
   color: #2176ae;
-  /* padding-bottom: 0; */
 }
 .user-profile {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 0; /* Hapus margin supaya logout tidak ketumpuk */
+  margin-right: 0;
 }
 .user-profile .avatar {
   width: 36px;
@@ -58,7 +56,6 @@ body {
   font-size: 1.1rem;
 }
 .logout-absolute {
-  /* Ubah ke inline-flex, bukan absolute */
   position: static;
   margin-left: 16px;
   background: #e74c3c;
@@ -100,23 +97,25 @@ body {
   background: #ffebeb;
   border: 1.5px solid #e74c3c;
 }
+
+/* ====== TOP BAR FLEX (UPLOAD + PLAN) ====== */
 .top-bar {
   position: sticky;
-  top: 72px; /* GANTI dengan tinggi header-bar */
+  top: 72px;
   z-index: 99;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
-  padding: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 0;
 }
-.upload-section,
-.plan-target-container {
-  background: #f4f8fd;
-  border-radius: 8px;
-  padding: 10px 16px;
+.top-bar-left,
+.top-bar-right {
   display: flex;
   align-items: center;
   gap: 10px;
-  box-shadow: 0 1px 4px rgba(23, 65, 115, 0.05);
 }
 .top-bar label {
   font-weight: 500;
@@ -145,10 +144,10 @@ body {
   background: #185a89;
 }
 
-/* Center toolbar and tidy groups */
+/* ====== TOOLBAR ====== */
 .toolbar {
   position: sticky;
-  top: 136px; /* header-bar (72px) + top-bar (64px) */
+  top: 120px; /* header-bar(72) + top-bar(48) */
   z-index: 98;
   background: #e5eafc;
   border-radius: 10px;
@@ -161,8 +160,6 @@ body {
   padding: 16px 10px 12px 10px;
   margin-bottom: 0;
 }
-
-/* Group buttons inside toolbar for better spacing */
 .toolbar > button,
 .toolbar .dropdown-container,
 .toolbar .team-buttons {
@@ -172,7 +169,6 @@ body {
   display: flex;
   gap: 7px;
 }
-
 .toolbar button {
   border: none;
   border-radius: 7px;
@@ -249,12 +245,12 @@ table {
   box-shadow: 0 2px 8px rgba(23, 65, 115, 0.03);
 }
 
-/* Adjust top value: sum of header-bar + top-bar + toolbar */
+/* ====== TABLE HEADER STICKY ====== */
 thead th {
   position: sticky;
   z-index: 97;
-  top: 192px; /* header-bar (72) + top-bar (64) + toolbar (56) */
-  background: linear-gradient(90deg, #e5eafc 70%, #f2f8fc 100%);
+  top: 176px; /* header-bar(72) + top-bar(48) + toolbar(56), sesuaikan jika toolbar lebih tinggi */
+  background: #fff;
   color: #2176ae;
   font-weight: 600;
   padding: 12px 8px;
@@ -435,10 +431,11 @@ tbody tr:hover {
   font-size: 1.08em;
 }
 
-/* Responsive tweaks */
+/* ====== Responsive tweaks ====== */
 @media (max-width: 900px) {
-  .header-bar { min-height: 48px; padding-right: 0; }
-  .top-bar { top: 48px; }
-  .toolbar { top: 88px; }
-  thead th { top: 136px; }
+  .header-bar { min-height: 48px; padding-right: 0; height: 56px; }
+  .top-bar { flex-direction: column; align-items: stretch; gap: 10px; top: 48px; }
+  .top-bar-left, .top-bar-right { justify-content: flex-start; }
+  .toolbar { top: 104px; }
+  thead th { top: 160px; }
 }
