@@ -5,6 +5,7 @@ body {
   margin: 0;
 }
 .container {
+  overflow: visible !important;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(23, 65, 115, 0.08);
@@ -14,13 +15,13 @@ body {
   position: relative;
 }
 .header-bar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: 56px;
-  position: sticky;
-  top: 0;
-  z-index: 100;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   padding: 0 24px 0 0;
@@ -100,8 +101,8 @@ body {
 }
 .top-bar {
   position: sticky;
-  top: 56px; /* Tinggi header-bar */
-  z-index: 90;
+  top: 72px; /* GANTI dengan tinggi header-bar */
+  z-index: 99;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   padding: 8px 0;
@@ -146,8 +147,8 @@ body {
 /* Center toolbar and tidy groups */
 .toolbar {
   position: sticky;
-  top: 96px; /* header-bar + top-bar (56+40) */
-  z-index: 80;
+  top: 136px; /* header-bar (72px) + top-bar (64px) */
+  z-index: 98;
   background: #e5eafc;
   border-radius: 10px;
   box-shadow: 0 1px 8px rgba(33,118,174,0.04);
@@ -250,14 +251,14 @@ table {
 /* Adjust top value: sum of header-bar + top-bar + toolbar */
 thead th {
   position: sticky;
-  top: 144px; /* header-bar + top-bar + toolbar */
-  z-index: 60;
+  top: 192px; /* header-bar (72) + top-bar (64) + toolbar (56) */
+  z-index: 97;
   background: linear-gradient(90deg, #e5eafc 70%, #f2f8fc 100%);
   color: #2176ae;
   font-weight: 600;
   padding: 12px 8px;
   border-bottom: 2px solid #c9e2f5;
-  text-align: left;
+  text-align: center;
   user-select: none;
   cursor: pointer;
 }
