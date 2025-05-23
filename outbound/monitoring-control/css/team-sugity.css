@@ -2,12 +2,14 @@
    Styling for Container and Info Section
 ======================================= */
 .container {
+  overflow: visible !important;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 16px rgba(23, 65, 115, 0.08);
+  margin: 36px auto;
+  padding: 32px 32px 24px 32px;
   max-width: 1440px;
-  font-family: 'Roboto', sans-serif;
-  padding: 30px;
-  background-color: #f9f9f9;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 /* =======================================
