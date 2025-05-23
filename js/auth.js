@@ -69,16 +69,16 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         localStorage.setItem("username", pic); // PIC menggantikan username
 
         if (team === "Sugity") {
-          window.location.href = "team-sugity.html";
+          window.location.href = "/plasticdept-core/outbound/monitoring-control/team-sugity.html";
         } else if (team === "Reguler") {
-          window.location.href = "team-reguler.html";
+          window.location.href = "/plasticdept-core/outbound/monitoring-control/team-reguler.html";
         } else {
           throw new Error("Team tidak valid.");
         }
       } else {
         // Bukan operator → simpan username biasa dan arahkan ke sortir
         localStorage.setItem("username", username);
-        window.location.href = "/outbound/monitoring-control/sort-job.html";
+        window.location.href = "/plasticdept-core/outbound/monitoring-control/sort-job.html";
       }
     } else {
       throw new Error("Username atau password salah!");
