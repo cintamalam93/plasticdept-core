@@ -94,7 +94,7 @@ function renderChart(achievedQty, totalQty) {
       datasets: [{
         data: [achievedQty, remainingQty],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
-        hoverOffset: 6,
+        hoverOffset: 12, // efek slice lebih besar saat hover
         borderWidth: 2
       }]
     },
@@ -109,7 +109,23 @@ function renderChart(achievedQty, totalQty) {
         easing: "easeOutQuart"
       },
       plugins: {
-        tooltip: { enabled: false },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.raw.toLocaleString();
+              return `${label}: ${value} kg`;
+            }
+          },
+          backgroundColor: "#fff",
+          titleColor: "#2c3e50",
+          bodyColor: "#2c3e50",
+          borderColor: "#2ecc71",
+          borderWidth: 1,
+          titleFont: { weight: 'bold' },
+          bodyFont: { weight: 'normal' }
+        },
         legend: { display: false },
         centerText: {
           text: `${percentage}%`
