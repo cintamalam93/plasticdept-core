@@ -462,9 +462,93 @@ tbody tr:hover {
 }
 
 /* Responsive tweaks: update nilai top hanya jika tinggi nyata sticky bar di atasnya berubah di mobile */
-@media (max-width: 900px) {
-  .header-bar { min-height: 48px; padding-right: 0; height: 56px; }
-  .top-bar { top: 56px; height: 56px; }
-  .toolbar { top: 112px; min-height: 114px; }
-  thead th { top: 226px; }
+@media (max-width: 600px) {
+  .header-bar,
+  .top-bar,
+  .top-bar-left,
+  .top-bar-right,
+  .toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 8px 4px !important;
+  }
+
+  .header-bar {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 8px 4px !important;
+  }
+
+  .logo-title {
+    font-size: 1.1rem !important;
+    justify-content: flex-start;
+    gap: 7px !important;
+  }
+
+  .user-profile {
+    margin-top: 8px !important;
+    justify-content: flex-start !important;
+  }
+
+  .top-bar {
+    height: auto !important;
+    padding: 8px 4px !important;
+    gap: 8px !important;
+  }
+  .top-bar-left,
+  .top-bar-right {
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+  .top-bar input,
+  .top-bar select,
+  .top-bar button {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 6px !important;
+    font-size: 1em !important;
+  }
+
+  .toolbar {
+    min-height: 0 !important;
+    padding: 10px 2px 8px 2px !important;
+    gap: 7px !important;
+    flex-wrap: wrap !important;
+    overflow-x: auto;
+  }
+  .toolbar button,
+  .toolbar .team-buttons button,
+  .toolbar .dropdown-container,
+  .toolbar .dropdown-menu select {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 5px !important;
+    font-size: 1em !important;
+  }
+  .toolbar .team-buttons {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  .dropdown-container .dropdown-menu {
+    left: 0 !important;
+    min-width: 130px !important;
+    max-width: 100vw !important;
+  }
+
+  table, thead, tbody, th, td, tr {
+    display: block;
+    width: 100% !important;
+    font-size: 0.97em !important;
+  }
+  thead th, tbody td {
+    text-align: left !important;
+    padding: 8px 4px !important;
+  }
+  .table-actions {
+    flex-direction: row !important;
+    gap: 5px !important;
+  }
 }
