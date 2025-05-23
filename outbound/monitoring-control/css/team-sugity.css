@@ -1,6 +1,12 @@
 /* =======================================
    Styling for Container and Info Section
 ======================================= */
+body {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: #f8fafc;
+  color: #232f3e;
+  margin: 0;
+}
 .container {
   overflow: visible !important;
   background: #fff;
