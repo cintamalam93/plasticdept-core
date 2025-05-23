@@ -78,7 +78,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       } else {
         // Bukan operator → simpan username biasa dan arahkan ke sortir
         localStorage.setItem("username", username);
-        window.location.href = "/outbound/.monitoring-control/sort-job.html";
+        window.location.href = "/outbound/monitoring-control/sort-job.html";
       }
     } else {
       throw new Error("Username atau password salah!");
