@@ -278,30 +278,29 @@ function parseExcel(file) {
       const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
       console.log("Hasil sheetData:", sheetData);
 
-      // DETEKSI OTOMATIS baris header
-      const headerIndex = sheetData.findIndex(
-        row => row.includes("JobNo") && row.includes("ETD")
-      );
-      if (headerIndex === -1) {
-        showNotification("Header kolom tidak ditemukan. Pastikan file Excel sesuai format!", true);
-        return;
-      }
-      const headers = sheetData[headerIndex];
-      console.log("Header ditemukan di baris:", headerIndex, headers);
-      const rows = sheetData.slice(headerIndex + 1);
-      console.log("Rows mulai setelah header:", rows);
+      // Baris header di row ke-4 (index 3)
+      const headers = sheetData[3];
+      console.log("Header pada row ke-4 (index 3):", headers);
+
+      // Data mulai dari baris sesudah header, offset kolom +1
+      const rows = sheetData.slice(4);
+
+      // Mapping data: mulai dari kolom ke-2 (index 1)
+      const getColumn = (headerName) => headers.findIndex(h => h === headerName);
+      const offset = 1; // Karena header mulai dari kolom ke-2 (index 1)
 
       const json = rows.map(row => ({
-        JobNo: row[headers.indexOf("JobNo")] ?? "",
-        ETD: row[headers.indexOf("ETD")] ?? "",
-        DeliveryNoteNo: row[headers.indexOf("DeliveryNoteNo")] ?? "",
-        RefNo: row[headers.indexOf("RefNo.")] ?? "",
-        Status: row[headers.indexOf("Status")] ?? "",
-        BCNo: row[headers.indexOf("BCNo")] ?? ""
+        JobNo: row[getColumn("JobNo")] ?? "",
+        ETD: row[getColumn("ETD")] ?? "",
+        DeliveryNoteNo: row[getColumn("DeliveryNoteNo")] ?? "",
+        RefNo: row[getColumn("RefNo.")] ?? "",
+        Status: row[getColumn("Status")] ?? "",
+        BCNo: row[getColumn("BCNo")] ?? ""
       })).filter(job => job.JobNo);
 
       console.log("JSON hasil mapping:", json);
 
+      // Validasi header
       const requiredKeys = ["JobNo", "ETD", "DeliveryNoteNo", "RefNo.", "Status", "BCNo"];
       const missingHeaders = requiredKeys.filter(key => !headers.includes(key));
       if (missingHeaders.length > 0) {
