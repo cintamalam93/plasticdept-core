@@ -51,7 +51,7 @@ function handleSetPlanTarget() {
   const target = parseInt(planTargetInput.value);
 
   if (isNaN(target) || target <= 0) {
-    alert("Masukkan nilai target yang valid.");
+    showNotification("Masukkan nilai target yang valid.", true);
     return;
   }
 
