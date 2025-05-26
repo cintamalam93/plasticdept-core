@@ -276,16 +276,21 @@ function parseExcel(file) {
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
+      console.log("Hasil sheetData:", sheetData);
 
-      console.log("Hasil sheetData:", sheetData); // DEBUG: tampilkan array 2D hasil parsing
+      // DETEKSI OTOMATIS baris header
+      const headerIndex = sheetData.findIndex(
+        row => row.includes("JobNo") && row.includes("ETD")
+      );
+      if (headerIndex === -1) {
+        showNotification("Header kolom tidak ditemukan. Pastikan file Excel sesuai format!", true);
+        return;
+      }
+      const headers = sheetData[headerIndex];
+      console.log("Header ditemukan di baris:", headerIndex, headers);
+      const rows = sheetData.slice(headerIndex + 1);
+      console.log("Rows mulai setelah header:", rows);
 
-      const headers = sheetData[3];
-      console.log("Header row ke-4:", headers);    // DEBUG: tampilkan header yang ditemukan
-
-      const rows = sheetData.slice(4);
-      console.log("Rows mulai row ke-5:", rows);   // DEBUG: tampilkan isi row data
-
-      // Mapping field sesuai instruksi
       const json = rows.map(row => ({
         JobNo: row[headers.indexOf("JobNo")] ?? "",
         ETD: row[headers.indexOf("ETD")] ?? "",
@@ -295,9 +300,8 @@ function parseExcel(file) {
         BCNo: row[headers.indexOf("BCNo")] ?? ""
       })).filter(job => job.JobNo);
 
-      console.log("JSON hasil mapping:", json); // DEBUG
+      console.log("JSON hasil mapping:", json);
 
-      // Validasi header
       const requiredKeys = ["JobNo", "ETD", "DeliveryNoteNo", "RefNo.", "Status", "BCNo"];
       const missingHeaders = requiredKeys.filter(key => !headers.includes(key));
       if (missingHeaders.length > 0) {
@@ -308,7 +312,7 @@ function parseExcel(file) {
 
       syncJobsToFirebase(json);
     } catch (err) {
-      console.error("ERROR parsing Excel:", err); // DEBUG
+      console.error("ERROR parsing Excel:", err);
       showNotification("Terjadi kesalahan saat membaca file Excel.", true);
     }
     fileInput.value = "";
