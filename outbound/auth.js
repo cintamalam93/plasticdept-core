@@ -11,7 +11,7 @@ const loginLoader = document.getElementById("loginLoader");
 const errorMsg = document.getElementById("errorMsg");
 
 positionSelect.addEventListener("change", () => {
-  if (positionSelect.value === "OPERATOR") {
+  if (positionSelect.value === "Operator") {
     operatorFields.style.display = "block";
     usernameContainer.style.display = "none";
     usernameInput.required = false;
