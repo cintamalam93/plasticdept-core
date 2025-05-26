@@ -29,8 +29,18 @@ function showNotification(message, isError = false) {
   }, 4000);
 }
 
+// Fungsi mengatur target plan dari input
 function handleSetPlanTarget() {
-  showNotification("Fitur 'Set Plan Target' belum tersedia.", true);
+  const team = planTeamSelector.value;
+  const target = parseInt(planTargetInput.value);
+
+  if (isNaN(target) || target <= 0) {
+    alert("Masukkan nilai target yang valid.");
+    return;
+  }
+
+  savePlanTargetToFirebase(team, target);
+  planTargetInput.value = "";
 }
 
 /**
@@ -564,7 +574,6 @@ setPlanTargetBtn?.addEventListener("click", handleSetPlanTarget);
 // Listener upload file Excel baru
 uploadBtn.addEventListener("click", () => {
   const file = fileInput.files[0];
-  console.log("Upload button clicked, file:", file); // DEBUG LOG
   if (file) {
     parseExcel(file);
   } else {
