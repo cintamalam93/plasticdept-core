@@ -13,7 +13,7 @@ function createStatusLabel(status) {
   span.classList.add("status-label");
 
   switch (status.toLowerCase()) {
-    case "newjob":
+    case "Pending Pick":
       span.style.backgroundColor = "#e74c3c";
       break;
     case "partialpicked":
