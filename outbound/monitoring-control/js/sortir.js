@@ -741,7 +741,7 @@ cancelLogoutBtn?.addEventListener("click", () => {
 });
 confirmLogoutBtn?.addEventListener("click", () => {
   localStorage.clear();
-  window.location.href = "../index.html";
+  window.location.href = "monitoring-control/sort-job.html"; // ✅ BENAR
 });
 window.addEventListener("click", (e) => {
   if (e.target === logoutModal) {
