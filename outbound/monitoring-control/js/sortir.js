@@ -29,6 +29,10 @@ function showNotification(message, isError = false) {
   }, 4000);
 }
 
+function handleSetPlanTarget() {
+  showNotification("Fitur 'Set Plan Target' belum tersedia.", true);
+}
+
 /**
  * Fungsi helper untuk membersihkan value agar selalu string.
  */
@@ -264,6 +268,7 @@ function clearAllJobs() {
  * Field mapping: JobNo, ETD, DeliveryNoteNo, RefNo., Status, BCNo
  */
 function parseExcel(file) {
+  console.log("parseExcel dijalankan dengan file:", file.name);
   const reader = new FileReader();
   showNotification("Memulai proses upload file...");
   reader.onload = function (e) {
@@ -489,8 +494,12 @@ setPlanTargetBtn?.addEventListener("click", handleSetPlanTarget);
 // Listener upload file Excel baru
 uploadBtn.addEventListener("click", () => {
   const file = fileInput.files[0];
-  if (file) parseExcel(file);
-  else showNotification("Pilih file Excel terlebih dahulu.", true);
+  console.log("Upload button clicked, file:", file); // DEBUG LOG
+  if (file) {
+    parseExcel(file);
+  } else {
+    showNotification("Pilih file Excel terlebih dahulu.", true);
+  }
 });
 
 // Listener tombol bulk assign
