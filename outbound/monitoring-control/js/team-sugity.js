@@ -5,7 +5,6 @@ import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Sugity";
 const picName = localStorage.getItem("pic") || "";
-const PLAN_TARGET_QTY = parseInt(localStorage.getItem("planTarget")) || (currentTeam.toLowerCase() === "reguler" ? 17640 : 35280);
 
 function createStatusLabel(status) {
   const span = document.createElement("span");
@@ -200,7 +199,15 @@ const picMetricHTML = `
 `;
 document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
 
-loadTeamJobs();
+let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
+
+onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
+  if (snapshot.exists()) {
+    PLAN_TARGET_QTY = parseInt(snapshot.val()) || PLAN_TARGET_QTY;
+  }
+
+  loadTeamJobs(); // hanya dipanggil setelah plan target berhasil didapat
+});
 
 const userPosition = localStorage.getItem("position");
 const backBtn = document.getElementById("backToSortirBtn");
