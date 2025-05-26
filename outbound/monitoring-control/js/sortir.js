@@ -268,7 +268,6 @@ function clearAllJobs() {
  * Field mapping: JobNo, ETD, DeliveryNoteNo, RefNo., Status, BCNo
  */
 function parseExcel(file) {
-function parseExcel(file) {
   console.log("parseExcel dijalankan dengan file:", file.name);
   const reader = new FileReader();
   reader.onload = function (e) {
