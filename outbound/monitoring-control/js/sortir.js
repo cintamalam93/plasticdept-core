@@ -104,6 +104,49 @@ function createTableRow(job) {
     </td>
   `;
 
+// Fungsi sorting table langsung dari DOM, tetap bisa digunakan
+window.sortTableBy = function (key) {
+  const tbody = document.querySelector("#jobTable tbody");
+  if (!tbody) {
+    console.warn("Tbody belum tersedia saat sort dijalankan.");
+    return;
+  }
+
+  const rows = Array.from(tbody.querySelectorAll("tr"));
+
+  const jobsOnScreen = rows.map(row => {
+    const cells = row.querySelectorAll("td");
+    return {
+      element: row,
+      jobNo: cells[1]?.textContent.trim(),
+      deliveryDate: cells[2]?.textContent.trim(),
+      deliveryNote: cells[3]?.textContent.trim(),
+      remark: cells[4]?.textContent.trim(),
+      status: cells[5]?.textContent.trim(),
+      qty: parseInt(cells[6]?.textContent.replace(/,/g, "") || "0"),
+      team: cells[7]?.textContent.trim()
+    };
+  });
+
+  if (window.sortTableBy.lastKey === key) {
+    window.sortTableBy.asc = !window.sortTableBy.asc;
+  } else {
+    window.sortTableBy.asc = true;
+  }
+  window.sortTableBy.lastKey = key;
+
+  jobsOnScreen.sort((a, b) => {
+    const valA = a[key]?.toUpperCase?.() || "";
+    const valB = b[key]?.toUpperCase?.() || "";
+    if (valA < valB) return window.sortTableBy.asc ? -1 : 1;
+    if (valA > valB) return window.sortTableBy.asc ? 1 : -1;
+    return 0;
+  });
+
+  tbody.innerHTML = "";
+  jobsOnScreen.forEach(job => tbody.appendChild(job.element));
+};
+
   // Listener tombol assign pada baris
   row.querySelector(".assign").addEventListener("click", async (e) => {
     const jobNo = job.jobNo;
@@ -268,7 +311,6 @@ function clearAllJobs() {
  * Field mapping: JobNo, ETD, DeliveryNoteNo, RefNo., Status, BCNo
  */
 function parseExcel(file) {
-  console.log("parseExcel dijalankan dengan file:", file.name);
   const reader = new FileReader();
   reader.onload = function (e) {
     try {
@@ -286,7 +328,6 @@ function parseExcel(file) {
         fileInput.value = "";
         return;
       }
-      console.log("Header pada row ke-3 (index 2):", headers);
 
       // --- Data mulai dari baris ke-4 (index 3) ---
       const rows = sheetData.slice(headerIndex + 1);
@@ -307,7 +348,7 @@ function parseExcel(file) {
       const missingHeaders = requiredKeys.filter(key => colIndex[key] === -1);
       if (missingHeaders.length > 0) {
         showNotification(
-          `File tidak bisa diproses. Pastikan header berikut ada dan benar penulisannya: ${missingHeaders.join(", ")}`,
+          `File tidak bisa diproses. Pastikan header berikut ada dan benar penulisannya ${missingHeaders.join(", ")}`,
           true
         );
         fileInput.value = "";
@@ -325,8 +366,6 @@ function parseExcel(file) {
           BCNo: row[colIndex.BCNo] ?? ""
         }))
         .filter(job => job.JobNo && job.JobNo.trim() !== ""); // Data valid hanya jika JobNo terisi
-
-      console.log("JSON hasil mapping:", json);
 
       // --- Lanjutkan ke proses berikutnya (misal sync ke Firebase) ---
       syncJobsToFirebase(json);
