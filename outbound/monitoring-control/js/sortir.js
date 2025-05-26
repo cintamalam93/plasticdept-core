@@ -29,6 +29,22 @@ function showNotification(message, isError = false) {
   }, 4000);
 }
 
+function savePlanTargetToFirebase(team, target) {
+  if (!team || isNaN(target) || target <= 0) {
+    showNotification("Data target plan tidak valid.", true);
+    return;
+  }
+  const dbPath = "PlanTarget/" + team;
+  set(ref(db, dbPath), target)
+    .then(() => {
+      showNotification(`Target plan untuk ${team} berhasil disimpan: ${target} kg.`);
+    })
+    .catch((err) => {
+      showNotification("Gagal menyimpan target plan ke database.", true);
+      console.error(err);
+    });
+}
+
 // Fungsi mengatur target plan dari input
 function handleSetPlanTarget() {
   const team = planTeamSelector.value;
