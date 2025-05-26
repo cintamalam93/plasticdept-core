@@ -727,13 +727,13 @@ teamOptions.addEventListener("change", () => {
 document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
 
 // ========== Logout Modal ==========
-const logoutBtn = document.getElementById("logoutBtn");
+const headerLogoutBtn = document.getElementById("headerLogoutBtn");
 const logoutModal = document.getElementById("logoutModal");
 const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
 const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
 
 // Listener tombol logout
-logoutBtn?.addEventListener("click", () => {
+headerLogoutBtn?.addEventListener("click", () => {
   logoutModal.style.display = "block";
 });
 cancelLogoutBtn?.addEventListener("click", () => {
@@ -748,6 +748,21 @@ window.addEventListener("click", (e) => {
     logoutModal.style.display = "none";
   }
 });
+
+// Tampilkan shift dari localStorage di bagian user profile
+const shiftValue = localStorage.getItem("shift");
+const userShiftSpan = document.getElementById("userShift");
+
+if (shiftValue && userShiftSpan) {
+  userShiftSpan.textContent = shiftValue;
+}
+
+// (Opsional) Ganti huruf avatar jadi huruf awal shift
+const userInitialSpan = document.getElementById("userInitial");
+if (shiftValue && userInitialSpan) {
+  userInitialSpan.textContent = shiftValue.charAt(0).toUpperCase();
+}
+
 
 // Load data pertama kali
 loadJobsFromFirebase();
