@@ -1,11 +1,19 @@
-// sortir.js - versi update untuk file Excel baru dan database PhxOutboundJobs
+// sortir.js
+// Versi terbaru: support upload Excel baru, simpan ke root node PhxOutboundJobs, assignment job terhubung node baru
+// Komentar sudah ditambahkan pada setiap fungsi dan listener
 
 import { db } from "./config.js";
 import { ref, set, get, update, remove } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 /* =========================
-    FUNGSI UTILITY/HELPER
+    UTILITY / HELPER FUNCTIONS
 ========================= */
+
+/**
+ * Menampilkan notifikasi pada halaman.
+ * @param {string} message - Pesan yang akan ditampilkan.
+ * @param {boolean} isError - Jika error, notifikasi berwarna merah.
+ */
 function showNotification(message, isError = false) {
   const notification = document.getElementById('notification');
   notification.textContent = message;
@@ -21,12 +29,18 @@ function showNotification(message, isError = false) {
   }, 4000);
 }
 
+/**
+ * Fungsi helper untuk membersihkan value agar selalu string.
+ */
 function sanitizeValue(value) {
   if (typeof value === "object") return "";
   if (typeof value === "function") return "";
   return value ?? "";
 }
 
+/**
+ * Format tanggal menjadi dd-MMM-yyyy.
+ */
 function formatToCustomDate(date) {
   const day = String(date.getUTCDate()).padStart(2, "0");
   const month = date.toLocaleString("en-US", { month: "short", timeZone: "UTC" });
@@ -34,6 +48,9 @@ function formatToCustomDate(date) {
   return `${day}-${month}-${year}`;
 }
 
+/**
+ * Format tanggal dari input berbagai tipe ke custom format.
+ */
 function formatDate(input) {
   if (!input) return "";
   if (typeof input === "number") {
@@ -47,6 +64,9 @@ function formatDate(input) {
   return input;
 }
 
+/**
+ * Badge color untuk status tertentu.
+ */
 function badgeForStatus(status) {
   switch (status) {
     case "NewJob": return "badge-info";
@@ -59,6 +79,9 @@ function badgeForStatus(status) {
   }
 }
 
+/**
+ * Membuat satu baris (row) untuk table job.
+ */
 function createTableRow(job) {
   const row = document.createElement("tr");
   const badgeClass = badgeForStatus(job.status);
@@ -76,6 +99,8 @@ function createTableRow(job) {
       <button class="unassign">Unassign</button>
     </td>
   `;
+
+  // Listener tombol assign pada baris
   row.querySelector(".assign").addEventListener("click", async (e) => {
     const jobNo = job.jobNo;
     if (job.team && job.team.trim() !== "") {
@@ -86,6 +111,7 @@ function createTableRow(job) {
     showModal();
   });
 
+  // Listener tombol unassign pada baris
   row.querySelector(".unassign").addEventListener("click", async (e) => {
     const jobNo = job.jobNo;
     const jobRef = ref(db, "PhxOutboundJobs/" + jobNo);
@@ -119,14 +145,96 @@ function createTableRow(job) {
   return row;
 }
 
+/**
+ * Modal konfirmasi (reusable)
+ */
+function showConfirmModal({ title = "Konfirmasi", message = "Apakah Anda yakin?", okText = "OK", cancelText = "Batal", okClass = "", onConfirm, onCancel }) {
+  const modal = document.getElementById("confirmModal");
+  const titleElem = document.getElementById("confirmModalTitle");
+  const msgElem = document.getElementById("confirmModalMessage");
+  const okBtn = document.getElementById("okConfirmBtn");
+  const cancelBtn = document.getElementById("cancelConfirmBtn");
+
+  titleElem.textContent = title;
+  msgElem.innerHTML = message;
+  okBtn.textContent = okText;
+  cancelBtn.textContent = cancelText;
+
+  okBtn.className = "modal-btn";
+  if (okClass) okBtn.classList.add(okClass);
+
+  const newOkBtn = okBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+  const newCancelBtn = cancelBtn.cloneNode(true);
+  cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+  newOkBtn.onclick = () => {
+    modal.style.display = "none";
+    if (typeof onConfirm === "function") onConfirm();
+  };
+  newCancelBtn.onclick = () => {
+    modal.style.display = "none";
+    if (typeof onCancel === "function") onCancel();
+  };
+
+  modal.style.display = "block";
+  window.addEventListener("click", function handler(e) {
+    if (e.target === modal) {
+      modal.style.display = "none";
+      window.removeEventListener("click", handler);
+    }
+  });
+}
+
+/**
+ * Menyiapkan opsi filter tanggal pada dropdown.
+ */
+function populateDateOptions(dates) {
+  dateOptions.innerHTML = '<option value="all">-- Show All --</option>';
+  [...dates].sort().forEach(date => {
+    const option = document.createElement("option");
+    option.value = date;
+    option.textContent = date;
+    dateOptions.appendChild(option);
+  });
+}
+
+/**
+ * Menyiapkan opsi filter team pada dropdown.
+ */
+function populateTeamOptions(teams) {
+  teamOptions.innerHTML = '<option value="all">-- Show All --</option>';
+  const uniqueTeams = new Set(teams);
+  uniqueTeams.forEach(team => {
+    const value = team.trim() === "" ? "none" : team;
+    const label = team.trim() === "" ? "None/blank" : team;
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    teamOptions.appendChild(option);
+  });
+}
+
+/**
+ * Mengambil data job yang dipilih (checked).
+ */
 function getSelectedJobs() {
   const checkboxes = document.querySelectorAll("tbody input[type='checkbox']:checked");
   return Array.from(checkboxes).map(cb => cb.getAttribute("data-jobno"));
 }
 
+/**
+ * Menampilkan modal assign.
+ */
 function showModal() { modal.style.display = "block"; }
+/**
+ * Menyembunyikan modal assign.
+ */
 function hideModal() { modal.style.display = "none"; }
 
+/**
+ * Menghapus semua job di node PhxOutboundJobs.
+ */
 function clearAllJobs() {
   showConfirmModal({
     title: "Konfirmasi Hapus Semua",
@@ -146,9 +254,15 @@ function clearAllJobs() {
   });
 }
 
-// =====================
-// HANDLE FILE EXCEL BARU
-// =====================
+/* =========================
+   HANDLE EXCEL FILE UPLOAD
+========================= */
+
+/**
+ * Fungsi parsing file Excel sesuai struktur baru.
+ * Header di row ke-4, data mulai row ke-5.
+ * Field mapping: JobNo, ETD, DeliveryNoteNo, RefNo., Status, BCNo
+ */
 function parseExcel(file) {
   const reader = new FileReader();
   showNotification("Memulai proses upload file...");
@@ -189,6 +303,9 @@ function parseExcel(file) {
   reader.readAsArrayBuffer(file);
 }
 
+/**
+ * Simpan data hasil parsing ke PhxOutboundJobs di Firebase.
+ */
 function syncJobsToFirebase(jobs) {
   let uploadCount = 0;
   let errorCount = 0;
@@ -229,6 +346,9 @@ function syncJobsToFirebase(jobs) {
   });
 }
 
+/**
+ * Load jobs dari node baru PhxOutboundJobs ke tabel assignment.
+ */
 function loadJobsFromFirebase() {
   jobTable.innerHTML = "";
   allJobsData = [];
@@ -254,6 +374,9 @@ function loadJobsFromFirebase() {
     });
 }
 
+/**
+ * Refresh data tanpa reset filter (setelah assign/unassign).
+ */
 function refreshDataWithoutReset() {
   get(ref(db, "PhxOutboundJobs")).then(snapshot => {
     const data = snapshot.val();
@@ -273,10 +396,67 @@ function refreshDataWithoutReset() {
   });
 }
 
+/**
+ * Filter multi (status, tanggal, team) pada tabel assignment.
+ */
+function applyMultiFilter() {
+  const selectedStatus = statusOptions.value;
+  const selectedDate = dateOptions.value;
+  const selectedTeam = teamOptions.value;
+  jobTable.innerHTML = "";
+  filteredJobs = [];
+  allJobsData.forEach(job => {
+    const matchStatus = selectedStatus === "all" || job.status === selectedStatus;
+    const matchDate = selectedDate === "all" || job.deliveryDate === selectedDate;
+    const isBlankTeam = !job.team || job.team.toLowerCase() === "none";
+    const matchTeam = selectedTeam === "all" || (selectedTeam === "none" && isBlankTeam) || job.team === selectedTeam;
+    if (matchStatus && matchDate && matchTeam) {
+      jobTable.appendChild(createTableRow(job));
+      filteredJobs.push(job);
+    }
+  });
+}
+
+/**
+ * Update indikator filter aktif di halaman.
+ */
+function updateFilterIndicator() {
+  const status = statusOptions.value;
+  const date = dateOptions.value;
+  const team = teamOptions.value;
+  const filters = [];
+  if (status !== "all") filters.push(`Status: ${status}`);
+  if (date !== "all") filters.push(`Date: ${date}`);
+  if (team !== "all") filters.push(`Team: ${team === "none" ? "None/blank" : team}`);
+  const filterIndicator = document.getElementById("filterIndicator");
+  if (filters.length > 0) {
+    filterIndicator.textContent = "Filtered by: " + filters.join(" | ");
+  } else {
+    filterIndicator.textContent = "";
+  }
+}
+
+/**
+ * Tutup semua dropdown filter.
+ */
+function closeAllDropdowns() {
+  statusDropdown.style.display = "none";
+  dateDropdown.style.display = "none";
+  teamDropdown.style.display = "none";
+}
+
+/**
+ * Fungsi untuk navigasi (jika digunakan).
+ */
+window.navigateTo = function (page) {
+  window.location.href = page;
+};
+
 /* =========================
     INISIALISASI & EVENT LISTENER
 ========================= */
 
+// Ambil semua elemen DOM yang diperlukan
 const fileInput = document.getElementById("fileInput");
 const uploadBtn = document.getElementById("uploadBtn");
 const jobTable = document.getElementById("jobTable").getElementsByTagName("tbody")[0];
@@ -303,16 +483,17 @@ let allJobsData = [];
 let filteredJobs = [];
 let currentSort = { key: null, asc: true };
 
+// Listener tombol set plan target (jika masih digunakan)
 setPlanTargetBtn?.addEventListener("click", handleSetPlanTarget);
 
-// Upload Excel
+// Listener upload file Excel baru
 uploadBtn.addEventListener("click", () => {
   const file = fileInput.files[0];
   if (file) parseExcel(file);
   else showNotification("Pilih file Excel terlebih dahulu.", true);
 });
 
-// Bulk assign
+// Listener tombol bulk assign
 bulkAddBtn.addEventListener("click", async () => {
   const selectedJobs = getSelectedJobs();
   if (selectedJobs.length === 0) {
@@ -322,7 +503,7 @@ bulkAddBtn.addEventListener("click", async () => {
   let jobsWithTeam = [];
   await Promise.all(
     selectedJobs.map(async (jobNo) => {
-      const jobRef = ref(db, "outboundJobs/" + jobNo);
+      const jobRef = ref(db, "PhxOutboundJobs/" + jobNo);
       const snap = await get(jobRef);
       if (snap.exists()) {
         const data = snap.val();
@@ -345,7 +526,7 @@ bulkAddBtn.addEventListener("click", async () => {
   showModal();
 });
 
-// Assign Modal
+// Listener tombol assign di modal
 confirmAdd.addEventListener("click", async () => {
   const team = document.getElementById("teamSelect").value;
   const jobType = document.getElementById("jobTypeSelect").value;
@@ -363,7 +544,7 @@ confirmAdd.addEventListener("click", async () => {
   try {
     await Promise.all(
       jobsToUpdate.map(jobNo =>
-        update(ref(db, "outboundJobs/" + jobNo), { team, jobType })
+        update(ref(db, "PhxOutboundJobs/" + jobNo), { team, jobType })
       )
     );
     showNotification(`Job berhasil ditambahkan ke team: ${team}`);
@@ -379,15 +560,21 @@ confirmAdd.addEventListener("click", async () => {
   }
 });
 
+// Listener select all checkbox
 selectAllCheckbox.addEventListener("change", (e) => {
   document.querySelectorAll("tbody input[type='checkbox']")
     .forEach(cb => cb.checked = e.target.checked);
 });
 
+// Listener tombol close modal
 closeModal.addEventListener("click", hideModal);
+
+// Listener klik di luar modal untuk menutup
 window.addEventListener("click", (e) => { if (e.target === modal) hideModal(); });
+// Listener tombol escape key untuk menutup modal
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") hideModal(); });
 
+// Listener sorting & filter dropdown
 sortStatusBtn.addEventListener("click", () => {
   const isCurrentlyOpen = statusDropdown.style.display === "block";
   closeAllDropdowns();
@@ -425,7 +612,7 @@ teamOptions.addEventListener("change", () => {
   teamDropdown.style.display = "none";
 });
 
-loadJobsFromFirebase();
+// Listener tombol clear database
 document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
 
 // ========== Logout Modal ==========
@@ -434,6 +621,7 @@ const logoutModal = document.getElementById("logoutModal");
 const cancelLogoutBtn = document.getElementById("cancelLogoutBtn");
 const confirmLogoutBtn = document.getElementById("confirmLogoutBtn");
 
+// Listener tombol logout
 logoutBtn?.addEventListener("click", () => {
   logoutModal.style.display = "block";
 });
@@ -450,5 +638,5 @@ window.addEventListener("click", (e) => {
   }
 });
 
+// Load data pertama kali
 loadJobsFromFirebase();
-document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
