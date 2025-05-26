@@ -42,11 +42,11 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
     // Simulasi password untuk setiap posisi
     const positionPasswords = {
-      "OPERATOR": "operator123",
-      "TEAM LEADER": "leader123",
+      "Operator": "operator123",
+      "Team Leader": "leader123",
       "SPV": "spv123",
-      "ASST MANAGER": "asman123",
-      "MANAGER": "manager123"
+      "Asst. Manager": "asstman123",
+      "Manager": "manager123"
     };
 
     // Simulasi proses autentikasi (delay 1s)
@@ -69,16 +69,16 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         localStorage.setItem("username", pic); // PIC menggantikan username
 
         if (team === "Sugity") {
-          window.location.href = "/plasticdept-core/outbound/monitoring-control/team-sugity.html";
+          window.location.href = "outbound/monitoring-control/team-sugity.html";
         } else if (team === "Reguler") {
-          window.location.href = "/plasticdept-core/outbound/monitoring-control/team-reguler.html";
+          window.location.href = "outbound/monitoring-control/team-reguler.html";
         } else {
           throw new Error("Team tidak valid.");
         }
       } else {
         // Bukan operator → simpan username biasa dan arahkan ke sortir
         localStorage.setItem("username", username);
-        window.location.href = "/plasticdept-core/outbound/monitoring-control/sort-job.html";
+        window.location.href = "outbound/monitoring-control/sort-job.html";
       }
     } else {
       throw new Error("Username atau password salah!");
