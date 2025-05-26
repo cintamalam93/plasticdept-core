@@ -741,7 +741,7 @@ cancelLogoutBtn?.addEventListener("click", () => {
 });
 confirmLogoutBtn?.addEventListener("click", () => {
   localStorage.clear();
-  window.location.href = "./index.html"; // ✅ Dari /outbound/monitoring-control/ balik ke /outbound/index.html
+  window.location.href = "../index.html"; // ✅ Dari /outbound/monitoring-control/ balik ke /outbound/index.html
 });
 window.addEventListener("click", (e) => {
   if (e.target === logoutModal) {
