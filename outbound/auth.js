@@ -56,7 +56,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       localStorage.setItem("shift", shift);
       localStorage.setItem("position", position);
 
-      if (position === "OPERATOR") {
+      if (position === "Operator") {
         const team = document.getElementById("teamSelect").value;
         const pic = document.getElementById("picInput").value.trim();
 
@@ -66,20 +66,25 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
         localStorage.setItem("team", team);
         localStorage.setItem("pic", pic);
-        localStorage.setItem("username", pic); // PIC menggantikan username
+        localStorage.setItem("username", pic); // PIC sebagai username
 
+        // Redirect ke halaman berdasarkan team
         if (team === "Sugity") {
-          window.location.href = "outbound/monitoring-control/team-sugity.html";
+          window.location.href = "monitoring-control/team-sugity.html";
         } else if (team === "Reguler") {
-          window.location.href = "outbound/monitoring-control/team-reguler.html";
+          window.location.href = "monitoring-control/team-reguler.html";
         } else {
           throw new Error("Team tidak valid.");
         }
+
       } else {
-        // Bukan operator → simpan username biasa dan arahkan ke sortir
+        // Simpan info user non-operator
         localStorage.setItem("username", username);
+
+        // Redirect semua posisi non-operator ke halaman sort-job
         window.location.href = "monitoring-control/sort-job.html";
       }
+
     } else {
       throw new Error("Username atau password salah!");
     }
