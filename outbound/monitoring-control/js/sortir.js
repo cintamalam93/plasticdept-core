@@ -270,17 +270,22 @@ function clearAllJobs() {
 function parseExcel(file) {
   console.log("parseExcel dijalankan dengan file:", file.name);
   const reader = new FileReader();
-  showNotification("Memulai proses upload file...");
   reader.onload = function (e) {
     try {
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-      const headers = sheetData[3];
-      const rows = sheetData.slice(4);
 
-      // Mapping kolom sesuai instruksi terbaru
+      console.log("Hasil sheetData:", sheetData); // DEBUG: tampilkan array 2D hasil parsing
+
+      const headers = sheetData[3];
+      console.log("Header row ke-4:", headers);    // DEBUG: tampilkan header yang ditemukan
+
+      const rows = sheetData.slice(4);
+      console.log("Rows mulai row ke-5:", rows);   // DEBUG: tampilkan isi row data
+
+      // Mapping field sesuai instruksi
       const json = rows.map(row => ({
         JobNo: row[headers.indexOf("JobNo")] ?? "",
         ETD: row[headers.indexOf("ETD")] ?? "",
@@ -289,6 +294,8 @@ function parseExcel(file) {
         Status: row[headers.indexOf("Status")] ?? "",
         BCNo: row[headers.indexOf("BCNo")] ?? ""
       })).filter(job => job.JobNo);
+
+      console.log("JSON hasil mapping:", json); // DEBUG
 
       // Validasi header
       const requiredKeys = ["JobNo", "ETD", "DeliveryNoteNo", "RefNo.", "Status", "BCNo"];
@@ -301,13 +308,13 @@ function parseExcel(file) {
 
       syncJobsToFirebase(json);
     } catch (err) {
+      console.error("ERROR parsing Excel:", err); // DEBUG
       showNotification("Terjadi kesalahan saat membaca file Excel.", true);
     }
     fileInput.value = "";
   };
   reader.readAsArrayBuffer(file);
 }
-
 /**
  * Simpan data hasil parsing ke PhxOutboundJobs di Firebase.
  */
