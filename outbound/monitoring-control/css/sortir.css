@@ -273,12 +273,14 @@ body {
   background: #f8fafc;
 }
 .filter-indicator {
-  margin: 13px 0 3px 0;
-  color: #2176ae;
-  font-size: 1rem;
-  font-weight: 500;
-  text-align: center;
+   margin: 13px 0 3px 0;
+   color: #ff0000;
+   font-size: 1rem;
+   font-weight: bold;
+   font-style: italic;
+   text-align: center;
 }
+
 table {
   border-collapse: collapse;
   width: 100%;
