@@ -311,17 +311,25 @@ function hideModal() { modal.style.display = "none"; }
 function clearAllJobs() {
   showConfirmModal({
     title: "Konfirmasi Hapus Semua",
-    message: "Apakah Anda yakin ingin <b>MENGHAPUS SEMUA</b> job dari database?",
+    message: "Apakah Anda yakin ingin <b>MENGHAPUS SEMUA</b> job dan plan target dari database?",
     okText: "Hapus",
     okClass: "logout",
     onConfirm: () => {
-      remove(ref(db, "PhxOutboundJobs"))
+      const outboundRef = ref(db, "PhxOutboundJobs");
+      const targetRef = ref(db, "PlanTarget");
+
+      // Jalankan penghapusan paralel
+      Promise.all([
+        remove(outboundRef),
+        remove(targetRef)
+      ])
         .then(() => {
-          showNotification("✅ Semua job berhasil dihapus.");
-          loadJobsFromFirebase();
+          showNotification("✅ Semua job dan plan target berhasil dihapus.");
+          loadJobsFromFirebase(); // Pastikan fungsi ini tidak tergantung PlanTarget
         })
         .catch((err) => {
-          showNotification("❌ Gagal menghapus job!", true);
+          console.error(err);
+          showNotification("❌ Gagal menghapus data!", true);
         });
     }
   });
