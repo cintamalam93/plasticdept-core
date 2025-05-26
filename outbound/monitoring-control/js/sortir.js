@@ -344,8 +344,7 @@ function parseExcel(file) {
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-      console.log("Hasil sheetData:", sheetData);
-
+    
       // --- Header ada di baris ke-3 (index 2) ---
       const headerIndex = 2;
       const headers = sheetData[headerIndex];
