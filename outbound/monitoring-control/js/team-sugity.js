@@ -138,7 +138,7 @@ function renderChart(achievedQty, totalQty) {
 }
 
 function loadTeamJobs() {
-  onValue(ref(db, "outboundJobs"), snapshot => {
+  onValue(ref(db, "PhxOutboundJobs"), snapshot => {
     const data = snapshot.val();
     teamTable.innerHTML = "";
     let totalJobs = 0;
