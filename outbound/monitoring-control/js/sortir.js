@@ -268,6 +268,7 @@ function clearAllJobs() {
  * Field mapping: JobNo, ETD, DeliveryNoteNo, RefNo., Status, BCNo
  */
 function parseExcel(file) {
+function parseExcel(file) {
   console.log("parseExcel dijalankan dengan file:", file.name);
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -278,38 +279,59 @@ function parseExcel(file) {
       const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
       console.log("Hasil sheetData:", sheetData);
 
-      // Baris header di row ke-4 (index 3)
-      const headers = sheetData[3];
-      console.log("Header pada row ke-4 (index 3):", headers);
+      // --- Header ada di baris ke-3 (index 2) ---
+      const headerIndex = 2;
+      const headers = sheetData[headerIndex];
+      if (!headers) {
+        showNotification("Header tidak ditemukan pada baris ke-3. Pastikan format file benar.", true);
+        fileInput.value = "";
+        return;
+      }
+      console.log("Header pada row ke-3 (index 2):", headers);
 
-      // Data mulai dari baris sesudah header, offset kolom +1
-      const rows = sheetData.slice(4);
+      // --- Data mulai dari baris ke-4 (index 3) ---
+      const rows = sheetData.slice(headerIndex + 1);
 
-      // Mapping data: mulai dari kolom ke-2 (index 1)
-      const getColumn = (headerName) => headers.findIndex(h => h === headerName);
-      const offset = 1; // Karena header mulai dari kolom ke-2 (index 1)
+      // --- Cari index kolom untuk setiap field yang dibutuhkan ---
+      // Semua pencarian kolom bersifat case-insensitive dan ignore spasi
+      const colIndex = {
+        JobNo: headers.findIndex(h => h.trim().toLowerCase() === "job no."),
+        ETD: headers.findIndex(h => h.trim().toLowerCase() === "etd"),
+        DeliveryNoteNo: headers.findIndex(h => h.trim().toLowerCase() === "delivery note no."),
+        RefNo: headers.findIndex(h => h.trim().toLowerCase() === "ref no."),
+        Status: headers.findIndex(h => h.trim().toLowerCase() === "status"),
+        BCNo: headers.findIndex(h => h.trim().toLowerCase() === "bc no."),
+      };
 
-      const json = rows.map(row => ({
-        JobNo: row[getColumn("JobNo")] ?? "",
-        ETD: row[getColumn("ETD")] ?? "",
-        DeliveryNoteNo: row[getColumn("DeliveryNoteNo")] ?? "",
-        RefNo: row[getColumn("RefNo.")] ?? "",
-        Status: row[getColumn("Status")] ?? "",
-        BCNo: row[getColumn("BCNo")] ?? ""
-      })).filter(job => job.JobNo);
-
-      console.log("JSON hasil mapping:", json);
-
-      // Validasi header
-      const requiredKeys = ["JobNo", "ETD", "DeliveryNoteNo", "RefNo.", "Status", "BCNo"];
-      const missingHeaders = requiredKeys.filter(key => !headers.includes(key));
+      // --- Validasi header ---
+      const requiredKeys = Object.keys(colIndex);
+      const missingHeaders = requiredKeys.filter(key => colIndex[key] === -1);
       if (missingHeaders.length > 0) {
-        showNotification(`File tidak bisa diproses. Pastikan header berikut ada: ${missingHeaders.join(", ")}`, true);
+        showNotification(
+          `File tidak bisa diproses. Pastikan header berikut ada dan benar penulisannya: ${missingHeaders.join(", ")}`,
+          true
+        );
         fileInput.value = "";
         return;
       }
 
+      // --- Mapping ke JSON sesuai kolom yang dibutuhkan ---
+      const json = rows
+        .map(row => ({
+          JobNo: row[colIndex.JobNo] ?? "",
+          ETD: row[colIndex.ETD] ?? "",
+          DeliveryNoteNo: row[colIndex.DeliveryNoteNo] ?? "",
+          RefNo: row[colIndex.RefNo] ?? "",
+          Status: row[colIndex.Status] ?? "",
+          BCNo: row[colIndex.BCNo] ?? ""
+        }))
+        .filter(job => job.JobNo && job.JobNo.trim() !== ""); // Data valid hanya jika JobNo terisi
+
+      console.log("JSON hasil mapping:", json);
+
+      // --- Lanjutkan ke proses berikutnya (misal sync ke Firebase) ---
       syncJobsToFirebase(json);
+
     } catch (err) {
       console.error("ERROR parsing Excel:", err);
       showNotification("Terjadi kesalahan saat membaca file Excel.", true);
