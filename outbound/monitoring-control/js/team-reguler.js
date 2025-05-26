@@ -3,7 +3,7 @@ import { db } from "./config.js";
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
-const currentTeam = localStorage.getItem("team") || "Reguler";
+const currentTeam = "Reguler";
 const picName = localStorage.getItem("pic") || "";
 const PLAN_TARGET_QTY = parseInt(localStorage.getItem("planTarget")) || (currentTeam.toLowerCase() === "reguler" ? 17640 : 35280);
 
