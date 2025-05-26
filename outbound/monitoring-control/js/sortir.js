@@ -763,6 +763,19 @@ if (shiftValue && userInitialSpan) {
   userInitialSpan.textContent = shiftValue.charAt(0).toUpperCase();
 }
 
+// 🔐 Role-based UI protection
+const position = localStorage.getItem("position");
+
+if (position === "Asst. Manager" || position === "Manager") {
+  const setTargetBtn = document.getElementById("setPlanTargetBtn");
+  const uploadExcelBtn = document.getElementById("uploadBtn");
+  const deleteDataBtn = document.getElementById("clearDatabaseBtn");
+
+  if (setTargetBtn) setTargetBtn.style.display = "none";
+  if (uploadExcelBtn) uploadExcelBtn.style.display = "none";
+  if (deleteDataBtn) deleteDataBtn.style.display = "none";
+}
+
 
 // Load data pertama kali
 loadJobsFromFirebase();
