@@ -1,6 +1,6 @@
-// config.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getDatabase } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAfIYig9-sv3RfazwAW6X937_5HJfgnYt4",
@@ -14,3 +14,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 export const db = getDatabase(app);
+export const auth = getAuth(app);
+
+// Promise yang resolve jika login anonymous sukses
+export const authPromise = signInAnonymously(auth);
