@@ -1,5 +1,5 @@
 // team-sugity.js
-import { db } from "./config.js";
+import { db, authPromise } from "./config.js";
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
@@ -201,12 +201,14 @@ document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHT
 
 let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
 
-onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
-  if (snapshot.exists()) {
-    PLAN_TARGET_QTY = parseInt(snapshot.val()) || PLAN_TARGET_QTY;
-  }
-
-  loadTeamJobs(); // hanya dipanggil setelah plan target berhasil didapat
+// Pastikan semua akses database dilakukan setelah login anonymous sukses
+authPromise.then(() => {
+  onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
+    if (snapshot.exists()) {
+      PLAN_TARGET_QTY = parseInt(snapshot.val()) || PLAN_TARGET_QTY;
+    }
+    loadTeamJobs(); // hanya dipanggil setelah plan target berhasil didapat
+  });
 });
 
 const userPosition = (localStorage.getItem("position") || "").toLowerCase();
