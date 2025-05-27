@@ -1,15 +1,36 @@
-// Tampilkan Team & PIC jika Position = OPERATOR
+// Firebase config langsung di sini
+const firebaseConfig = {
+  apiKey: "AIzaSyAfIYig9-sv3RfazwAW6X937_5HJfgnYt4",
+  authDomain: "outobund.firebaseapp.com",
+  databaseURL: "https://outobund-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "outobund",
+  storageBucket: "outobund.firebasestorage.app",
+  messagingSenderId: "84643346476",
+  appId: "1:84643346476:web:beb19c5ea0884fcb083989"
+};
+
+// Import Firebase SDK modular
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+// Inisialisasi Firebase
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
+// UI Elements
 const positionSelect = document.getElementById("position");
 const operatorFields = document.getElementById("operatorFields");
 const usernameContainer = document.getElementById("usernameContainer");
 const usernameInput = document.getElementById("username");
 
-// Loading & Error Elements
 const loginBtn = document.getElementById("loginBtn");
 const loginBtnText = document.getElementById("loginBtnText");
 const loginLoader = document.getElementById("loginLoader");
 const errorMsg = document.getElementById("errorMsg");
 
+// Posisi change logic
 positionSelect.addEventListener("change", () => {
   if (positionSelect.value === "Operator") {
     operatorFields.style.display = "block";
@@ -22,10 +43,28 @@ positionSelect.addEventListener("change", () => {
   }
 });
 
+// Pastikan anonymous login sebelum proses apapun
+let isAuthenticated = false;
+signInAnonymously(auth)
+  .then(() => {
+    isAuthenticated = true;
+    // Form login tetap bisa dipakai
+  })
+  .catch((error) => {
+    errorMsg.textContent = "Gagal login anonymous: " + error.message;
+    errorMsg.style.display = "block";
+    loginBtn.disabled = true;
+  });
+
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
-  // Tampilkan loading spinner
+  if (!isAuthenticated) {
+    errorMsg.textContent = "Autentikasi belum siap. Silakan refresh halaman.";
+    errorMsg.style.display = "block";
+    return;
+  }
+
   loginBtn.disabled = true;
   loginBtnText.style.display = "none";
   loginLoader.style.display = "inline-block";
@@ -35,65 +74,70 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const shift = document.getElementById("shift").value;
     const position = document.getElementById("position").value;
     const username =
-      position === "OPERATOR"
+      position === "Operator"
         ? document.getElementById("picInput").value.trim()
         : document.getElementById("username").value.trim();
     const password = document.getElementById("password").value;
+    let userFound = null;
 
-    // Simulasi password untuk setiap posisi
-    const positionPasswords = {
-      "Operator": "operator123",
-      "Team Leader": "leader123",
-      "SPV": "spv123",
-      "Asst. Manager": "asstman123",
-      "Manager": "manager123"
-    };
+    // Ambil data user dari database
+    const usersRef = ref(db, "PhxOutboundJobs/users");
+    const snapshot = await get(usersRef);
 
-    // Simulasi proses autentikasi (delay 1s)
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (positionPasswords[position] && password === positionPasswords[position]) {
-      localStorage.setItem("shift", shift);
-      localStorage.setItem("position", position);
-
-      if (position === "Operator") {
-        const team = document.getElementById("teamSelect").value;
-        const pic = document.getElementById("picInput").value.trim();
-
-        if (!team || !pic) {
-          throw new Error("Lengkapi pilihan Team dan PIC terlebih dahulu.");
-        }
-
-        localStorage.setItem("team", team);
-        localStorage.setItem("pic", pic);
-        localStorage.setItem("username", pic); // PIC sebagai username
-
-        // Redirect ke halaman berdasarkan team
-        if (team === "Sugity") {
-          window.location.href = "monitoring-control/team-sugity.html";
-        } else if (team === "Reguler") {
-          window.location.href = "monitoring-control/team-reguler.html";
-        } else {
-          throw new Error("Team tidak valid.");
-        }
-
-      } else {
-        // Simpan info user non-operator
-        localStorage.setItem("username", username);
-
-        // Redirect semua posisi non-operator ke halaman sort-job
-        window.location.href = "monitoring-control/sort-job.html";
-      }
-
-    } else {
-      throw new Error("Username atau password salah!");
+    if (!snapshot.exists()) {
+      throw new Error("Database user tidak ditemukan!");
     }
+    const users = snapshot.val();
+
+    // Cari user yang cocok
+    for (const userId in users) {
+      const user = users[userId];
+      // Username = userId (misal: BTOP01, GT01, dll)
+      // Password = field Password (case sensitive)
+      if (
+        userId.toLowerCase() === username.toLowerCase() &&
+        user.Password === password &&
+        (user.Position.toLowerCase() === position.toLowerCase() ||
+          (position === "Operator" && user.Position.toLowerCase().includes("operator")))
+      ) {
+        userFound = { ...user, userId };
+        break;
+      }
+    }
+
+    if (!userFound) {
+      throw new Error("User ID, password, atau posisi tidak cocok!");
+    }
+
+    // Simpan session ke localStorage
+    localStorage.setItem("shift", shift);
+    localStorage.setItem("position", userFound.Position);
+    localStorage.setItem("username", userFound.userId);
+    localStorage.setItem("pic", userFound.Name || userFound.userId);
+    localStorage.setItem("team", userFound.Shift || "");
+
+    // Redirect sesuai role
+    if (position === "Operator") {
+      const team = document.getElementById("teamSelect").value;
+      if (!team || !userFound.Shift) {
+        throw new Error("Lengkapi pilihan Team dan User ID (PIC) terlebih dahulu.");
+      }
+      // Redirect berdasarkan team
+      if (team === "Sugity") {
+        window.location.href = "monitoring-control/team-sugity.html";
+      } else if (team === "Reguler") {
+        window.location.href = "monitoring-control/team-reguler.html";
+      } else {
+        throw new Error("Team tidak valid.");
+      }
+    } else {
+      window.location.href = "monitoring-control/sort-job.html";
+    }
+
   } catch (err) {
-    // Tampilkan error message
     errorMsg.textContent = err.message || "Terjadi kesalahan saat login.";
     errorMsg.style.display = "block";
   } finally {
-    // Sembunyikan loading, aktifkan tombol lagi
     loginBtn.disabled = false;
     loginBtnText.style.display = "inline";
     loginLoader.style.display = "none";
