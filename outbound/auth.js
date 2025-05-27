@@ -108,12 +108,8 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       throw new Error("User ID, password, atau posisi tidak cocok!");
     }
 
-    // Simpan session ke localStorage
-    localStorage.setItem("shift", shift);
-    localStorage.setItem("position", userFound.Position);
-    localStorage.setItem("username", userFound.userId);
-    localStorage.setItem("pic", userFound.Name || userFound.userId);
-    localStorage.setItem("team", userFound.Shift || "");
+    // Simpan userId ke sessionStorage untuk identitas login di halaman lain
+    sessionStorage.setItem("userId", userFound.userId);
 
     // Redirect sesuai role
     if (position === "Operator") {
@@ -122,8 +118,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         throw new Error("Lengkapi pilihan Team dan User ID (PIC) terlebih dahulu.");
       }
 
-      // === Tambahan: Simpan PIC Operator ke Firebase sebelum redirect ===
-      // Gunakan key dengan format yang konsisten dengan halaman team
+      // Simpan PIC Operator ke Firebase sebelum redirect
       const waktu_login = new Date().toISOString();
       const teamKey = team === "Sugity"
         ? "TeamSugity"
@@ -138,7 +133,6 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
           waktu_login
         }
       );
-      // === END Tambahan ===
 
       if (team === "Sugity") {
         window.location.href = "monitoring-control/team-sugity.html";
