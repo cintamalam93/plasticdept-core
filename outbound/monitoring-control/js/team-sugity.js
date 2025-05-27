@@ -220,21 +220,24 @@ let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
 async function setupRoleButtons() {
   await authPromise;
   const userId = sessionStorage.getItem("userId");
+  const backBtn = document.getElementById("backToSortirBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  // Default: sembunyikan semua tombol dulu
+  if (backBtn) backBtn.style.display = "none";
+  if (logoutBtn) logoutBtn.style.display = "none";
+
   if (!userId) return;
 
   // Ambil posisi user dari database
   const userSnap = await get(ref(db, `users/${userId}`));
-  let userPosition = "";
-  if (userSnap.exists()) {
-    userPosition = (userSnap.val().Position || "").toLowerCase();
-  }
+  if (!userSnap.exists()) return;
 
-  const backBtn = document.getElementById("backToSortirBtn");
-  const logoutBtn = document.getElementById("logoutBtn");
+  const userPosition = (userSnap.val().Position || "").toLowerCase();
   const isOperator = userPosition.includes("operator");
 
   if (isOperator) {
-    if (backBtn) backBtn.style.display = "none";
+    // Operator: hanya tombol logout yang tampil
     if (logoutBtn) {
       logoutBtn.style.display = "inline-block";
       logoutBtn.onclick = () => {
@@ -242,7 +245,9 @@ async function setupRoleButtons() {
         window.location.href = "../index.html";
       };
     }
+    if (backBtn) backBtn.style.display = "none";
   } else {
+    // Non-operator: hanya tombol back yang tampil
     if (backBtn) {
       backBtn.style.display = "inline-block";
       backBtn.onclick = () => window.location.href = "sort-job.html";
