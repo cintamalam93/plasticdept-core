@@ -12,7 +12,7 @@ const firebaseConfig = {
 // Import Firebase SDK modular
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
@@ -121,6 +121,25 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       if (!team || !userFound.Shift) {
         throw new Error("Lengkapi pilihan Team dan User ID (PIC) terlebih dahulu.");
       }
+
+      // === Tambahan: Simpan PIC Operator ke Firebase sebelum redirect ===
+      // Gunakan key dengan format yang konsisten dengan halaman team
+      const waktu_login = new Date().toISOString();
+      const teamKey = team === "Sugity"
+        ? "TeamSugity"
+        : team === "Reguler"
+        ? "TeamReguler"
+        : team;
+      await set(
+        ref(db, `PICOperator/${teamKey}`),
+        {
+          userId: userFound.userId,
+          name: userFound.Name || userFound.userId,
+          waktu_login
+        }
+      );
+      // === END Tambahan ===
+
       if (team === "Sugity") {
         window.location.href = "monitoring-control/team-sugity.html";
       } else if (team === "Reguler") {
