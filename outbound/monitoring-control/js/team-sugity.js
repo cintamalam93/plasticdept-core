@@ -219,7 +219,7 @@ let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
 // --- Setup tombol Logout/Back berdasarkan role user di database, BUKAN localStorage ---
 async function setupRoleButtons() {
   await authPromise;
-  const userId = sessionStorage.getItem("userId");
+  const userId = localStorage.getItem("userId");
   const backBtn = document.getElementById("backToSortirBtn");
   const logoutBtn = document.getElementById("logoutBtn");
 
