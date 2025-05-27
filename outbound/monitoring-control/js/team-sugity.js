@@ -217,3 +217,12 @@ if (["TEAM LEADER", "SPV", "ASST MANAGER", "MANAGER"].includes(userPosition) && 
     window.location.href = "sort-job.html";
   });
 }
+
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+  logoutBtn.addEventListener("click", () => {
+    // Hapus data login dari localStorage jika ada
+    localStorage.clear(); // atau hapus key spesifik (misal localStorage.removeItem("token"))
+    window.location.href = "../index.html"; // menuju outbound/index.html
+  });
+}
