@@ -109,7 +109,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     }
 
     // Simpan userId ke sessionStorage untuk identitas login di halaman lain
-    sessionStorage.setItem("userId", userFound.userId);
+    localStorage.setItem("userId", userFound.userId);
 
     // Redirect sesuai role
     if (position === "Operator") {
