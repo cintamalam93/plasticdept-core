@@ -4,7 +4,31 @@ import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-
 
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Sugity";
-const picName = localStorage.getItem("pic") || "";
+
+// --- Ambil PIC dari Firebase, bukan localStorage ---
+function renderPicMetric(picName) {
+  // Hapus metric PIC lama jika sudah ada
+  const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
+  if (oldMetric) oldMetric.remove();
+
+  const picMetricHTML = `
+    <div class="metric-box" data-pic-metric>
+      <div class="icon">👤</div>
+      <div class="label">PIC</div>
+      <div class="value" id="picMetricValue">${picName}</div>
+    </div>
+  `;
+  document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
+}
+
+// Ambil PIC dari database (selalu real-time)
+function setPicMetricFromDb(teamKey = "TeamSugity") {
+  onValue(ref(db, `PICOperator/${teamKey}`), (snapshot) => {
+    const picData = snapshot.val();
+    const picName = picData && picData.name ? picData.name : "-";
+    renderPicMetric(picName);
+  });
+}
 
 function createStatusLabel(status) {
   const span = document.createElement("span");
@@ -190,19 +214,14 @@ function loadTeamJobs() {
   });
 }
 
-const picMetricHTML = `
-  <div class="metric-box">
-    <div class="icon">👤</div>
-    <div class="label">PIC</div>
-    <div class="value">${picName}</div>
-  </div>
-`;
-document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
-
+// --- Hapus metric PIC default, ganti dengan yang dari DB setelah anonymous login ---
 let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
 
 // Pastikan semua akses database dilakukan setelah login anonymous sukses
 authPromise.then(() => {
+  // --- Set PIC metric dari database, bukan dari localStorage ---
+  setPicMetricFromDb("TeamSugity");
+
   onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
     if (snapshot.exists()) {
       PLAN_TARGET_QTY = parseInt(snapshot.val()) || PLAN_TARGET_QTY;
