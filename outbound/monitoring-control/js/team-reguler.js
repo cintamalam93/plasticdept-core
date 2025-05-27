@@ -1,11 +1,34 @@
 // team-sugity.js
-import { db } from "./config.js";
+import { db, authPromise } from "./config.js";
 import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Reguler";
-const picName = localStorage.getItem("pic") || "";
-const PLAN_TARGET_QTY = parseInt(localStorage.getItem("planTarget")) || (currentTeam.toLowerCase() === "reguler" ? 17640 : 35280);
+
+// --- Ambil PIC dari Firebase, bukan localStorage ---
+function renderPicMetric(picName) {
+  // Hapus metric PIC lama jika sudah ada
+  const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
+  if (oldMetric) oldMetric.remove();
+
+  const picMetricHTML = `
+    <div class="metric-box" data-pic-metric>
+      <div class="icon">👤</div>
+      <div class="label">PIC</div>
+      <div class="value" id="picMetricValue">${picName}</div>
+    </div>
+  `;
+  document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
+}
+
+// Ambil PIC dari database (selalu real-time)
+function setPicMetricFromDb(teamKey = "TeamSugity") {
+  onValue(ref(db, `PICOperator/${teamKey}`), (snapshot) => {
+    const picData = snapshot.val();
+    const picName = picData && picData.name ? picData.name : "-";
+    renderPicMetric(picName);
+  });
+}
 
 function createStatusLabel(status) {
   const span = document.createElement("span");
@@ -13,7 +36,7 @@ function createStatusLabel(status) {
   span.classList.add("status-label");
 
   switch (status.toLowerCase()) {
-    case "newjob":
+    case "Pending Pick":
       span.style.backgroundColor = "#e74c3c";
       break;
     case "partialpicked":
@@ -94,7 +117,7 @@ function renderChart(achievedQty, totalQty) {
       datasets: [{
         data: [achievedQty, remainingQty],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
-        hoverOffset: 6,
+        hoverOffset: 12, // efek slice lebih besar saat hover
         borderWidth: 2
       }]
     },
@@ -109,7 +132,23 @@ function renderChart(achievedQty, totalQty) {
         easing: "easeOutQuart"
       },
       plugins: {
-        tooltip: { enabled: false },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: function(context) {
+              const label = context.label || '';
+              const value = context.raw.toLocaleString();
+              return `${label}: ${value} kg`;
+            }
+          },
+          backgroundColor: "#fff",
+          titleColor: "#2c3e50",
+          bodyColor: "#2c3e50",
+          borderColor: "#2ecc71",
+          borderWidth: 1,
+          titleFont: { weight: 'bold' },
+          bodyFont: { weight: 'normal' }
+        },
         legend: { display: false },
         centerText: {
           text: `${percentage}%`
@@ -175,22 +214,54 @@ function loadTeamJobs() {
   });
 }
 
-const picMetricHTML = `
-  <div class="metric-box">
-    <div class="icon">👤</div>
-    <div class="label">PIC</div>
-    <div class="value">${picName}</div>
-  </div>
-`;
-document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
+// --- Hapus metric PIC default, ganti dengan yang dari DB setelah anonymous login ---
+let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
 
-loadTeamJobs();
+// Pastikan semua akses database dilakukan setelah login anonymous sukses
+authPromise.then(() => {
+  // --- Set PIC metric dari database, bukan dari localStorage ---
+  setPicMetricFromDb("TeamSugity");
 
-const userPosition = localStorage.getItem("position");
-const backBtn = document.getElementById("backToSortirBtn");
-if (["TEAM LEADER", "SPV", "ASST MANAGER", "MANAGER"].includes(userPosition) && backBtn) {
-  backBtn.style.display = "inline-block";
-  backBtn.addEventListener("click", () => {
-    window.location.href = "sort-job.html";
+  onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
+    if (snapshot.exists()) {
+      PLAN_TARGET_QTY = parseInt(snapshot.val()) || PLAN_TARGET_QTY;
+    }
+    loadTeamJobs(); // hanya dipanggil setelah plan target berhasil didapat
   });
+});
+
+const userPosition = (localStorage.getItem("position") || "").trim().toLowerCase();
+console.log("User position:", userPosition);
+
+const backBtn = document.getElementById("backToSortirBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (userPosition.startsWith("operator")) {
+  if (backBtn) backBtn.style.display = "none";
+  if (logoutBtn) {
+    logoutBtn.style.display = "inline-block";
+    logoutBtn.addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "../index.html";
+    });
+  }
+} else {
+  if (backBtn) {
+    backBtn.style.display = "inline-block";
+    backBtn.addEventListener("click", () => {
+      window.location.href = "sort-job.html";
+    });
+  }
+  if (logoutBtn) logoutBtn.style.display = "none";
+}
+
+// Tombol Logout: tampil hanya jika operator
+if (userPosition === "operator" && logoutBtn) {
+  logoutBtn.style.display = "inline-block";
+  logoutBtn.addEventListener("click", () => {
+    localStorage.clear();
+    window.location.href = "../index.html";
+  });
+} else if (logoutBtn) {
+  logoutBtn.style.display = "none";
 }
