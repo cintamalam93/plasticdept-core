@@ -1,6 +1,6 @@
 // team-sugity.js
 import { db, authPromise } from "./config.js";
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Sugity";
@@ -214,54 +214,51 @@ function loadTeamJobs() {
   });
 }
 
-// --- Hapus metric PIC default, ganti dengan yang dari DB setelah anonymous login ---
 let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
+
+// --- Setup tombol Logout/Back berdasarkan role user di database, BUKAN localStorage ---
+async function setupRoleButtons() {
+  await authPromise;
+  const userId = sessionStorage.getItem("userId");
+  if (!userId) return;
+
+  // Ambil posisi user dari database
+  const userSnap = await get(ref(db, `users/${userId}`));
+  let userPosition = "";
+  if (userSnap.exists()) {
+    userPosition = (userSnap.val().Position || "").toLowerCase();
+  }
+
+  const backBtn = document.getElementById("backToSortirBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const isOperator = userPosition.includes("operator");
+
+  if (isOperator) {
+    if (backBtn) backBtn.style.display = "none";
+    if (logoutBtn) {
+      logoutBtn.style.display = "inline-block";
+      logoutBtn.onclick = () => {
+        sessionStorage.clear();
+        window.location.href = "../index.html";
+      };
+    }
+  } else {
+    if (backBtn) {
+      backBtn.style.display = "inline-block";
+      backBtn.onclick = () => window.location.href = "sort-job.html";
+    }
+    if (logoutBtn) logoutBtn.style.display = "none";
+  }
+}
 
 // Pastikan semua akses database dilakukan setelah login anonymous sukses
 authPromise.then(() => {
-  // --- Set PIC metric dari database, bukan dari localStorage ---
   setPicMetricFromDb("TeamSugity");
-
+  setupRoleButtons();
   onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
     if (snapshot.exists()) {
       PLAN_TARGET_QTY = parseInt(snapshot.val()) || PLAN_TARGET_QTY;
     }
-    loadTeamJobs(); // hanya dipanggil setelah plan target berhasil didapat
+    loadTeamJobs();
   });
 });
-
-const userPosition = (localStorage.getItem("position") || "").trim().toLowerCase();
-console.log("User position:", userPosition);
-
-const backBtn = document.getElementById("backToSortirBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-
-if (userPosition.startsWith("operator")) {
-  if (backBtn) backBtn.style.display = "none";
-  if (logoutBtn) {
-    logoutBtn.style.display = "inline-block";
-    logoutBtn.addEventListener("click", () => {
-      localStorage.clear();
-      window.location.href = "../index.html";
-    });
-  }
-} else {
-  if (backBtn) {
-    backBtn.style.display = "inline-block";
-    backBtn.addEventListener("click", () => {
-      window.location.href = "sort-job.html";
-    });
-  }
-  if (logoutBtn) logoutBtn.style.display = "none";
-}
-
-// Tombol Logout: tampil hanya jika operator
-if (userPosition === "operator" && logoutBtn) {
-  logoutBtn.style.display = "inline-block";
-  logoutBtn.addEventListener("click", () => {
-    localStorage.clear();
-    window.location.href = "../index.html";
-  });
-} else if (logoutBtn) {
-  logoutBtn.style.display = "none";
-}
