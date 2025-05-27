@@ -211,20 +211,29 @@ authPromise.then(() => {
   });
 });
 
-const userPosition = (localStorage.getItem("position") || "").toLowerCase();
+const userPosition = (localStorage.getItem("position") || "").trim().toLowerCase();
 console.log("User position:", userPosition);
 
 const backBtn = document.getElementById("backToSortirBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Tombol Kembali: tampil jika BUKAN operator
-if (userPosition !== "operator" && backBtn) {
-  backBtn.style.display = "inline-block";
-  backBtn.addEventListener("click", () => {
-    window.location.href = "sort-job.html";
-  });
-} else if (backBtn) {
-  backBtn.style.display = "none";
+if (userPosition.startsWith("operator")) {
+  if (backBtn) backBtn.style.display = "none";
+  if (logoutBtn) {
+    logoutBtn.style.display = "inline-block";
+    logoutBtn.addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "../index.html";
+    });
+  }
+} else {
+  if (backBtn) {
+    backBtn.style.display = "inline-block";
+    backBtn.addEventListener("click", () => {
+      window.location.href = "sort-job.html";
+    });
+  }
+  if (logoutBtn) logoutBtn.style.display = "none";
 }
 
 // Tombol Logout: tampil hanya jika operator
