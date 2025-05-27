@@ -88,6 +88,8 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       throw new Error("Database user tidak ditemukan!");
     }
     const users = snapshot.val();
+      console.log("Input:", username, password, position);
+      console.log("User DB:", userId, user.Password, user.Position);
 
     // Cari user yang cocok
     for (const userId in users) {
