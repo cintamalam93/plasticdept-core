@@ -212,6 +212,8 @@ authPromise.then(() => {
 });
 
 const userPosition = (localStorage.getItem("position") || "").toLowerCase();
+console.log("User position:", userPosition);
+
 const backBtn = document.getElementById("backToSortirBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
