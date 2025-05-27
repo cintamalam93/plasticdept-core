@@ -211,18 +211,24 @@ onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
 
 const userPosition = localStorage.getItem("position");
 const backBtn = document.getElementById("backToSortirBtn");
-if (["Team Leader", "SPV", "Asst. Manager", "Manager"].includes(userPosition) && backBtn) {
+const logoutBtn = document.getElementById("logoutBtn");
+
+// Tombol kembali hanya untuk non-Operator
+const allowedPositions = ["Team Leader", "SPV", "Asst. Manager", "Manager"];
+if (allowedPositions.includes((userPosition || "").toLowerCase()) && backBtn) {
   backBtn.style.display = "inline-block";
   backBtn.addEventListener("click", () => {
     window.location.href = "sort-job.html";
   });
 }
 
-const logoutBtn = document.getElementById("logoutBtn");
-if (logoutBtn) {
+// Tombol logout hanya untuk Operator
+if ((userPosition || "").toLowerCase() === "operator" && logoutBtn) {
+  logoutBtn.style.display = "inline-block";
   logoutBtn.addEventListener("click", () => {
-    // Hapus data login dari localStorage jika ada
-    localStorage.clear(); // atau hapus key spesifik (misal localStorage.removeItem("token"))
-    window.location.href = "../index.html"; // menuju outbound/index.html
+    localStorage.clear();
+    window.location.href = "../index.html";
   });
+} else if (logoutBtn) {
+  logoutBtn.style.display = "none";
 }
