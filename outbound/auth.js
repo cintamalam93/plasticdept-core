@@ -48,7 +48,6 @@ let isAuthenticated = false;
 signInAnonymously(auth)
   .then(() => {
     isAuthenticated = true;
-    // Form login tetap bisa dipakai
   })
   .catch((error) => {
     errorMsg.textContent = "Gagal login anonymous: " + error.message;
@@ -80,27 +79,25 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const password = document.getElementById("password").value;
     let userFound = null;
 
-    // Ambil data user dari database
-    const usersRef = ref(db, "PhxOutboundJobs/users");
+    // Ambil data user dari ROOT, bukan dalam PhxOutboundJobs
+    const usersRef = ref(db, "users");
     const snapshot = await get(usersRef);
 
     if (!snapshot.exists()) {
       throw new Error("Database user tidak ditemukan!");
     }
     const users = snapshot.val();
-      console.log("Input:", username, password, position);
-      console.log("User DB:", userId, user.Password, user.Position);
 
     // Cari user yang cocok
     for (const userId in users) {
       const user = users[userId];
-      // Username = userId (misal: BTOP01, GT01, dll)
-      // Password = field Password (case sensitive)
       if (
-        userId.toLowerCase() === username.toLowerCase() &&
+        userId.trim().toLowerCase() === username.trim().toLowerCase() &&
         user.Password === password &&
-        (user.Position.toLowerCase() === position.toLowerCase() ||
-          (position === "Operator" && user.Position.toLowerCase().includes("operator")))
+        (
+          user.Position.trim().toLowerCase() === position.trim().toLowerCase() ||
+          (position.trim().toLowerCase() === "operator" && user.Position.trim().toLowerCase().includes("operator"))
+        )
       ) {
         userFound = { ...user, userId };
         break;
@@ -124,7 +121,6 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       if (!team || !userFound.Shift) {
         throw new Error("Lengkapi pilihan Team dan User ID (PIC) terlebih dahulu.");
       }
-      // Redirect berdasarkan team
       if (team === "Sugity") {
         window.location.href = "monitoring-control/team-sugity.html";
       } else if (team === "Reguler") {
