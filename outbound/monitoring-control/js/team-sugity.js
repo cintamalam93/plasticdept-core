@@ -209,21 +209,22 @@ onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
   loadTeamJobs(); // hanya dipanggil setelah plan target berhasil didapat
 });
 
-const userPosition = localStorage.getItem("position");
+const userPosition = (localStorage.getItem("position") || "").toLowerCase();
 const backBtn = document.getElementById("backToSortirBtn");
 const logoutBtn = document.getElementById("logoutBtn");
 
-// Tombol kembali hanya untuk non-Operator
-const allowedPositions = ["Team Leader", "SPV", "Asst. Manager", "Manager"];
-if (allowedPositions.includes((userPosition || "").toLowerCase()) && backBtn) {
+// Tombol Kembali: tampil jika BUKAN operator
+if (userPosition !== "operator" && backBtn) {
   backBtn.style.display = "inline-block";
   backBtn.addEventListener("click", () => {
     window.location.href = "sort-job.html";
   });
+} else if (backBtn) {
+  backBtn.style.display = "none";
 }
 
-// Tombol logout hanya untuk Operator
-if ((userPosition || "").toLowerCase() === "operator" && logoutBtn) {
+// Tombol Logout: tampil hanya jika operator
+if (userPosition === "operator" && logoutBtn) {
   logoutBtn.style.display = "inline-block";
   logoutBtn.addEventListener("click", () => {
     localStorage.clear();
