@@ -1,0 +1,94 @@
+{
+  "users": {
+    "MGR01": {
+      "Position": "Manager",
+      "Shift": "Non Shift",
+      "Password": "MGR123"
+    },
+    "ASM02": {
+      "Position": "Asst. Manager",
+      "Shift": "Non Shift",
+      "Password": "ASM123"
+    },
+    "GT01": {
+      "Position": "SPV",
+      "Shift": "Green Team",
+      "Password": "GTSPV123"
+    },
+    "GT02": {
+      "Position": "Team Leader",
+      "Shift": "Green Team",
+      "Password": "GTTL123"
+    },
+    "GTOP01": {
+      "Position": "Operator1",
+      "Shift": "Green Team",
+      "Password": "GTOP111"
+    },
+    "GTOP02": {
+      "Position": "Operator2",
+      "Shift": "Green Team",
+      "Password": "GTOP222"
+    },
+    "GTOP03": {
+      "Position": "Operator3",
+      "Shift": "Green Team",
+      "Password": "GTOP333"
+    },
+    "GTOP04": {
+      "Position": "Operator4",
+      "Shift": "Green Team",
+      "Password": "GTOP444"
+    },
+    "GTOP05": {
+      "Position": "Operator5",
+      "Shift": "Green Team",
+      "Password": "GTOP555"
+    },
+    "BT01": {
+      "Position": "SPV",
+      "Shift": "Blue Team",
+      "Password": "BTSPV123"
+    },
+    "BT02": {
+      "Position": "Team Leader",
+      "Shift": "Blue Team",
+      "Password": "BTTL123"
+    },
+    "BTOP01": {
+      "Position": "Operator1",
+      "Shift": "Blue Team",
+      "Password": "BTOP111"
+    },
+    "BTOP02": {
+      "Position": "Operator2",
+      "Shift": "Blue Team",
+      "Password": "BTOP222"
+    },
+    "BTOP03": {
+      "Position": "Operator3",
+      "Shift": "Blue Team",
+      "Password": "BTOP333"
+    },
+    "BTOP04": {
+      "Position": "Operator4",
+      "Shift": "Blue Team",
+      "Password": "BTOP444"
+    },
+    "BTOP05": {
+      "Position": "Operator5",
+      "Shift": "Blue Team",
+      "Password": "BTOP555"
+    },
+    "NS01": {
+      "Position": "Team Leader",
+      "Shift": "Non Shift",
+      "Password": "NSTL123"
+    },
+    "NS02": {
+      "Position": "Operator1",
+      "Shift": "Non Shift",
+      "Password": "NSOP123"
+    }
+  }
+}
