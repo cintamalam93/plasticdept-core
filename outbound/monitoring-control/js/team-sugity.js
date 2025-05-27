@@ -211,7 +211,7 @@ onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
 
 const userPosition = localStorage.getItem("position");
 const backBtn = document.getElementById("backToSortirBtn");
-if (["TEAM LEADER", "SPV", "ASST MANAGER", "MANAGER"].includes(userPosition) && backBtn) {
+if (["Team Leader", "SPV", "Asst. Manager", "Manager"].includes(userPosition) && backBtn) {
   backBtn.style.display = "inline-block";
   backBtn.addEventListener("click", () => {
     window.location.href = "sort-job.html";
