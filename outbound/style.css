@@ -1,9 +1,10 @@
 body {
   min-height: 100vh;
-  background-color: #3498db;
-  background-image: url('pattern.svg');
-  background-repeat: repeat;
-  opacity: 0.95;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+  margin: 0;
+  font-family: sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
