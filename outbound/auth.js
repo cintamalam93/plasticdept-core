@@ -19,6 +19,22 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
+// Untuk memastikan proses auth selesai sebelum dipakai di fungsi lain
+let isAuthenticated = false;
+let authPromise = signInAnonymously(auth)
+  .then(() => {
+    isAuthenticated = true;
+  })
+  .catch((error) => {
+    const errorMsg = document.getElementById("errorMsg");
+    if (errorMsg) {
+      errorMsg.textContent = "Gagal login anonymous: " + error.message;
+      errorMsg.style.display = "block";
+    }
+    const loginBtn = document.getElementById("loginBtn");
+    if (loginBtn) loginBtn.disabled = true;
+  });
+
 // UI Elements
 const positionSelect = document.getElementById("position");
 const operatorFields = document.getElementById("operatorFields");
@@ -43,18 +59,7 @@ positionSelect.addEventListener("change", () => {
   }
 });
 
-// Pastikan anonymous login sebelum proses apapun
-let isAuthenticated = false;
-signInAnonymously(auth)
-  .then(() => {
-    isAuthenticated = true;
-  })
-  .catch((error) => {
-    errorMsg.textContent = "Gagal login anonymous: " + error.message;
-    errorMsg.style.display = "block";
-    loginBtn.disabled = true;
-  });
-
+// Login form logic
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -108,12 +113,15 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       throw new Error("User ID, password, atau posisi tidak cocok!");
     }
 
-    // Simpan session ke localStorage
+    // Simpan session ke localStorage & sessionStorage
     localStorage.setItem("shift", shift);
     localStorage.setItem("position", userFound.Position);
     localStorage.setItem("username", userFound.userId);
     localStorage.setItem("pic", userFound.Name || userFound.userId);
     localStorage.setItem("team", userFound.Shift || "");
+
+    // Untuk setupRoleButtons agar bisa akses userId
+    sessionStorage.setItem("userId", userFound.userId);
 
     // Redirect sesuai role
     if (position === "Operator") {
@@ -160,3 +168,43 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     loginLoader.style.display = "none";
   }
 });
+
+// === SETUP ROLE BUTTONS ===
+export async function setupRoleButtons() {
+  await authPromise;
+  const userId = sessionStorage.getItem("userId");
+  const backBtn = document.getElementById("backToSortirBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  // Default: sembunyikan semua tombol dulu
+  if (backBtn) backBtn.style.display = "none";
+  if (logoutBtn) logoutBtn.style.display = "none";
+
+  if (!userId) return;
+
+  // Ambil posisi user dari database
+  const userSnap = await get(ref(db, `users/${userId}`));
+  if (!userSnap.exists()) return;
+
+  const userPosition = (userSnap.val().Position || "").toLowerCase();
+  const isOperator = userPosition.includes("operator");
+
+  if (isOperator) {
+    // Operator: hanya tombol logout yang tampil
+    if (logoutBtn) {
+      logoutBtn.style.display = "inline-block";
+      logoutBtn.onclick = () => {
+        sessionStorage.clear();
+        window.location.href = "../index.html";
+      };
+    }
+    if (backBtn) backBtn.style.display = "none";
+  } else {
+    // Non-operator: hanya tombol back yang tampil
+    if (backBtn) {
+      backBtn.style.display = "inline-block";
+      backBtn.onclick = () => window.location.href = "sort-job.html";
+    }
+    if (logoutBtn) logoutBtn.style.display = "none";
+  }
+}
