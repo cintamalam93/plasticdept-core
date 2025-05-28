@@ -34,6 +34,7 @@ let authPromise = signInAnonymously(auth)
 
 // Elemen
 const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
 const shiftInput = document.getElementById("shift");
 const positionInput = document.getElementById("position");
 const operatorFields = document.getElementById("operatorFields");
@@ -44,14 +45,17 @@ const loginLoader = document.getElementById("loginLoader");
 const errorMsg = document.getElementById("errorMsg");
 
 // Otomatis isi shift & position ketika userID diinput
-usernameInput.addEventListener("blur", async function() {
+usernameInput.addEventListener("blur", getUserDataAndFill);
+
+async function getUserDataAndFill() {
   const username = usernameInput.value.trim();
-  if (!username) {
-    shiftInput.value = "";
-    positionInput.value = "";
-    operatorFields.style.display = "none";
-    return;
-  }
+  // Reset field
+  shiftInput.value = "";
+  positionInput.value = "";
+  operatorFields.style.display = "none";
+  teamSelect.value = "";
+
+  if (!username) return;
 
   await authPromise;
   const userSnap = await get(ref(db, `users/${username}`));
@@ -72,7 +76,7 @@ usernameInput.addEventListener("blur", async function() {
     operatorFields.style.display = "none";
     teamSelect.value = "";
   }
-});
+}
 
 // Login logic
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
@@ -91,9 +95,8 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
 
   try {
     const username = usernameInput.value.trim();
-    const password = document.getElementById("password").value;
+    const password = passwordInput.value;
 
-    // Ambil data user dari database
     await authPromise;
     const userSnap = await get(ref(db, `users/${username}`));
     if (!userSnap.exists()) throw new Error("User ID tidak ditemukan!");
