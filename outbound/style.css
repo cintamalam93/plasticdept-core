@@ -1,36 +1,87 @@
+/* === Global Body === */
 body {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
-  background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-  background-size: 40px 40px;
   margin: 0;
-  font-family: sans-serif;
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 35px 35px;
+  background-repeat: repeat;
+  background-attachment: fixed;
 }
 
+/* === Login Box Container === */
 .login-container {
-  background: #fff;
-  padding: 2.5rem 2.2rem 2rem 2.2rem;
-  border-radius: 20px;
-  box-shadow: 0 10px 32px 0 rgba(33, 118, 174, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 2.5rem 2.2rem 2rem;
+  border-radius: 16px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 330px;
-  animation: fadeSlideIn 0.8s cubic-bezier(.4,2,.4,1) forwards;
+  min-width: 350px;
+  width: 100%;
+  max-width: 400px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeSlideIn 0.8s ease forwards;
   opacity: 0;
   transform: translateY(30px);
 }
 
+/* === Animation on load === */
 @keyframes fadeSlideIn {
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
+
+/* === Optional Styling for Inside Elements === */
+.login-container h2 {
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #1e3c72;
+  font-size: 1.5rem;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.3s ease;
+}
+
+.login-container input:focus {
+  outline: none;
+  border-color: #2a5298;
+  box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.2);
+}
+
+.login-container button {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: #1e3c72;
+  color: white;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-container button:hover {
+  background-color: #163361;
+}
+
 
 .login-logo {
   width: 60px;
