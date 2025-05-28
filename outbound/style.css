@@ -7,7 +7,6 @@ body {
   align-items: center;
   justify-content: center;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
   background: linear-gradient(135deg, #1e3c72, #2a5298);
   background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
   background-size: 35px 35px;
@@ -42,60 +41,23 @@ body {
   }
 }
 
-/* === Optional Styling for Inside Elements === */
-.login-container h2 {
-  margin-bottom: 20px;
-  font-weight: 600;
-  color: #1e3c72;
-  font-size: 1.5rem;
-}
-
-.login-container input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  margin-bottom: 15px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.3s ease;
-}
-
-.login-container input:focus {
-  outline: none;
-  border-color: #2a5298;
-  box-shadow: 0 0 0 2px rgba(42, 82, 152, 0.2);
-}
-
-.login-container button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #1e3c72;
-  color: white;
-  font-size: 1rem;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.login-container button:hover {
-  background-color: #163361;
-}
-
-
+/* === Logo === */
 .login-logo {
   width: 60px;
   margin-bottom: 18px;
   border-radius: 12px;
 }
 
+/* === Judul/Title === */
 .login-container h2 {
   color: #2176ae;
   font-size: 2rem;
   margin-bottom: 1.5rem;
+  font-weight: 600;
   letter-spacing: 1px;
 }
 
+/* === Form === */
 form {
   width: 100%;
 }
@@ -111,27 +73,32 @@ label {
   font-weight: 600;
 }
 
+/* === Input === */
 input[type="text"],
 input[type="password"],
 select {
   width: 100%;
-  padding: 0.65rem;
+  padding: 0.65rem 1rem;
+  margin-bottom: 15px;
   border: 1.5px solid #d6eaff;
   border-radius: 8px;
   background-color: #f6fbff;
-  transition: border-color 0.3s, background 0.3s;
   font-size: 1rem;
   color: #222;
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.23s;
 }
 
 input:focus,
 select:focus {
+  outline: none;
   border-color: #2176ae;
   background: #fff;
-  outline: none;
+  box-shadow: 0 0 0 2px rgba(33,118,174,0.09);
 }
 
-button[type="submit"] {
+/* === Button === */
+button[type="submit"],
+.login-container button {
   width: 100%;
   padding: 0.8rem;
   background: linear-gradient(90deg, #2176ae 60%, #5ea9dd 100%);
@@ -142,14 +109,17 @@ button[type="submit"] {
   border-radius: 8px;
   cursor: pointer;
   margin-top: 0.5rem;
-  transition: background 0.3s, transform 0.1s;
+  transition: background 0.3s, transform 0.1s, background-color 0.3s ease, box-shadow 0.22s;
   box-shadow: 0 2px 8px rgba(33,118,174,0.06);
 }
-button[type="submit"]:hover {
+
+button[type="submit"]:hover,
+.login-container button:hover {
   background: linear-gradient(90deg, #16548a 60%, #298acb 100%);
   transform: translateY(-2px) scale(1.02);
 }
 
+/* === Responsive === */
 @media (max-width: 480px) {
   .login-container {
     padding: 1.2rem .7rem 1.5rem .7rem;
@@ -160,7 +130,7 @@ button[type="submit"]:hover {
   }
 }
 
-/* Loader (lingkaran putar kecil) */
+/* === Loader (lingkaran putar kecil) === */
 .loader {
   display: inline-block;
   width: 18px;
@@ -172,11 +142,12 @@ button[type="submit"]:hover {
   margin-left: 10px;
   vertical-align: middle;
 }
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
 
-/* Error message */
+/* === Error message === */
 .error-message {
   background: #ffeaea;
   color: #e74c3c;
@@ -189,6 +160,7 @@ button[type="submit"]:hover {
   display: none;
   animation: fadeIn 0.4s;
 }
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }
