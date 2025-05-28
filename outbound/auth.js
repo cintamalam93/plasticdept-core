@@ -66,16 +66,19 @@ async function getUserDataAndFill() {
     return;
   }
   const user = userSnap.val();
-  shiftInput.value = user.Shift || "";
-  positionInput.value = user.Position || "";
 
-  // Tampilkan field team jika Operator, sembunyikan jika bukan
-  if ((user.Position || "").toLowerCase().includes("operator")) {
+  shiftInput.value = user.Shift || "";
+
+  // Jika posisi mengandung "operator", selalu tampilkan "Operator" saja
+  let dispPosition = user.Position || "";
+  if ((dispPosition || "").toLowerCase().includes("operator")) {
+    dispPosition = "Operator";
     operatorFields.style.display = "block";
   } else {
     operatorFields.style.display = "none";
     teamSelect.value = "";
   }
+  positionInput.value = dispPosition;
 }
 
 // Login logic
@@ -104,7 +107,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const user = userSnap.val();
     if (user.Password !== password) throw new Error("Password salah!");
 
-    // Simpan ke storage
+    // Untuk penyimpanan ke storage, gunakan posisi asli dari database
     localStorage.setItem("shift", user.Shift || "");
     localStorage.setItem("position", user.Position || "");
     localStorage.setItem("username", username);
