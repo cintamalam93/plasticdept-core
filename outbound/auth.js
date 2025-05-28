@@ -19,12 +19,9 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// Untuk memastikan proses auth selesai sebelum dipakai di fungsi lain
 let isAuthenticated = false;
 let authPromise = signInAnonymously(auth)
-  .then(() => {
-    isAuthenticated = true;
-  })
+  .then(() => { isAuthenticated = true; })
   .catch((error) => {
     const errorMsg = document.getElementById("errorMsg");
     if (errorMsg) {
@@ -35,31 +32,49 @@ let authPromise = signInAnonymously(auth)
     if (loginBtn) loginBtn.disabled = true;
   });
 
-// UI Elements
-const positionSelect = document.getElementById("position");
-const operatorFields = document.getElementById("operatorFields");
-const usernameContainer = document.getElementById("usernameContainer");
+// Elemen
 const usernameInput = document.getElementById("username");
-
+const shiftInput = document.getElementById("shift");
+const positionInput = document.getElementById("position");
+const operatorFields = document.getElementById("operatorFields");
+const teamSelect = document.getElementById("teamSelect");
 const loginBtn = document.getElementById("loginBtn");
 const loginBtnText = document.getElementById("loginBtnText");
 const loginLoader = document.getElementById("loginLoader");
 const errorMsg = document.getElementById("errorMsg");
 
-// Posisi change logic
-positionSelect.addEventListener("change", () => {
-  if (positionSelect.value === "Operator") {
+// Otomatis isi shift & position ketika userID diinput
+usernameInput.addEventListener("blur", async function() {
+  const username = usernameInput.value.trim();
+  if (!username) {
+    shiftInput.value = "";
+    positionInput.value = "";
+    operatorFields.style.display = "none";
+    return;
+  }
+
+  await authPromise;
+  const userSnap = await get(ref(db, `users/${username}`));
+  if (!userSnap.exists()) {
+    shiftInput.value = "";
+    positionInput.value = "";
+    operatorFields.style.display = "none";
+    return;
+  }
+  const user = userSnap.val();
+  shiftInput.value = user.Shift || "";
+  positionInput.value = user.Position || "";
+
+  // Tampilkan field team jika Operator, sembunyikan jika bukan
+  if ((user.Position || "").toLowerCase().includes("operator")) {
     operatorFields.style.display = "block";
-    usernameContainer.style.display = "none";
-    usernameInput.required = false;
   } else {
     operatorFields.style.display = "none";
-    usernameContainer.style.display = "block";
-    usernameInput.required = true;
+    teamSelect.value = "";
   }
 });
 
-// Login form logic
+// Login logic
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -75,63 +90,30 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   errorMsg.style.display = "none";
 
   try {
-    const shift = document.getElementById("shift").value;
-    const position = document.getElementById("position").value;
-    const username =
-      position === "Operator"
-        ? document.getElementById("picInput").value.trim()
-        : document.getElementById("username").value.trim();
+    const username = usernameInput.value.trim();
     const password = document.getElementById("password").value;
-    let userFound = null;
 
-    // Ambil data user dari ROOT, bukan dalam PhxOutboundJobs
-    const usersRef = ref(db, "users");
-    const snapshot = await get(usersRef);
+    // Ambil data user dari database
+    await authPromise;
+    const userSnap = await get(ref(db, `users/${username}`));
+    if (!userSnap.exists()) throw new Error("User ID tidak ditemukan!");
 
-    if (!snapshot.exists()) {
-      throw new Error("Database user tidak ditemukan!");
-    }
-    const users = snapshot.val();
+    const user = userSnap.val();
+    if (user.Password !== password) throw new Error("Password salah!");
 
-    // Cari user yang cocok
-    for (const userId in users) {
-      const user = users[userId];
-      if (
-        userId.trim().toLowerCase() === username.trim().toLowerCase() &&
-        user.Password === password &&
-        (
-          user.Position.trim().toLowerCase() === position.trim().toLowerCase() ||
-          (position.trim().toLowerCase() === "operator" && user.Position.trim().toLowerCase().includes("operator"))
-        )
-      ) {
-        userFound = { ...user, userId };
-        break;
-      }
-    }
+    // Simpan ke storage
+    localStorage.setItem("shift", user.Shift || "");
+    localStorage.setItem("position", user.Position || "");
+    localStorage.setItem("username", username);
+    localStorage.setItem("pic", user.Name || username);
+    localStorage.setItem("team", user.Shift || "");
+    sessionStorage.setItem("userId", username);
 
-    if (!userFound) {
-      throw new Error("User ID, password, atau posisi tidak cocok!");
-    }
-
-    // Simpan session ke localStorage & sessionStorage
-    localStorage.setItem("shift", shift);
-    localStorage.setItem("position", userFound.Position);
-    localStorage.setItem("username", userFound.userId);
-    localStorage.setItem("pic", userFound.Name || userFound.userId);
-    localStorage.setItem("team", userFound.Shift || "");
-
-    // Untuk setupRoleButtons agar bisa akses userId
-    sessionStorage.setItem("userId", userFound.userId);
-
-    // Redirect sesuai role
-    if (position === "Operator") {
-      const team = document.getElementById("teamSelect").value;
-      if (!team || !userFound.Shift) {
-        throw new Error("Lengkapi pilihan Team dan User ID (PIC) terlebih dahulu.");
-      }
-
-      // === Tambahan: Simpan PIC Operator ke Firebase sebelum redirect ===
-      // Gunakan key dengan format yang konsisten dengan halaman team
+    // Jika Operator, wajib pilih Team
+    if ((user.Position || "").toLowerCase().includes("operator")) {
+      const team = teamSelect.value;
+      if (!team) throw new Error("Pilih Team terlebih dahulu.");
+      // Simpan PIC Operator ke Firebase
       const waktu_login = new Date().toISOString();
       const teamKey = team === "Sugity"
         ? "TeamSugity"
@@ -141,13 +123,12 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
       await set(
         ref(db, `PICOperator/${teamKey}`),
         {
-          userId: userFound.userId,
-          name: userFound.Name || userFound.userId,
+          userId: username,
+          name: user.Name || username,
           waktu_login
         }
       );
-      // === END Tambahan ===
-
+      // Redirect sesuai team
       if (team === "Sugity") {
         window.location.href = "monitoring-control/team-sugity.html";
       } else if (team === "Reguler") {
@@ -156,9 +137,9 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         throw new Error("Team tidak valid.");
       }
     } else {
+      // Non-operator, langsung ke sort-job
       window.location.href = "monitoring-control/sort-job.html";
     }
-
   } catch (err) {
     errorMsg.textContent = err.message || "Terjadi kesalahan saat login.";
     errorMsg.style.display = "block";
