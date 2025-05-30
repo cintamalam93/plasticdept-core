@@ -175,12 +175,18 @@ window.sortTableBy = function (key) {
 
   // Listener tombol assign pada baris
   row.querySelector(".assign").addEventListener("click", async (e) => {
-    const jobNo = job.jobNo;
+  // Cek apakah ada checkbox yang tercentang di tabel (selain yang sedang di-assign)
+    const checked = document.querySelectorAll("#jobTable tbody input[type='checkbox']:checked");
+    if (checked.length > 0) {
+      // Optional: tampilkan notifikasi supaya user tahu kenapa tidak bisa assign
+      showNotification("Terdapat checkbox yang tercentang.", true);
+      return;
+    }
     if (job.team && job.team.trim() !== "") {
       showNotification("⚠️ Job ini sudah di-assign ke team: " + job.team, true);
       return;
     }
-    selectedSingleJob = jobNo;
+    selectedSingleJob = job.jobNo;
     showModal();
   });
 
