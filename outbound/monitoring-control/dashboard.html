@@ -3,131 +3,121 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Outbound Job Dashboard</title>
-  <link rel="stylesheet" href="css/dashboard.css" />
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <title>Outbound Monitoring Dashboard</title>
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+  <link rel="stylesheet" href="dashboard.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:500,700&display=swap" />
 </head>
 <body>
-  <header class="dashboard-header">
-    <div class="branding">
-      <img src="logo.png" alt="Company Logo" class="logo" />
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <div class="dashboard-title">Outbound Monitoring Dashboard</div>
+      <button class="logout-btn">Logout</button>
+    </div>
+
+    <!-- Card Metrics -->
+    <div class="card-metrics">
+      <div class="card">
+        <div class="icon">🗺️</div>
+        <div class="card-label">Plan Target</div>
+        <div class="card-value" id="planTarget">0 kg</div>
+      </div>
+      <div class="card">
+        <div class="icon">🎯</div>
+        <div class="card-label">Actual Target</div>
+        <div class="card-value" id="actualTarget">0 kg</div>
+      </div>
+    </div>
+
+    <!-- Matrix Metrics -->
+    <div class="matrix-metrics">
+      <div class="matrix-card">
+        <div class="icon">📋</div>
+        <div class="matrix-label">Achieved Target</div>
+        <div class="matrix-value" id="achievedTarget">0 kg</div>
+      </div>
+      <div class="matrix-card">
+        <div class="icon">📅</div>
+        <div class="matrix-label">Remaining Target</div>
+        <div class="matrix-value" id="remainingTarget">0 kg</div>
+      </div>
+    </div>
+
+    <!-- Progress Donut Chart -->
+    <div class="progress-section">
+      <div class="progress-chart-container">
+        <canvas id="progressDonut" width="220" height="220"></canvas>
+        <div class="progress-percentage" id="progressPercentage">0%</div>
+      </div>
       <div>
-        <h1>Outbound Job Dashboard</h1>
-        <span class="subtitle">Monitoring Outbound Job &mdash; Data Realtime</span>
+        <h3 class="progress-title">Progress Pencapaian Target</h3>
+        <p class="progress-desc">Pantau perkembangan pencapaian outbound secara realtime. Data otomatis update dari database.</p>
       </div>
     </div>
-    <div class="status-indicator" id="statusIndicator">
-      <span class="dot online"></span> Realtime Connected
-    </div>
-  </header>
-  <button id="backToSortirBtn" style="display:none;" onclick="window.location.href='sort-job.html'">
-    Kembali ke Sortir
-  </button>
-  <main class="dashboard-container">
-    <!-- Summary Cards -->
-    <section class="dashboard-cards">
-      <div class="card total">
-        <div class="card-icon">📦</div>
-        <div class="card-title">Total Jobs</div>
-        <div class="card-value" id="totalJobs">0</div>
-      </div>
-      <div class="card new">
-        <div class="card-icon">🕗</div>
-        <div class="card-title">New</div>
-        <div class="card-value" id="newJobs">0</div>
-      </div>
-      <div class="card packed">
-        <div class="card-icon">✅</div>
-        <div class="card-title">Packed</div>
-        <div class="card-value" id="packedJobs">0</div>
-      </div>
-      <div class="card loaded">
-        <div class="card-icon">🚚</div>
-        <div class="card-title">Loaded</div>
-        <div class="card-value" id="loadedJobs">0</div>
-      </div>
-      <div class="card target">
-        <div class="card-icon">🎯</div>
-        <div class="card-title">Plan vs Realisasi</div>
-        <div class="card-progress">
-          <div id="planBar">
-            <div id="planFill"></div>
-          </div>
-          <div class="card-progress-label" id="planVsReal">0 / 0</div>
-        </div>
-      </div>
-    </section>
 
-    <!-- Charts Area -->
-    <section class="dashboard-charts">
-      <div class="chart-card">
-        <div class="chart-title">Status Composition</div>
-        <canvas id="statusPieChart"></canvas>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Jobs per Day</div>
-        <canvas id="dailyBarChart"></canvas>
-      </div>
-    </section>
+    <!-- Data Table -->
+    <table id="jobTable" class="display" style="width:100%;">
+      <thead>
+        <tr>
+          <th>Job No</th>
+          <th>Delivery Date</th>
+          <th>Delivery Note</th>
+          <th>Remark</th>
+          <th>Status</th>
+          <th>Qty</th>
+          <th>Team</th>
+          <th>Job Type</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data rows will be inserted here dynamically -->
+      </tbody>
+    </table>
+  </div>
 
-    <!-- Filter Bar -->
-    <section class="dashboard-filters">
-      <label><b>Status:</b>
-        <select id="filterStatus">
-          <option value="all">All</option>
-          <option value="New">New</option>
-          <option value="Packed">Packed</option>
-          <option value="Loaded">Loaded</option>
-        </select>
-      </label>
-      <label><b>Tanggal:</b>
-        <input type="date" id="filterDate" />
-      </label>
-      <label><b>Team:</b>
-        <select id="filterTeam">
-          <option value="all">All</option>
-          <option value="Reguler">Reguler</option>
-          <option value="Sugity">Sugity</option>
-        </select>
-      </label>
-      <button id="resetFilters">Reset</button>
-      <span class="last-update" id="lastUpdate">Last updated: --:--:--</span>
-    </section>
-
-    <!-- Recent Jobs Table -->
-    <section class="dashboard-table">
-      <h2>Recent Jobs</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Job No</th>
-            <th>Delivery Date</th>
-            <th>Status</th>
-            <th>Qty</th>
-            <th>Team</th>
-          </tr>
-        </thead>
-        <tbody id="recentJobsTable">
-          <!-- Diisi via script -->
-        </tbody>
-      </table>
-    </section>
-  </main>
-  
-  <footer class="dashboard-footer">
-    <button id="fullscreenBtn">Full Screen</button>
-  </footer>
-
-  <script src="dashboard.js"></script>
+  <!-- Libraries -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-   document.addEventListener("DOMContentLoaded", function() {
-   const role = localStorage.getItem('role');
-   // Cek role, case-insensitive (bisa disesuaikan)
-   if (role && (role.toLowerCase() === 'team leader' || role.toLowerCase() === 'spv')) {
-    document.getElementById('backToSortirBtn').style.display = 'inline-block';
-   }
-   });
+    // Inisialisasi DataTables
+    $(document).ready(function() {
+      $('#jobTable').DataTable();
+    });
+
+    // Dummy data (ganti dengan data realtime dari database)
+    let planTarget = 1000;
+    let actualTarget = 700;
+    let achievedTarget = 600;
+    let remainingTarget = planTarget - achievedTarget;
+    let progress = Math.round((achievedTarget / planTarget) * 100);
+
+    document.getElementById('planTarget').innerText = planTarget + ' kg';
+    document.getElementById('actualTarget').innerText = actualTarget + ' kg';
+    document.getElementById('achievedTarget').innerText = achievedTarget + ' kg';
+    document.getElementById('remainingTarget').innerText = remainingTarget + ' kg';
+    document.getElementById('progressPercentage').innerText = progress + '%';
+
+    // Chart.js Donut
+    const ctx = document.getElementById('progressDonut').getContext('2d');
+    const progressDonut = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        datasets: [{
+          data: [achievedTarget, planTarget - achievedTarget],
+          backgroundColor: ['#2156c6', '#e6f0fa'],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        cutout: '75%',
+        plugins: {
+          legend: { display: false },
+          tooltip: { enabled: false }
+        }
+      }
+    });
   </script>
-  
 </body>
 </html>
