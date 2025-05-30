@@ -36,19 +36,18 @@ function createStatusLabel(status) {
   span.classList.add("status-label");
 
   switch (status.toLowerCase()) {
-    case "Pending Pick":
-      span.style.backgroundColor = "#e74c3c";
+    case "pending pick":
+    case "pending allocation":
+      span.style.backgroundColor = "#e74c3c"; // Merah
       break;
-    case "partialpicked":
-      span.style.backgroundColor = "#f39c12";
-      break;
-    case "downloaded":
-      span.style.backgroundColor = "#f1c40f";
+    case "partial picked":
+    case "partial packed":
+      span.style.backgroundColor = "#f39c12"; // Oranye
       break;
     case "packed":
-    case "loaded":
+    case "loading":
     case "completed":
-      span.style.backgroundColor = "#2ecc71";
+      span.style.backgroundColor = "#2ecc71"; // Hijau
       break;
     default:
       span.style.backgroundColor = "#bdc3c7";
