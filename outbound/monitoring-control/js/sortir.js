@@ -832,6 +832,7 @@ if (position === "Asst. Manager" || position === "Manager") {
 document.getElementById("modePhoenix").addEventListener("change", function() {
   if (this.checked) {
     currentMode = "phoenix";
+    localStorage.setItem("outboundSystemMode", "phoenix"); // simpan ke localStorage
     populateStatusOptions(currentMode);
     applyMultiFilter();
     updateFilterIndicator();
@@ -840,6 +841,7 @@ document.getElementById("modePhoenix").addEventListener("change", function() {
 document.getElementById("modeZLogix").addEventListener("change", function() {
   if (this.checked) {
     currentMode = "zlogix";
+    localStorage.setItem("outboundSystemMode", "zlogix"); // simpan ke localStorage
     populateStatusOptions(currentMode);
     applyMultiFilter();
     updateFilterIndicator();
