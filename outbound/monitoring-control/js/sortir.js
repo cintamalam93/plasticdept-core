@@ -596,6 +596,7 @@ let selectedSingleJob = null;
 let allJobsData = [];
 let filteredJobs = [];
 let currentSort = { key: null, asc: true };
+let currentMode = "phoenix"; // default
 
 // Listener tombol set plan target (jika masih digunakan)
 setPlanTargetBtn?.addEventListener("click", handleSetPlanTarget);
@@ -781,6 +782,14 @@ if (position === "Asst. Manager" || position === "Manager") {
   if (uploadExcelBtn) uploadExcelBtn.style.display = "none";
   if (deleteDataBtn) deleteDataBtn.style.display = "none";
 }
+
+// Mode switcher
+document.getElementById("modePhoenix").addEventListener("change", function() {
+  if (this.checked) currentMode = "phoenix";
+});
+document.getElementById("modeZLogix").addEventListener("change", function() {
+  if (this.checked) currentMode = "zlogix";
+});
 
 
 authPromise.then(() => {
