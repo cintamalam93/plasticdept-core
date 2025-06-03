@@ -830,10 +830,20 @@ if (position === "Asst. Manager" || position === "Manager") {
 
 // Mode switcher
 document.getElementById("modePhoenix").addEventListener("change", function() {
-  if (this.checked) currentMode = "phoenix";
+  if (this.checked) {
+    currentMode = "phoenix";
+    populateStatusOptions(currentMode);
+    applyMultiFilter();
+    updateFilterIndicator();
+  }
 });
 document.getElementById("modeZLogix").addEventListener("change", function() {
-  if (this.checked) currentMode = "zlogix";
+  if (this.checked) {
+    currentMode = "zlogix";
+    populateStatusOptions(currentMode);
+    applyMultiFilter();
+    updateFilterIndicator();
+  }
 });
 
 
