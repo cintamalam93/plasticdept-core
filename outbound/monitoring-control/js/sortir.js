@@ -848,6 +848,7 @@ document.getElementById("modeZLogix").addEventListener("change", function() {
 
 
 authPromise.then(() => {
+  populateStatusOptions(currentMode);
   loadJobsFromFirebase();
 });
 
