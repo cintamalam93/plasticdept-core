@@ -643,6 +643,14 @@ let filteredJobs = [];
 let currentSort = { key: null, asc: true };
 let currentMode = "phoenix"; // default
 
+// Ambil mode dari localStorage jika ada
+const savedMode = localStorage.getItem("outboundSystemMode");
+if (savedMode === "zlogix" || savedMode === "phoenix") {
+  currentMode = savedMode;
+  document.getElementById("modePhoenix").checked = savedMode === "phoenix";
+  document.getElementById("modeZLogix").checked = savedMode === "zlogix";
+}
+
 // Listener tombol set plan target (jika masih digunakan)
 setPlanTargetBtn?.addEventListener("click", handleSetPlanTarget);
 
