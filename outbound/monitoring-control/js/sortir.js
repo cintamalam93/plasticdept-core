@@ -840,3 +840,37 @@ document.getElementById("modeZLogix").addEventListener("change", function() {
 authPromise.then(() => {
   loadJobsFromFirebase();
 });
+
+const STATUS_OPTIONS = {
+  phoenix: [
+    "Pending Allocation",
+    "Partial Allocation",
+    "Pending Pick",
+    "Partial Picked",
+    "Pending Pack",
+    "Partial Pack",
+    "Packed",
+    "Loading",
+    "Completed"
+  ],
+  zlogix: [
+    "NewJob",
+    "Downloaded",
+    "PartialDownloaded",
+    "PartialPicked",
+    "Picked",
+    "Packed",
+    "Loaded",
+    "Completed"
+  ]
+};
+
+function populateStatusOptions(mode) {
+  statusOptions.innerHTML = '<option value="all">-- Show All --</option>';
+  STATUS_OPTIONS[mode].forEach(status => {
+    const option = document.createElement("option");
+    option.value = status;
+    option.textContent = status;
+    statusOptions.appendChild(option);
+  });
+}
