@@ -358,55 +358,100 @@ function parseExcel(file) {
       const workbook = XLSX.read(data, { type: "array" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const sheetData = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: "" });
-    
-      // --- Header ada di baris ke-3 (index 2) ---
-      const headerIndex = 2;
-      const headers = sheetData[headerIndex];
-      if (!headers) {
-        showNotification("Header tidak ditemukan pada baris ke-3. Pastikan format file benar.", true);
-        fileInput.value = "";
+
+      let json = [];
+      if (currentMode === "phoenix") {
+        // --- PHOENIX MODE ---
+        const headerIndex = 2;
+        const headers = sheetData[headerIndex];
+        if (!headers) {
+          showNotification("Header tidak ditemukan pada baris ke-3. Pastikan format file Phoenix benar.", true);
+          fileInput.value = "";
+          return;
+        }
+        const colIndex = {
+          JobNo: headers.findIndex(h => h.trim().toLowerCase() === "job no."),
+          ETD: headers.findIndex(h => h.trim().toLowerCase() === "etd"),
+          DeliveryNoteNo: headers.findIndex(h => h.trim().toLowerCase() === "delivery note no."),
+          RefNo: headers.findIndex(h => h.trim().toLowerCase() === "ref no."),
+          Status: headers.findIndex(h => h.trim().toLowerCase() === "status"),
+          BCNo: headers.findIndex(h => h.trim().toLowerCase() === "bc no."),
+        };
+        const requiredKeys = Object.keys(colIndex);
+        const missingHeaders = requiredKeys.filter(key => colIndex[key] === -1);
+        if (missingHeaders.length > 0) {
+          showNotification(
+            `File tidak bisa diproses. Pastikan header berikut ada dan benar penulisannya: ${missingHeaders.join(", ")}`,
+            true
+          );
+          fileInput.value = "";
+          return;
+        }
+        const rows = sheetData.slice(headerIndex + 1);
+        json = rows
+          .map(row => ({
+            JobNo: row[colIndex.JobNo] ?? "",
+            ETD: row[colIndex.ETD] ?? "",
+            DeliveryNoteNo: row[colIndex.DeliveryNoteNo] ?? "",
+            RefNo: row[colIndex.RefNo] ?? "",
+            Status: row[colIndex.Status] ?? "",
+            BCNo: row[colIndex.BCNo] ?? ""
+          }))
+          .filter(job => job.JobNo && job.JobNo.trim() !== "");
+      } else if (currentMode === "zlogix") {
+        // --- Z-LOGIX MODE ---
+        // Cari baris header (yang mengandung "Job No" dsb)
+        let headerIndex = -1;
+        for (let i = 0; i < sheetData.length; i++) {
+          if (
+            sheetData[i].some(h =>
+              typeof h === "string" && h.trim().toLowerCase() === "job no"
+            )
+          ) {
+            headerIndex = i;
+            break;
+          }
+        }
+        if (headerIndex === -1) {
+          showNotification("Header tidak ditemukan pada file Z-Logix. Pastikan format file benar.", true);
+          fileInput.value = "";
+          return;
+        }
+        const headers = sheetData[headerIndex];
+        const colIndex = {
+          JobNo: headers.findIndex(h => h.trim().toLowerCase() === "job no"),
+          DeliveryDate: headers.findIndex(h => h.trim().toLowerCase() === "delivery date"),
+          DeliveryNote: headers.findIndex(h => h.trim().toLowerCase() === "delivery note"),
+          Remark: headers.findIndex(h => h.trim().toLowerCase() === "remark"),
+          PlanQty: headers.findIndex(h => h.trim().toLowerCase() === "plan qty"),
+          Status: headers.findIndex(h => h.trim().toLowerCase() === "status"),
+        };
+        const requiredKeys = Object.keys(colIndex);
+        const missingHeaders = requiredKeys.filter(key => colIndex[key] === -1);
+        if (missingHeaders.length > 0) {
+          showNotification(
+            `File tidak bisa diproses. Pastikan header berikut ada dan benar penulisannya: ${missingHeaders.join(", ")}`,
+            true
+          );
+          fileInput.value = "";
+          return;
+        }
+        const rows = sheetData.slice(headerIndex + 1);
+        json = rows
+          .map(row => ({
+            JobNo: row[colIndex.JobNo] ?? "",
+            ETD: row[colIndex.DeliveryDate] ?? "",
+            DeliveryNoteNo: row[colIndex.DeliveryNote] ?? "",
+            RefNo: row[colIndex.Remark] ?? "",
+            Status: row[colIndex.Status] ?? "",
+            BCNo: row[colIndex.PlanQty] ?? ""
+          }))
+          .filter(job => job.JobNo && job.JobNo.trim() !== "");
+      } else {
+        showNotification("Mode tidak valid.", true);
         return;
       }
 
-      // --- Data mulai dari baris ke-4 (index 3) ---
-      const rows = sheetData.slice(headerIndex + 1);
-
-      // --- Cari index kolom untuk setiap field yang dibutuhkan ---
-      // Semua pencarian kolom bersifat case-insensitive dan ignore spasi
-      const colIndex = {
-        JobNo: headers.findIndex(h => h.trim().toLowerCase() === "job no."),
-        ETD: headers.findIndex(h => h.trim().toLowerCase() === "etd"),
-        DeliveryNoteNo: headers.findIndex(h => h.trim().toLowerCase() === "delivery note no."),
-        RefNo: headers.findIndex(h => h.trim().toLowerCase() === "ref no."),
-        Status: headers.findIndex(h => h.trim().toLowerCase() === "status"),
-        BCNo: headers.findIndex(h => h.trim().toLowerCase() === "bc no."),
-      };
-
-      // --- Validasi header ---
-      const requiredKeys = Object.keys(colIndex);
-      const missingHeaders = requiredKeys.filter(key => colIndex[key] === -1);
-      if (missingHeaders.length > 0) {
-        showNotification(
-          `File tidak bisa diproses. Pastikan header berikut ada dan benar penulisannya ${missingHeaders.join(", ")}`,
-          true
-        );
-        fileInput.value = "";
-        return;
-      }
-
-      // --- Mapping ke JSON sesuai kolom yang dibutuhkan ---
-      const json = rows
-        .map(row => ({
-          JobNo: row[colIndex.JobNo] ?? "",
-          ETD: row[colIndex.ETD] ?? "",
-          DeliveryNoteNo: row[colIndex.DeliveryNoteNo] ?? "",
-          RefNo: row[colIndex.RefNo] ?? "",
-          Status: row[colIndex.Status] ?? "",
-          BCNo: row[colIndex.BCNo] ?? ""
-        }))
-        .filter(job => job.JobNo && job.JobNo.trim() !== ""); // Data valid hanya jika JobNo terisi
-
-      // --- Lanjutkan ke proses berikutnya (misal sync ke Firebase) ---
       syncJobsToFirebase(json);
 
     } catch (err) {
