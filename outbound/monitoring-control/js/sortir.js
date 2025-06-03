@@ -381,7 +381,7 @@ function parseExcel(file) {
         const missingHeaders = requiredKeys.filter(key => colIndex[key] === -1);
         if (missingHeaders.length > 0) {
           showNotification(
-            `File tidak bisa diproses. Pastikan header berikut ada dan benar penulisannya: ${missingHeaders.join(", ")}`,
+            "File yang Anda upload tidak sesuai dengan sistem yang dipilih. Silakan pilih file yang benar.",
             true
           );
           fileInput.value = "";
