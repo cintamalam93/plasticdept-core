@@ -105,7 +105,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     if (!userSnap.exists()) throw new Error("User ID tidak ditemukan!");
 
     const user = userSnap.val();
-    if (user.Password !== password) throw new Error("Password salah!");
+    if (String(user.Password) !== String(password)) throw new Error("Password salah!");
 
     // Untuk penyimpanan ke storage, gunakan posisi asli dari database
     localStorage.setItem("shift", user.Shift || "");
