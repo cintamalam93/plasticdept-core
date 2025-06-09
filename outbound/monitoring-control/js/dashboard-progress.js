@@ -1,10 +1,7 @@
-// Dashboard Progress Outbound - Gabungan Team Sugity & Reguler
+// Dashboard Progress Outbound - Gabungan Team Sugity & Reguler (modular Firebase)
 
-// --- Ganti dengan import config.js dan Firebase SDK jika perlu ---
 import { db, authPromise } from "./config.js";
-import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-
-// Dashboard Progress Outbound - Gabungan Team Sugity & Reguler
+import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 // --- Konstanta Man Power Per Team ---
 const MP_SUGITY = 2;
@@ -55,98 +52,96 @@ function getStatusClass(status) {
 }
 
 // --- Main Data Loader ---
-function loadDashboardData() {
-  const db = firebase.database();
+async function loadDashboardData() {
   // Ambil Plan Target dari Firebase
-  Promise.all([
-    db.ref("PlanTarget/Sugity").get(),
-    db.ref("PlanTarget/Reguler").get(),
-    db.ref("PhxOutboundJobs").get(),
-  ]).then(([planSugitySnap, planRegulerSnap, outboundJobsSnap]) => {
+  const [planSugitySnap, planRegulerSnap, outboundJobsSnap] = await Promise.all([
+    get(ref(db, "PlanTarget/Sugity")),
+    get(ref(db, "PlanTarget/Reguler")),
+    get(ref(db, "PhxOutboundJobs")),
+  ]);
 
-    // Plan Target
-    const planSugityVal = parseInt(planSugitySnap.exists() ? planSugitySnap.val() : 0) || 0;
-    const planRegulerVal = parseInt(planRegulerSnap.exists() ? planRegulerSnap.val() : 0) || 0;
+  // Plan Target
+  const planSugityVal = parseInt(planSugitySnap.exists() ? planSugitySnap.val() : 0) || 0;
+  const planRegulerVal = parseInt(planRegulerSnap.exists() ? planRegulerSnap.val() : 0) || 0;
 
-    // Outbound Jobs
-    const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
+  // Outbound Jobs
+  const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
 
-    // Per-team accumulator
-    let sumActualSugity = 0,
-        sumAchievedSugity = 0,
-        sumActualReguler = 0,
-        sumAchievedReguler = 0;
+  // Per-team accumulator
+  let sumActualSugity = 0,
+      sumAchievedSugity = 0,
+      sumActualReguler = 0,
+      sumAchievedReguler = 0;
 
-    let sugityJobs = [], regulerJobs = [];
+  let sugityJobs = [], regulerJobs = [];
 
-    for (const jobNo in outboundJobs) {
-      const job = outboundJobs[jobNo];
-      const qty = parseInt(job.qty) || 0;
-      const team = (job.team || '').toLowerCase();
-      const status = (job.status || '').toLowerCase();
+  for (const jobNo in outboundJobs) {
+    const job = outboundJobs[jobNo];
+    const qty = parseInt(job.qty) || 0;
+    const team = (job.team || '').toLowerCase();
+    const status = (job.status || '').toLowerCase();
 
-      if (team === "sugity") {
-        sumActualSugity += qty;
-        if (["packed", "loaded", "completed"].includes(status)) {
-          sumAchievedSugity += qty;
-        }
-        sugityJobs.push(job);
-      } else if (team === "reguler") {
-        sumActualReguler += qty;
-        if (["packed", "loaded", "completed"].includes(status)) {
-          sumAchievedReguler += qty;
-        }
-        regulerJobs.push(job);
+    if (team === "sugity") {
+      sumActualSugity += qty;
+      if (["packed", "loaded", "completed"].includes(status)) {
+        sumAchievedSugity += qty;
       }
+      sugityJobs.push(job);
+    } else if (team === "reguler") {
+      sumActualReguler += qty;
+      if (["packed", "loaded", "completed"].includes(status)) {
+        sumAchievedReguler += qty;
+      }
+      regulerJobs.push(job);
     }
+  }
 
-    // Remaining
-    const sumRemainingSugity = sumActualSugity - sumAchievedSugity;
-    const sumRemainingReguler = sumActualReguler - sumAchievedReguler;
+  // Remaining
+  const sumRemainingSugity = sumActualSugity - sumAchievedSugity;
+  const sumRemainingReguler = sumActualReguler - sumAchievedReguler;
 
-    // Gabungan
-    const totalManPower = MP_SUGITY + MP_REGULER;
-    const totalPlanTarget = planSugityVal + planRegulerVal;
-    const totalActual = sumActualSugity + sumActualReguler;
-    const totalAchieved = sumAchievedSugity + sumAchievedReguler;
-    const totalRemaining = totalActual - totalAchieved;
+  // Gabungan
+  const totalManPower = MP_SUGITY + MP_REGULER;
+  const totalPlanTarget = planSugityVal + planRegulerVal;
+  const totalActual = sumActualSugity + sumActualReguler;
+  const totalAchieved = sumAchievedSugity + sumAchievedReguler;
+  const totalRemaining = totalActual - totalAchieved;
 
-    // --- Isi Matrix Dashboard ---
-    manpowerValue.textContent = totalManPower;
-    planTargetValue.textContent = formatNumber(totalPlanTarget) + " kg";
-    actualTargetValue.textContent = formatNumber(totalActual) + " kg";
-    actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
-    actualRemainingValue.textContent = formatNumber(totalRemaining) + " kg";
+  // --- Isi Matrix Dashboard ---
+  manpowerValue.textContent = totalManPower;
+  planTargetValue.textContent = formatNumber(totalPlanTarget) + " kg";
+  actualTargetValue.textContent = formatNumber(totalActual) + " kg";
+  actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
+  actualRemainingValue.textContent = formatNumber(totalRemaining) + " kg";
 
-    // --- Isi Matrix Team ---
-    mpSugity.textContent = MP_SUGITY;
-    mpReguler.textContent = MP_REGULER;
-    planSugity.textContent = formatNumber(planSugityVal);
-    planReguler.textContent = formatNumber(planRegulerVal);
-    actualSugity.textContent = formatNumber(sumActualSugity);
-    actualReguler.textContent = formatNumber(sumActualReguler);
-    achievedSugity.textContent = formatNumber(sumAchievedSugity);
-    achievedReguler.textContent = formatNumber(sumAchievedReguler);
-    remainingSugity.textContent = formatNumber(sumRemainingSugity);
-    remainingReguler.textContent = formatNumber(sumRemainingReguler);
+  // --- Isi Matrix Team ---
+  mpSugity.textContent = MP_SUGITY;
+  mpReguler.textContent = MP_REGULER;
+  planSugity.textContent = formatNumber(planSugityVal);
+  planReguler.textContent = formatNumber(planRegulerVal);
+  actualSugity.textContent = formatNumber(sumActualSugity);
+  actualReguler.textContent = formatNumber(sumActualReguler);
+  achievedSugity.textContent = formatNumber(sumAchievedSugity);
+  achievedReguler.textContent = formatNumber(sumAchievedReguler);
+  remainingSugity.textContent = formatNumber(sumRemainingSugity);
+  remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
-    // --- Chart Donut (Gabungan) ---
-    renderDonutChart(totalAchieved, totalRemaining);
+  // --- Chart Donut (Gabungan) ---
+  renderDonutChart(totalAchieved, totalRemaining, totalActual);
 
-    // --- Chart Bar (Team) ---
-    renderBarChart(
-      [sumActualSugity, sumActualReguler],
-      [planSugityVal, planRegulerVal]
-    );
+  // --- Chart Bar (Team) ---
+  renderBarChart(
+    [sumActualSugity, sumActualReguler],
+    [planSugityVal, planRegulerVal]
+  );
 
-    // --- Tabel Outbound Jobs ---
-    renderJobsTable([...sugityJobs.map(j => ({...j, team: "Sugity"})),
-                    ...regulerJobs.map(j => ({...j, team: "Reguler"}))]);
-  });
+  // --- Tabel Outbound Jobs ---
+  renderJobsTable([...sugityJobs.map(j => ({...j, team: "Sugity"})),
+                   ...regulerJobs.map(j => ({...j, team: "Reguler"}))]);
 }
 
 // --- Donut Chart ---
-function renderDonutChart(achieved, remaining) {
+function renderDonutChart(achieved, remaining, totalActual) {
   const ctx = document.getElementById("donutChart").getContext("2d");
   if (donutChart) donutChart.destroy();
   donutChart = new Chart(ctx, {
@@ -173,6 +168,10 @@ function renderDonutChart(achieved, remaining) {
       }
     }
   });
+
+  // Center Percentage Text
+  const percent = totalActual ? Math.round((achieved / totalActual) * 100) : 0;
+  document.getElementById("donutCenterText").textContent = percent + "%";
 }
 
 // --- Bar Chart (Progress Per Team) ---
@@ -240,23 +239,13 @@ function renderJobsTable(jobs) {
   });
 }
 
-// --- Realtime Listener (Firebase v8/v9 compat style) ---
-function startRealtimeListener() {
-  const db = firebase.database();
-  db.ref("PhxOutboundJobs").on('value', loadDashboardData);
-  db.ref("PlanTarget/Sugity").on('value', loadDashboardData);
-  db.ref("PlanTarget/Reguler").on('value', loadDashboardData);
-}
-
-// --- Auth Anonymous then start listener ---
-window.addEventListener("DOMContentLoaded", function() {
-  firebase.auth().signInAnonymously()
-    .then(() => {
-      startRealtimeListener();
-      // Initial load
-      loadDashboardData();
-    })
-    .catch(function(error) {
-      alert("Failed to authenticate anonymously: " + error.message);
-    });
+// --- Real-time update (modular Firebase) ---
+authPromise.then(() => {
+  onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
+  onValue(ref(db, "PlanTarget/Sugity"), loadDashboardData);
+  onValue(ref(db, "PlanTarget/Reguler"), loadDashboardData);
+  // Initial load
+  loadDashboardData();
+}).catch((err) => {
+  alert("Failed to authenticate anonymously: " + err.message);
 });
