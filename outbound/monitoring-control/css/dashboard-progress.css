@@ -1,0 +1,138 @@
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: #f8f9fa;
+  margin: 0;
+  padding: 24px;
+}
+h1, h2 {
+  color: #222;
+  text-align: center;
+}
+.dashboard-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+.dashboard-matrix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  max-width: 600px;
+}
+.matrix-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(50,50,93,0.05);
+  padding: 18px 28px;
+  min-width: 130px;
+  text-align: center;
+  flex: 1 1 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.matrix-title {
+  font-size: 1em;
+  color: #666;
+  margin-bottom: 8px;
+}
+.matrix-value {
+  font-size: 1.5em;
+  color: #222;
+  font-weight: bold;
+}
+.dashboard-chart {
+  min-width: 260px;
+  max-width: 340px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(50,50,93,0.05);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.team-matrix-container {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 32px;
+}
+.team-matrix-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(50,50,93,0.07);
+  padding: 16px 28px;
+  min-width: 220px;
+  text-align: left;
+  flex: 1 1 180px;
+  margin-bottom: 20px;
+}
+.team-title {
+  font-size: 1.1em;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8px;
+}
+.team-bar-chart {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(50,50,93,0.08);
+  padding: 20px;
+  min-width: 300px;
+  flex: 2 1 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.jobs-table-container {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(50,50,93,0.08);
+  padding: 24px;
+  max-width: 1100px;
+  margin: 0 auto 40px auto;
+  overflow-x: auto;
+}
+#jobsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1em;
+}
+#jobsTable th, #jobsTable td {
+  border: 1px solid #e6e6e6;
+  padding: 8px 12px;
+  text-align: center;
+}
+#jobsTable th {
+  background: #f1f3f4;
+  color: #444;
+}
+.status-label {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.95em;
+}
+.status-newjob { background: #3498db; }
+.status-downloaded,
+.status-picked,
+.status-partialpicked { background: #f39c12; }
+.status-packed,
+.status-loaded { background: #2ecc71; }
+.status-other { background: #bdc3c7; }
+@media (max-width: 900px) {
+  .dashboard-container, .team-matrix-container {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .dashboard-matrix {
+    justify-content: center;
+  }
+}
