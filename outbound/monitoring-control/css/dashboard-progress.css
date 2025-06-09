@@ -23,11 +23,11 @@ body {
 .dashboard-main {
   margin-bottom: 36px;
 }
-.dashboard-row-flex {
+.dashboard-matrix-donut {
   display: flex;
   gap: 36px;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
   width: 100%;
   flex-wrap: wrap;
 }
@@ -35,22 +35,25 @@ body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 18px;
-  min-width: 720px;
+  min-width: 730px;
   max-width: 950px;
   align-items: stretch;
 }
 .matrix-card {
+  min-width: 130px;
+  min-height: 120px;
   background: #fff;
   border-radius: 13px;
   box-shadow: 0 2px 12px 0 rgba(33,33,33,0.04);
   padding: 18px 22px;
   display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 90px;
-  transition: box-shadow .18s, transform .18s;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
   border-left: 5px solid #e0e7ef;
   cursor: pointer;
+  transition: box-shadow .18s, transform .18s;
 }
 .matrix-card:hover {
   box-shadow: 0 6px 32px 0 rgba(50,50,93,0.13);
@@ -79,62 +82,56 @@ body {
   letter-spacing: .01em;
 }
 .donut-chart-standalone {
+  min-width: 230px;
+  min-height: 120px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  min-width: 260px;
-  max-width: 320px;
-  margin-top: 10px;
+  justify-content: center;
   background: none;
   box-shadow: none;
   padding: 0;
 }
 .donut-container {
   position: relative;
-  width: 205px;
-  height: 205px;
+  width: 180px;
+  height: 180px;
   margin-bottom: 10px;
 }
 #donutChart {
-  width: 205px !important;
-  height: 205px !important;
+  width: 180px !important;
+  height: 180px !important;
   background: transparent;
 }
 .donut-center-text {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -58%);
-  font-size: 2.4em;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 2.2em;
   font-weight: 700;
   color: #1976d2;
-  pointer-events: none;
-  letter-spacing: .02em;
-  text-align: center;
   width: 100%;
+  text-align: center;
+  pointer-events: none;
   line-height: 1;
 }
 .donut-labels {
-  margin-top: 12px;
   display: flex;
-  gap: 14px;
   justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
 }
 .donut-label {
   display: flex;
   align-items: center;
   font-size: 1.07em;
-  color: #1976d2;
   font-weight: 700;
 }
+.donut-label.achieved span { background: #43a047; }
+.donut-label.remaining span { background: #e0e0e0; }
 .donut-label span {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  display: inline-block;
-  margin-right: 8px;
-  background: #43a047;
+  width: 18px; height: 18px; border-radius: 4px;
+  display: inline-block; margin-right: 8px;
 }
 .dashboard-section {
   margin: 0 auto 38px auto;
@@ -150,60 +147,47 @@ body {
   text-align: left;
 }
 .team-bar-flex {
-  display: flex;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 24px;
-  flex-wrap: wrap;
 }
 .team-matrix-card {
-  flex: 1 1 300px;
-  min-width: 270px;
   background: #fff;
   border-radius: 13px;
   box-shadow: 0 2px 12px 0 rgba(33,33,33,0.04);
-  padding: 22px 26px 19px 22px;
-  margin-bottom: 14px;
+  padding: 18px 22px 18px 22px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 7px;
   height: 100%;
 }
-.team-header {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  font-size: 1.1em;
-  font-weight: 700;
-  color: #222;
-  margin-bottom: 7px;
-  letter-spacing: .01em;
+.team-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
 }
-.team-header .material-symbols-outlined {
-  font-size: 1.5em !important;
-}
-.team-title {
-  font-size: 1.1em;
-  font-weight: 700;
-  letter-spacing: .01em;
-}
-.team-matrix-row {
-  display: flex;
-  justify-content: space-between;
+.team-matrix-table td {
+  text-align: left;
   font-size: 1.07em;
-  color: #444;
   padding: 2px 0;
 }
+.team-header {
+  font-weight: 700;
+  font-size: 1.14em;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 .team-bar-chartbox {
-  flex: 1 1 300px;
-  min-width: 270px;
   background: #fff;
   border-radius: 13px;
   box-shadow: 0 2px 12px 0 rgba(33,33,33,0.04);
-  padding: 20px 18px 12px 18px;
+  padding: 20px 10px 12px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 14px;
+  min-width: 0;
   height: 100%;
 }
 #barChart {
@@ -267,10 +251,10 @@ body {
   vertical-align: middle;
 }
 @media (max-width: 1200px) {
-  .dashboard-row-flex { flex-direction: column; align-items: stretch;}
+  .dashboard-matrix-donut { flex-direction: column; align-items: stretch;}
   .grid-matrix { grid-template-columns: 1fr 1fr 1fr; min-width: unset; max-width: unset;}
-  .team-bar-flex { flex-direction: column;}
-  .team-bar-chartbox { min-width: 0;}
+  .team-bar-flex { grid-template-columns: 1fr; }
+  .team-bar-chartbox, .team-matrix-card { min-width: 0; }
 }
 @media (max-width: 900px) {
   .grid-matrix { grid-template-columns: 1fr 1fr; }
