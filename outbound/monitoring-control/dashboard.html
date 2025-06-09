@@ -14,47 +14,45 @@
     <p class="subtitle">Live Overview of Team Sugity &amp; Reguler</p>
   </header>
   <section class="dashboard-main">
-    <div style="display:flex;align-items:stretch;gap:36px;width:100%;justify-content:center;">
-      <!-- Matrix cards in one row -->
-      <div class="grid-matrix">
-        <div class="matrix-card accent-blue">
-          <div class="matrix-icon"><span class="material-symbols-outlined">groups</span></div>
-          <div class="matrix-content">
-            <div class="matrix-label">Man Power</div>
-            <div class="matrix-value" id="manpowerValue">0</div>
-          </div>
-        </div>
-        <div class="matrix-card accent-orange">
-          <div class="matrix-icon"><span class="material-symbols-outlined">flag</span></div>
-          <div class="matrix-content">
-            <div class="matrix-label">Plan Target</div>
-            <div class="matrix-value" id="planTargetValue">0 kg</div>
-          </div>
-        </div>
-        <div class="matrix-card accent-blue">
-          <div class="matrix-icon"><span class="material-symbols-outlined">track_changes</span></div>
-          <div class="matrix-content">
-            <div class="matrix-label">Actual Target</div>
-            <div class="matrix-value" id="actualTargetValue">0 kg</div>
-          </div>
-        </div>
-        <div class="matrix-card accent-green">
-          <div class="matrix-icon"><span class="material-symbols-outlined">check_circle</span></div>
-          <div class="matrix-content">
-            <div class="matrix-label">Achieved</div>
-            <div class="matrix-value" id="actualAchievedValue">0 kg</div>
-          </div>
-        </div>
-        <div class="matrix-card accent-gray">
-          <div class="matrix-icon"><span class="material-symbols-outlined">hourglass_empty</span></div>
-          <div class="matrix-content">
-            <div class="matrix-label">Remaining</div>
-            <div class="matrix-value" id="actualRemainingValue">0 kg</div>
-          </div>
+    <div class="grid-matrix">
+      <!-- Matrix cards -->
+      <div class="matrix-card accent-blue">
+        <div class="matrix-icon"><span class="material-symbols-outlined">groups</span></div>
+        <div class="matrix-content">
+          <div class="matrix-label">Man Power</div>
+          <div class="matrix-value" id="manpowerValue">0</div>
         </div>
       </div>
-      <!-- Donut Chart -->
-      <div class="dashboard-chartbox">
+      <div class="matrix-card accent-orange">
+        <div class="matrix-icon"><span class="material-symbols-outlined">flag</span></div>
+        <div class="matrix-content">
+          <div class="matrix-label">Plan Target</div>
+          <div class="matrix-value" id="planTargetValue">0 kg</div>
+        </div>
+      </div>
+      <div class="matrix-card accent-blue">
+        <div class="matrix-icon"><span class="material-symbols-outlined">track_changes</span></div>
+        <div class="matrix-content">
+          <div class="matrix-label">Actual Target</div>
+          <div class="matrix-value" id="actualTargetValue">0 kg</div>
+        </div>
+      </div>
+      <div class="matrix-card accent-green">
+        <div class="matrix-icon"><span class="material-symbols-outlined">check_circle</span></div>
+        <div class="matrix-content">
+          <div class="matrix-label">Achieved</div>
+          <div class="matrix-value" id="actualAchievedValue">0 kg</div>
+        </div>
+      </div>
+      <div class="matrix-card accent-gray">
+        <div class="matrix-icon"><span class="material-symbols-outlined">hourglass_empty</span></div>
+        <div class="matrix-content">
+          <div class="matrix-label">Remaining</div>
+          <div class="matrix-value" id="actualRemainingValue">0 kg</div>
+        </div>
+      </div>
+      <!-- Donut chart tanpa box -->
+      <div class="donut-flex-no-box">
         <div class="donut-container">
           <canvas id="donutChart"></canvas>
           <div id="donutCenterText" class="donut-center-text"></div>
@@ -76,14 +74,14 @@
         </div>
         <div class="team-divider"></div>
         <div class="team-matrix-row"><span>Man Power</span><span id="mpSugity">2</span></div>
-        <div class="team-matrix-row"><span>Plan Target</span><span id="planSugity">0</span> kg</div>
-        <div class="team-matrix-row"><span>Actual Target</span><span id="actualSugity">0</span> kg</div>
-        <div class="team-matrix-row"><span>Achieved</span><span id="achievedSugity">0</span> kg</div>
-        <div class="team-matrix-row"><span>Remaining</span><span id="remainingSugity">0</span> kg</div>
+        <div class="team-matrix-row"><span>Plan Target</span><span id="planSugity">35280</span> kg</div>
+        <div class="team-matrix-row"><span>Actual Target</span><span id="actualSugity">26225</span> kg</div>
+        <div class="team-matrix-row"><span>Achieved</span><span id="achievedSugity">12550</span> kg</div>
+        <div class="team-matrix-row"><span>Remaining</span><span id="remainingSugity">13675</span> kg</div>
         <div class="progress-bar">
-          <div class="progress-bar-inner accent-blue" id="progressSugity" style="width: 0%;"></div>
+          <div class="progress-bar-inner accent-blue" id="progressSugity"></div>
         </div>
-        <div class="progress-text accent-blue" id="progressTextSugity">Progress: 0%</div>
+        <div class="progress-text accent-blue" id="progressTextSugity"></div>
       </div>
       <div class="team-matrix-card accent-orange">
         <div class="team-header team-header-center">
@@ -92,16 +90,16 @@
         </div>
         <div class="team-divider"></div>
         <div class="team-matrix-row"><span>Man Power</span><span id="mpReguler">1</span></div>
-        <div class="team-matrix-row"><span>Plan Target</span><span id="planReguler">0</span> kg</div>
-        <div class="team-matrix-row"><span>Actual Target</span><span id="actualReguler">0</span> kg</div>
-        <div class="team-matrix-row"><span>Achieved</span><span id="achievedReguler">0</span> kg</div>
-        <div class="team-matrix-row"><span>Remaining</span><span id="remainingReguler">0</span> kg</div>
+        <div class="team-matrix-row"><span>Plan Target</span><span id="planReguler">17640</span> kg</div>
+        <div class="team-matrix-row"><span>Actual Target</span><span id="actualReguler">26135</span> kg</div>
+        <div class="team-matrix-row"><span>Achieved</span><span id="achievedReguler">24750</span> kg</div>
+        <div class="team-matrix-row"><span>Remaining</span><span id="remainingReguler">1385</span> kg</div>
         <div class="progress-bar">
-          <div class="progress-bar-inner accent-orange" id="progressReguler" style="width: 0%;"></div>
+          <div class="progress-bar-inner accent-orange" id="progressReguler"></div>
         </div>
-        <div class="progress-text accent-orange" id="progressTextReguler">Progress: 0%</div>
+        <div class="progress-text accent-orange" id="progressTextReguler"></div>
       </div>
-      <div class="team-bar-chartbox">
+      <div class="team-bar-chartbox team-matrix-card">
         <canvas id="barChart"></canvas>
       </div>
     </div>
@@ -127,7 +125,6 @@
       </table>
     </div>
   </section>
-  <!-- Icon font (Google Material Icons) -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
