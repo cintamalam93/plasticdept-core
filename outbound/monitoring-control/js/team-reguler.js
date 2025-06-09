@@ -30,34 +30,52 @@ function setPicMetricFromDb(teamKey = "TeamSugity") {
   });
 }
 
-function createStatusLabel(status) {
+function createStatusLabel(status, mode = "phoenix") {
   const span = document.createElement("span");
   span.textContent = status;
   span.classList.add("status-label");
 
-  switch (status.toLowerCase()) {
-    case "pending pick":
-    case "pending allocation":
-      span.style.backgroundColor = "#e74c3c"; // Merah
-      break;
-    case "partial picked":
-    case "partial packed":
-      span.style.backgroundColor = "#f39c12"; // Oranye
-      break;
-    case "packed":
-    case "loading":
-    case "completed":
-      span.style.backgroundColor = "#2ecc71"; // Hijau
-      break;
-    default:
-      span.style.backgroundColor = "#bdc3c7";
+  if (mode === "phoenix") {
+    switch (status.toLowerCase()) {
+      case "pending pick":
+      case "pending allocation":
+        span.style.backgroundColor = "#e74c3c"; // Merah
+        break;
+      case "partial picked":
+      case "partial packed":
+        span.style.backgroundColor = "#f39c12"; // Oranye
+        break;
+      case "packed":
+      case "loading":
+      case "completed":
+        span.style.backgroundColor = "#2ecc71"; // Hijau
+        break;
+      default:
+        span.style.backgroundColor = "#bdc3c7";
+    }
+  } else if (mode === "zlogix") {
+    switch (status) {
+      case "NewJob":
+        span.style.backgroundColor = "#e74c3c"; // Merah
+        break;
+      case "Downloaded":
+      case "Picked":
+      case "PartialPicked":
+        span.style.backgroundColor = "#f39c12"; // Oranye
+        break;
+      case "Packed":
+      case "Loaded":
+        span.style.backgroundColor = "#2ecc71"; // Hijau
+        break;
+      default:
+        span.style.backgroundColor = "#bdc3c7";
+    }
   }
 
   span.style.padding = "4px 8px";
   span.style.borderRadius = "6px";
   span.style.color = "white";
   span.style.fontSize = "0.85em";
-
   return span;
 }
 
