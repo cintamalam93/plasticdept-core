@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Progress Outbound Team</title>
+  <link rel="stylesheet" href="dashboard-progress.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Dashboard Progress Outbound Team</h1>
+  <div class="dashboard-container">
+    <div class="dashboard-matrix">
+      <div class="matrix-card" id="card-manpower">
+        <div class="matrix-title">Man Power</div>
+        <div class="matrix-value" id="manpowerValue">0</div>
+      </div>
+      <div class="matrix-card" id="card-plan">
+        <div class="matrix-title">Plan Target</div>
+        <div class="matrix-value" id="planTargetValue">0 kg</div>
+      </div>
+      <div class="matrix-card" id="card-actual">
+        <div class="matrix-title">Actual Target</div>
+        <div class="matrix-value" id="actualTargetValue">0 kg</div>
+      </div>
+      <div class="matrix-card" id="card-achieved">
+        <div class="matrix-title">Actual Target Achieved</div>
+        <div class="matrix-value" id="actualAchievedValue">0 kg</div>
+      </div>
+      <div class="matrix-card" id="card-remaining">
+        <div class="matrix-title">Actual Target Remaining</div>
+        <div class="matrix-value" id="actualRemainingValue">0 kg</div>
+      </div>
+    </div>
+    <div class="dashboard-chart">
+      <canvas id="donutChart"></canvas>
+    </div>
+  </div>
+
+  <h2>Team Target Comparison</h2>
+  <div class="team-matrix-container">
+    <div class="team-matrix-card">
+      <div class="team-title">Team Sugity</div>
+      <div>Man Power: <span id="mpSugity">2</span></div>
+      <div>Plan Target: <span id="planSugity">0</span> kg</div>
+      <div>Actual Target: <span id="actualSugity">0</span> kg</div>
+      <div>Achieved: <span id="achievedSugity">0</span> kg</div>
+      <div>Remaining: <span id="remainingSugity">0</span> kg</div>
+    </div>
+    <div class="team-matrix-card">
+      <div class="team-title">Team Reguler</div>
+      <div>Man Power: <span id="mpReguler">1</span></div>
+      <div>Plan Target: <span id="planReguler">0</span> kg</div>
+      <div>Actual Target: <span id="actualReguler">0</span> kg</div>
+      <div>Achieved: <span id="achievedReguler">0</span> kg</div>
+      <div>Remaining: <span id="remainingReguler">0</span> kg</div>
+    </div>
+    <div class="team-bar-chart">
+      <canvas id="barChart"></canvas>
+    </div>
+  </div>
+
+  <h2>Outbound Jobs Data</h2>
+  <div class="jobs-table-container">
+    <table id="jobsTable">
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th>Job No</th>
+          <th>Delivery Date</th>
+          <th>Delivery Note</th>
+          <th>Remark</th>
+          <th>Status</th>
+          <th>Qty</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data loaded via JS -->
+      </tbody>
+    </table>
+  </div>
+  <script src="dashboard-progress.js"></script>
+</body>
+</html>
