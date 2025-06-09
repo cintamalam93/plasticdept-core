@@ -32,7 +32,6 @@ body {
   font-size: 1.07em;
   margin-top: 5px;
 }
-
 .dashboard-main,
 .dashboard-section,
 .jobs-table-container {
@@ -40,7 +39,6 @@ body {
   margin: 0 auto 38px auto;
   padding: 0 18px;
 }
-
 .grid-matrix {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -88,7 +86,6 @@ body {
   color: var(--text);
   letter-spacing: .01em;
 }
-
 /* Donut chart tanpa box */
 .donut-flex-no-box {
   display: flex;
@@ -148,8 +145,6 @@ body {
 }
 .donut-label.achieved span { background: var(--green);}
 .donut-label.remaining span { background: var(--gray);}
-
-/* --- Per Team Progress Section --- */
 .team-matrix-flex {
   display: flex;
   align-items: flex-start;
@@ -171,6 +166,17 @@ body {
   justify-content: flex-start;
   box-sizing: border-box;
   margin-bottom: 14px;
+}
+.team-bar-chartbox {
+  align-items: center;
+  justify-content: center;
+}
+#barChart {
+  width: 100% !important;
+  height: 185px !important;
+  min-width: 100px;
+  max-width: 100%;
+  display: block;
 }
 .team-header {
   display: flex;
@@ -256,20 +262,6 @@ body {
 .progress-text.accent-orange {
   color: var(--orange);
 }
-
-/* Bar chart box ukurannya sama dengan card team */
-.team-bar-chartbox {
-  align-items: center;
-  justify-content: center;
-}
-#barChart {
-  width: 100% !important;
-  height: 185px !important;
-  min-width: 100px;
-  max-width: 100%;
-  display: block;
-}
-
 .jobs-table-container {
   background: var(--white);
   border-radius: 12px;
@@ -319,7 +311,6 @@ body {
 .status-downloaded, .status-picked, .status-partialpicked { background: #ff9800; color: #fff;}
 .status-packed, .status-loaded { background: #43a047; color: #fff;}
 .status-other { background: #bdbdbd; color: #fff;}
-
 @media (max-width: 1400px) {
   .dashboard-main, .dashboard-section, .jobs-table-container, .grid-matrix {
     max-width: 100vw;
