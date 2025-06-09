@@ -1,8 +1,8 @@
 // Dashboard Progress Outbound - Gabungan Team Sugity & Reguler
 
 // --- Ganti dengan import config.js dan Firebase SDK jika perlu ---
-import { db } from "./config.js";
-import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { db, authPromise } from "./config.js";
+import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 // --- Konstanta Man Power Per Team ---
 const MP_SUGITY = 2;
