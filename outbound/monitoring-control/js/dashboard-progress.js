@@ -1,6 +1,5 @@
 // Dashboard Progress Outbound - Gabungan Team Sugity & Reguler
 
-// --- Ganti dengan import config.js dan Firebase SDK jika perlu ---
 import { db, authPromise } from "./config.js";
 import { ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
@@ -51,11 +50,27 @@ function getStatusClass(status) {
     case "newjob": return "status-newjob";
     case "downloaded":
     case "picked":
+    case "partialdownloaded":
     case "partialpicked": return "status-downloaded";
     case "packed":
     case "loaded": return "status-packed";
     default: return "status-other";
   }
+}
+
+// --- Status Sort Order Utility ---
+const STATUS_ORDER = [
+  "newjob",
+  "downloaded",
+  "partialdownloaded",
+  "partialpicked",
+  "packed",
+  "loaded",
+  "completed"
+];
+function getStatusSortOrder(status) {
+  const idx = STATUS_ORDER.indexOf((status || '').toLowerCase());
+  return idx === -1 ? 999 : idx;
 }
 
 // --- Main Data Loader ---
@@ -121,7 +136,7 @@ async function loadDashboardData() {
   actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
   actualRemainingValue.textContent = formatNumber(totalRemaining) + " kg";
 
-  // --- Isi Matrix Team ---
+  // --- Isi Matrix Team (otomatis) ---
   mpSugity.textContent = MP_SUGITY;
   mpReguler.textContent = MP_REGULER;
   planSugity.textContent = formatNumber(planSugityVal);
@@ -145,9 +160,19 @@ async function loadDashboardData() {
     [planSugityVal, planRegulerVal]
   );
 
-  // --- Tabel Outbound Jobs ---
-  renderJobsTable([...sugityJobs.map(j => ({...j, team: "Sugity"})),
-                   ...regulerJobs.map(j => ({...j, team: "Reguler"}))]);
+  // --- Tabel Outbound Jobs (sort by status order) ---
+  const allJobs = [
+    ...sugityJobs.map(j => ({...j, team: "Sugity"})),
+    ...regulerJobs.map(j => ({...j, team: "Reguler"}))
+  ];
+  allJobs.sort((a, b) => {
+    const orderA = getStatusSortOrder(a.status);
+    const orderB = getStatusSortOrder(b.status);
+    if (orderA !== orderB) return orderA - orderB;
+    // secondary sort by jobNo (optional)
+    return (a.jobNo || '').localeCompare(b.jobNo || '');
+  });
+  renderJobsTable(allJobs);
 }
 
 // --- Update Progress per Team Otomatis ---
@@ -268,6 +293,3 @@ function renderJobsTable(jobs) {
 onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
 onValue(ref(db, "PlanTarget/Sugity"), loadDashboardData);
 onValue(ref(db, "PlanTarget/Reguler"), loadDashboardData);
-
-// --- Inisialisasi (jika ingin sekali jalan saja, pakai loadDashboardData())
-// loadDashboardData();
