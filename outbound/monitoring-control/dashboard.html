@@ -14,8 +14,7 @@
     <p class="subtitle">Live Overview of Team Sugity &amp; Reguler</p>
   </header>
   <section class="dashboard-main">
-    <div style="display:flex;align-items:stretch;gap:36px;width:100%;justify-content:center;">
-      <!-- Matrix cards in one row -->
+    <div class="dashboard-row-flex">
       <div class="grid-matrix">
         <div class="matrix-card accent-blue">
           <div class="matrix-icon"><span class="material-symbols-outlined">groups</span></div>
@@ -53,22 +52,21 @@
           </div>
         </div>
       </div>
-      <!-- Donut Chart -->
-      <div class="dashboard-chartbox">
+      <!-- Donut chart tanpa box -->
+      <div class="donut-chart-standalone">
         <div class="donut-container">
           <canvas id="donutChart"></canvas>
           <div id="donutCenterText" class="donut-center-text"></div>
         </div>
         <div class="donut-labels">
-          <div class="donut-label achieved"><span></span> Achieved</div>
-          <div class="donut-label remaining"><span></span> Remaining</div>
+          <div class="donut-label achieved"><span></span>Achieved</div>
         </div>
       </div>
     </div>
   </section>
   <section class="dashboard-section">
     <h2>Per Team Progress</h2>
-    <div class="team-matrix-flex">
+    <div class="team-bar-flex">
       <div class="team-matrix-card accent-blue">
         <div class="team-header">
           <span class="material-symbols-outlined">groups</span>
@@ -117,9 +115,7 @@
       </table>
     </div>
   </section>
-  <!-- Icon font (Google Material Icons) -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-  <!-- Firebase Modular Config & Dashboard JS (type module) -->
   <script type="module" src="js/config.js"></script>
   <script type="module" src="js/dashboard-progress.js"></script>
 </body>
