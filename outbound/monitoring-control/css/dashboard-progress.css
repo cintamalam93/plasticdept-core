@@ -149,7 +149,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 32px;
-  margin-bottom: 38px;
+  margin-bottom: 56px;
 }
 .team-matrix-card {
   background: #fff;
@@ -190,6 +190,9 @@ body {
   display: flex;
   align-items: center;
   gap: 5px;
+  justify-content: center;   /* <-- ini yang bikin teks di tengah */
+  text-align: center;        /* untuk jaga-jaga */
+  width: 100%;
 }
 .team-bar-chartbox {
   background: #fff;
