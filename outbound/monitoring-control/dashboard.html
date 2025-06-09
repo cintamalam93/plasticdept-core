@@ -14,7 +14,7 @@
     <p class="subtitle">Live Overview of Team Sugity &amp; Reguler</p>
   </header>
   <section class="dashboard-main">
-    <div class="dashboard-row-flex">
+    <div class="dashboard-matrix-donut">
       <div class="grid-matrix">
         <div class="matrix-card accent-blue">
           <div class="matrix-icon"><span class="material-symbols-outlined">groups</span></div>
@@ -52,7 +52,6 @@
           </div>
         </div>
       </div>
-      <!-- Donut chart tanpa box -->
       <div class="donut-chart-standalone">
         <div class="donut-container">
           <canvas id="donutChart"></canvas>
@@ -60,6 +59,7 @@
         </div>
         <div class="donut-labels">
           <div class="donut-label achieved"><span></span>Achieved</div>
+          <div class="donut-label remaining"><span></span>Remaining</div>
         </div>
       </div>
     </div>
@@ -69,25 +69,27 @@
     <div class="team-bar-flex">
       <div class="team-matrix-card accent-blue">
         <div class="team-header">
-          <span class="material-symbols-outlined">groups</span>
-          <span class="team-title">Sugity</span>
+          <span class="material-symbols-outlined">groups</span> Sugity
         </div>
-        <div class="team-matrix-row"><span>Man Power</span><span id="mpSugity">2</span></div>
-        <div class="team-matrix-row"><span>Plan Target</span><span id="planSugity">0</span> kg</div>
-        <div class="team-matrix-row"><span>Actual Target</span><span id="actualSugity">0</span> kg</div>
-        <div class="team-matrix-row"><span>Achieved</span><span id="achievedSugity">0</span> kg</div>
-        <div class="team-matrix-row"><span>Remaining</span><span id="remainingSugity">0</span> kg</div>
+        <table class="team-matrix-table">
+          <tr><td>Man Power</td><td id="mpSugity">2</td></tr>
+          <tr><td>Plan Target</td><td id="planSugity">0</td></tr>
+          <tr><td>Actual Target</td><td id="actualSugity">0</td></tr>
+          <tr><td>Achieved</td><td id="achievedSugity">0</td></tr>
+          <tr><td>Remaining</td><td id="remainingSugity">0</td></tr>
+        </table>
       </div>
       <div class="team-matrix-card accent-orange">
         <div class="team-header">
-          <span class="material-symbols-outlined">groups</span>
-          <span class="team-title">Reguler</span>
+          <span class="material-symbols-outlined">groups</span> Reguler
         </div>
-        <div class="team-matrix-row"><span>Man Power</span><span id="mpReguler">1</span></div>
-        <div class="team-matrix-row"><span>Plan Target</span><span id="planReguler">0</span> kg</div>
-        <div class="team-matrix-row"><span>Actual Target</span><span id="actualReguler">0</span> kg</div>
-        <div class="team-matrix-row"><span>Achieved</span><span id="achievedReguler">0</span> kg</div>
-        <div class="team-matrix-row"><span>Remaining</span><span id="remainingReguler">0</span> kg</div>
+        <table class="team-matrix-table">
+          <tr><td>Man Power</td><td id="mpReguler">1</td></tr>
+          <tr><td>Plan Target</td><td id="planReguler">0</td></tr>
+          <tr><td>Actual Target</td><td id="actualReguler">0</td></tr>
+          <tr><td>Achieved</td><td id="achievedReguler">0</td></tr>
+          <tr><td>Remaining</td><td id="remainingReguler">0</td></tr>
+        </table>
       </div>
       <div class="team-bar-chartbox">
         <canvas id="barChart"></canvas>
