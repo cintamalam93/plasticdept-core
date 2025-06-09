@@ -1,6 +1,5 @@
 import { db, authPromise } from "./config.js";
 import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
-import ChartDataLabels from "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js";
 
 // --- Konstanta Man Power & Plan Target per Team ---
 const MP_SUGITY = 2;
