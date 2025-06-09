@@ -167,9 +167,19 @@ body {
   border-collapse: collapse;
 }
 .team-matrix-table td {
-  text-align: left;
   font-size: 1.07em;
   padding: 2px 0;
+}
+.team-matrix-table td:first-child {
+  text-align: left;
+  min-width: 90px;
+  color: #333;
+}
+.team-matrix-table td.team-matrix-value {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: #222;
+  font-weight: 600;
 }
 .team-header {
   font-weight: 700;
