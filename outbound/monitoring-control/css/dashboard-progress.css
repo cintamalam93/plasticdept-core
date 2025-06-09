@@ -195,7 +195,7 @@ body {
   background: #fff;
   border-radius: 13px;
   box-shadow: 0 2px 12px 0 rgba(33,33,33,0.04);
-  padding: 20px 10px 12px 10px;
+  padding: 20px 20px 12px 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -203,8 +203,11 @@ body {
   height: 100%;
 }
 #barChart {
-  width: 260px !important;
-  height: 185px !important;
+  width: 99% !important;   /* biar isi penuh box */
+  height: 220px !important; /* tambah tinggi agar proporsional */
+  min-width: 240px;
+  max-width: 100%;
+  display: block;
 }
 .jobs-table-container {
   background: #fff;
