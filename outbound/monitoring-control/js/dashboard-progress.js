@@ -1,11 +1,12 @@
-import { db, authPromise } from "./config.js";
-import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+// Dashboard Progress Outbound - Gabungan Team Sugity & Reguler
 
-// --- Konstanta Man Power & Plan Target per Team ---
+// --- Ganti dengan import config.js dan Firebase SDK jika perlu ---
+import { db, authPromise } from "./config.js";
+import { ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+
+// --- Konstanta Man Power Per Team ---
 const MP_SUGITY = 2;
 const MP_REGULER = 1;
-const PLAN_SUGITY = 35280;
-const PLAN_REGULER = 17640;
 
 // --- DOM Elements (dashboard matrix) ---
 const manpowerValue = document.getElementById("manpowerValue");
@@ -26,53 +27,59 @@ const achievedReguler = document.getElementById("achievedReguler");
 const remainingSugity = document.getElementById("remainingSugity");
 const remainingReguler = document.getElementById("remainingReguler");
 
+// Progress bar & label DOM
+const progressSugityBar = document.getElementById("progressSugity");
+const progressTextSugity = document.getElementById("progressTextSugity");
+const progressRegulerBar = document.getElementById("progressReguler");
+const progressTextReguler = document.getElementById("progressTextReguler");
+
 // Outbound jobs table
 const jobsTableBody = document.querySelector("#jobsTable tbody");
 
 // Chart.js chart objects
 let donutChart, barChart;
 
-// --- Status Order for Table Sorting ---
-const STATUS_ORDER = [
-  "newjob", "downloaded", "partialdownloaded", "partialpicked", "picked", "packed", "loaded", "completed"
-];
-
 // --- Helper Functions ---
 function formatNumber(num) {
   if (isNaN(num)) return "0";
   return Number(num).toLocaleString();
 }
+
+// --- Status Label Utility ---
 function getStatusClass(status) {
   switch ((status || "").toLowerCase()) {
     case "newjob": return "status-newjob";
-    case "downloaded": return "status-downloaded";
-    case "partialdownloaded": return "status-partialdownloaded";
+    case "downloaded":
     case "picked":
-    case "partialpicked": return "status-picked";
-    case "packed": return "status-packed";
-    case "loaded": return "status-loaded";
-    case "completed": return "status-completed";
+    case "partialpicked": return "status-downloaded";
+    case "packed":
+    case "loaded": return "status-packed";
     default: return "status-other";
   }
-}
-function getStatusOrder(status) {
-  const idx = STATUS_ORDER.indexOf((status || "").toLowerCase());
-  return idx === -1 ? 999 : idx;
 }
 
 // --- Main Data Loader ---
 async function loadDashboardData() {
-  // Ambil data dari Firebase
-  const [outboundJobsSnap] = await Promise.all([
+  // Ambil Plan Target dari Firebase
+  const [planSugitySnap, planRegulerSnap, outboundJobsSnap] = await Promise.all([
+    get(ref(db, "PlanTarget/Sugity")),
+    get(ref(db, "PlanTarget/Reguler")),
     get(ref(db, "PhxOutboundJobs")),
   ]);
+
+  // Plan Target
+  const planSugityVal = parseInt(planSugitySnap.exists() ? planSugitySnap.val() : 0) || 0;
+  const planRegulerVal = parseInt(planRegulerSnap.exists() ? planRegulerSnap.val() : 0) || 0;
 
   // Outbound Jobs
   const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
 
   // Per-team accumulator
-  let sumActualSugity = 0, sumAchievedSugity = 0,
-      sumActualReguler = 0, sumAchievedReguler = 0;
+  let sumActualSugity = 0,
+      sumAchievedSugity = 0,
+      sumActualReguler = 0,
+      sumAchievedReguler = 0;
+
   let sugityJobs = [], regulerJobs = [];
 
   for (const jobNo in outboundJobs) {
@@ -80,6 +87,7 @@ async function loadDashboardData() {
     const qty = parseInt(job.qty) || 0;
     const team = (job.team || '').toLowerCase();
     const status = (job.status || '').toLowerCase();
+
     if (team === "sugity") {
       sumActualSugity += qty;
       if (["packed", "loaded", "completed"].includes(status)) {
@@ -101,7 +109,7 @@ async function loadDashboardData() {
 
   // Gabungan
   const totalManPower = MP_SUGITY + MP_REGULER;
-  const totalPlanTarget = PLAN_SUGITY + PLAN_REGULER;
+  const totalPlanTarget = planSugityVal + planRegulerVal;
   const totalActual = sumActualSugity + sumActualReguler;
   const totalAchieved = sumAchievedSugity + sumAchievedReguler;
   const totalRemaining = totalActual - totalAchieved;
@@ -113,47 +121,52 @@ async function loadDashboardData() {
   actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
   actualRemainingValue.textContent = formatNumber(totalRemaining) + " kg";
 
-  // --- Isi Matrix Team (dengan kg & rata kanan) ---
+  // --- Isi Matrix Team ---
   mpSugity.textContent = MP_SUGITY;
-  planSugity.textContent = formatNumber(PLAN_SUGITY) + " kg";
-  actualSugity.textContent = formatNumber(sumActualSugity) + " kg";
-  achievedSugity.textContent = formatNumber(sumAchievedSugity) + " kg";
-  remainingSugity.textContent = formatNumber(sumRemainingSugity) + " kg";
-
   mpReguler.textContent = MP_REGULER;
-  planReguler.textContent = formatNumber(PLAN_REGULER) + " kg";
-  actualReguler.textContent = formatNumber(sumActualReguler) + " kg";
-  achievedReguler.textContent = formatNumber(sumAchievedReguler) + " kg";
-  remainingReguler.textContent = formatNumber(sumRemainingReguler) + " kg";
+  planSugity.textContent = formatNumber(planSugityVal);
+  planReguler.textContent = formatNumber(planRegulerVal);
+  actualSugity.textContent = formatNumber(sumActualSugity);
+  actualReguler.textContent = formatNumber(sumActualReguler);
+  achievedSugity.textContent = formatNumber(sumAchievedSugity);
+  achievedReguler.textContent = formatNumber(sumAchievedReguler);
+  remainingSugity.textContent = formatNumber(sumRemainingSugity);
+  remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
-  // --- Chart Donut ---
-  renderDonutChart(totalAchieved, totalRemaining, totalActual);
+  // --- Progress Otomatis Per Team ---
+  updateTeamProgress(planSugityVal, sumAchievedSugity, planRegulerVal, sumAchievedReguler);
+
+  // --- Chart Donut (Gabungan) ---
+  renderDonutChart(totalAchieved, totalRemaining);
 
   // --- Chart Bar (Team) ---
   renderBarChart(
     [sumActualSugity, sumActualReguler],
-    [PLAN_SUGITY, PLAN_REGULER]
+    [planSugityVal, planRegulerVal]
   );
 
-  // --- Tabel Outbound Jobs (urutkan sesuai status order) ---
-  const jobs = [
-    ...sugityJobs.map(j => ({...j, team: "Sugity"})),
-    ...regulerJobs.map(j => ({...j, team: "Reguler"}))
-  ];
-  jobs.sort((a, b) => {
-    const orderA = getStatusOrder(a.status);
-    const orderB = getStatusOrder(b.status);
-    if (orderA === orderB) {
-      // Jika status sama, urutkan descending qty
-      return (parseInt(b.qty)||0) - (parseInt(a.qty)||0);
-    }
-    return orderA - orderB;
-  });
-  renderJobsTable(jobs);
+  // --- Tabel Outbound Jobs ---
+  renderJobsTable([...sugityJobs.map(j => ({...j, team: "Sugity"})),
+                   ...regulerJobs.map(j => ({...j, team: "Reguler"}))]);
 }
 
-// --- Donut Chart (legend achieved+remaining) ---
-function renderDonutChart(achieved, remaining, totalActual) {
+// --- Update Progress per Team Otomatis ---
+function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, achievedRegulerVal) {
+  // Sugity
+  let progressSugity = planSugityVal > 0 ? (achievedSugityVal / planSugityVal * 100) : 0;
+  progressSugity = Math.max(0, Math.min(progressSugity, 100));
+  if (progressSugityBar) progressSugityBar.style.width = progressSugity + "%";
+  if (progressTextSugity) progressTextSugity.textContent = `Progress: ${progressSugity.toFixed(1)}%`;
+
+  // Reguler
+  let progressReguler = planRegulerVal > 0 ? (achievedRegulerVal / planRegulerVal * 100) : 0;
+  progressReguler = Math.max(0, Math.min(progressReguler, 100));
+  if (progressRegulerBar) progressRegulerBar.style.width = progressReguler + "%";
+  if (progressTextReguler) progressTextReguler.textContent = `Progress: ${progressReguler.toFixed(1)}%`;
+}
+
+// --- Donut Chart ---
+function renderDonutChart(achieved, remaining) {
   const ctx = document.getElementById("donutChart").getContext("2d");
   if (donutChart) donutChart.destroy();
   donutChart = new Chart(ctx, {
@@ -162,12 +175,12 @@ function renderDonutChart(achieved, remaining, totalActual) {
       labels: ["Achieved", "Remaining"],
       datasets: [{
         data: [achieved, remaining],
-        backgroundColor: ["#43a047", "#e0e0e0"],
+        backgroundColor: ["#2ecc71", "#ecf0f1"],
         borderWidth: 2
       }]
     },
     options: {
-      cutout: "76%",
+      cutout: "70%",
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -180,13 +193,13 @@ function renderDonutChart(achieved, remaining, totalActual) {
       }
     }
   });
-  // Center Text (percent)
-  const percent = totalActual ? Math.round((achieved / totalActual) * 100) : 0;
-  const center = document.getElementById("donutCenterText");
-  center.textContent = percent + "%";
+  // Update donut center text
+  const total = achieved + remaining;
+  const percent = total > 0 ? (achieved / total * 100) : 0;
+  document.getElementById("donutCenterText").textContent = percent.toFixed(0) + "%";
 }
 
-// --- Bar Chart (with DataLabels) ---
+// --- Bar Chart (Progress Per Team) ---
 function renderBarChart(actualArr, planArr) {
   const ctx = document.getElementById("barChart").getContext("2d");
   if (barChart) barChart.destroy();
@@ -198,26 +211,12 @@ function renderBarChart(actualArr, planArr) {
         {
           label: "Actual Target",
           data: actualArr,
-          backgroundColor: "#3498db",
-          datalabels: {
-            anchor: 'end',
-            align: 'end',
-            formatter: v => v ? v.toLocaleString() + ' kg' : '0 kg',
-            font: { weight: 'bold' },
-            color: "#1976d2"
-          }
+          backgroundColor: "#3498db"
         },
         {
           label: "Plan Target",
           data: planArr,
-          backgroundColor: "#ff9800",
-          datalabels: {
-            anchor: 'end',
-            align: 'end',
-            formatter: v => v ? v.toLocaleString() + ' kg' : '0 kg',
-            font: { weight: 'bold' },
-            color: "#ff9800"
-          }
+          backgroundColor: "#f39c12"
         }
       ]
     },
@@ -225,11 +224,6 @@ function renderBarChart(actualArr, planArr) {
       responsive: true,
       plugins: {
         legend: { display: true, position: "bottom" },
-        datalabels: {
-          display: true,
-          clamp: true,
-          clip: false,
-        },
         tooltip: {
           callbacks: {
             label: function(ctx) {
@@ -241,11 +235,12 @@ function renderBarChart(actualArr, planArr) {
       scales: {
         y: {
           beginAtZero: true,
-          title: { display: true, text: "Qty (kg)" }
+          title: {
+            display: true, text: "Qty (kg)"
+          }
         }
       }
-    },
-    plugins: [ChartDataLabels]
+    }
   });
 }
 
@@ -253,8 +248,6 @@ function renderBarChart(actualArr, planArr) {
 function renderJobsTable(jobs) {
   jobsTableBody.innerHTML = "";
   jobs.forEach(job => {
-    const statusClass = getStatusClass(job.status);
-    const statusLabel = (job.status||"").replace(/^\w/, c => c.toUpperCase());
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${job.team}</td>
@@ -263,7 +256,7 @@ function renderJobsTable(jobs) {
       <td>${job.deliveryNote}</td>
       <td>${job.remark}</td>
       <td>
-        <span class="status-label ${statusClass}">${statusLabel}</span>
+        <span class="status-label ${getStatusClass(job.status)}">${job.status}</span>
       </td>
       <td>${formatNumber(job.qty)}</td>
     `;
@@ -271,11 +264,10 @@ function renderJobsTable(jobs) {
   });
 }
 
-// --- Real-time update (modular Firebase) ---
-authPromise.then(() => {
-  onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
-  // Initial load
-  loadDashboardData();
-}).catch((err) => {
-  alert("Failed to authenticate anonymously: " + err.message);
-});
+// --- Real-time update (optional, jika ingin auto-update) ---
+onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
+onValue(ref(db, "PlanTarget/Sugity"), loadDashboardData);
+onValue(ref(db, "PlanTarget/Reguler"), loadDashboardData);
+
+// --- Inisialisasi (jika ingin sekali jalan saja, pakai loadDashboardData())
+// loadDashboardData();
