@@ -35,7 +35,7 @@ body {
 .dashboard-main,
 .dashboard-section,
 .jobs-table-container {
-  max-width: 1240px;
+  max-width: 1600px;
   margin: 0 auto 38px auto;
   padding: 0 18px;
 }
@@ -43,8 +43,8 @@ body {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 18px;
-  min-width: 790px;
-  max-width: 1240px;
+  min-width: 900px;
+  max-width: 1600px;
   align-items: stretch;
 }
 .matrix-card {
