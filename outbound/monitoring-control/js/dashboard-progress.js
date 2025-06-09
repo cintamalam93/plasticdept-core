@@ -1,5 +1,6 @@
 import { db, authPromise } from "./config.js";
 import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import ChartDataLabels from "https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js";
 
 // --- Konstanta Man Power & Plan Target per Team ---
 const MP_SUGITY = 2;
@@ -113,17 +114,18 @@ async function loadDashboardData() {
   actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
   actualRemainingValue.textContent = formatNumber(totalRemaining) + " kg";
 
-  // --- Isi Matrix Team ---
+  // --- Isi Matrix Team (dengan kg & rata kanan) ---
   mpSugity.textContent = MP_SUGITY;
+  planSugity.textContent = formatNumber(PLAN_SUGITY) + " kg";
+  actualSugity.textContent = formatNumber(sumActualSugity) + " kg";
+  achievedSugity.textContent = formatNumber(sumAchievedSugity) + " kg";
+  remainingSugity.textContent = formatNumber(sumRemainingSugity) + " kg";
+
   mpReguler.textContent = MP_REGULER;
-  planSugity.textContent = formatNumber(PLAN_SUGITY);
-  planReguler.textContent = formatNumber(PLAN_REGULER);
-  actualSugity.textContent = formatNumber(sumActualSugity);
-  actualReguler.textContent = formatNumber(sumActualReguler);
-  achievedSugity.textContent = formatNumber(sumAchievedSugity);
-  achievedReguler.textContent = formatNumber(sumAchievedReguler);
-  remainingSugity.textContent = formatNumber(sumRemainingSugity);
-  remainingReguler.textContent = formatNumber(sumRemainingReguler);
+  planReguler.textContent = formatNumber(PLAN_REGULER) + " kg";
+  actualReguler.textContent = formatNumber(sumActualReguler) + " kg";
+  achievedReguler.textContent = formatNumber(sumAchievedReguler) + " kg";
+  remainingReguler.textContent = formatNumber(sumRemainingReguler) + " kg";
 
   // --- Chart Donut ---
   renderDonutChart(totalAchieved, totalRemaining, totalActual);
@@ -151,7 +153,7 @@ async function loadDashboardData() {
   renderJobsTable(jobs);
 }
 
-// --- Donut Chart (tanpa box, legend hanya Achieved) ---
+// --- Donut Chart (legend achieved+remaining) ---
 function renderDonutChart(achieved, remaining, totalActual) {
   const ctx = document.getElementById("donutChart").getContext("2d");
   if (donutChart) donutChart.destroy();
@@ -183,10 +185,9 @@ function renderDonutChart(achieved, remaining, totalActual) {
   const percent = totalActual ? Math.round((achieved / totalActual) * 100) : 0;
   const center = document.getElementById("donutCenterText");
   center.textContent = percent + "%";
-  // Centering via CSS (already styled in css suggestion)
 }
 
-// --- Bar Chart (Progress Per Team) ---
+// --- Bar Chart (with DataLabels) ---
 function renderBarChart(actualArr, planArr) {
   const ctx = document.getElementById("barChart").getContext("2d");
   if (barChart) barChart.destroy();
@@ -198,12 +199,26 @@ function renderBarChart(actualArr, planArr) {
         {
           label: "Actual Target",
           data: actualArr,
-          backgroundColor: "#3498db"
+          backgroundColor: "#3498db",
+          datalabels: {
+            anchor: 'end',
+            align: 'end',
+            formatter: v => v ? v.toLocaleString() + ' kg' : '0 kg',
+            font: { weight: 'bold' },
+            color: "#1976d2"
+          }
         },
         {
           label: "Plan Target",
           data: planArr,
-          backgroundColor: "#ff9800"
+          backgroundColor: "#ff9800",
+          datalabels: {
+            anchor: 'end',
+            align: 'end',
+            formatter: v => v ? v.toLocaleString() + ' kg' : '0 kg',
+            font: { weight: 'bold' },
+            color: "#ff9800"
+          }
         }
       ]
     },
@@ -211,6 +226,11 @@ function renderBarChart(actualArr, planArr) {
       responsive: true,
       plugins: {
         legend: { display: true, position: "bottom" },
+        datalabels: {
+          display: true,
+          clamp: true,
+          clip: false,
+        },
         tooltip: {
           callbacks: {
             label: function(ctx) {
@@ -222,12 +242,11 @@ function renderBarChart(actualArr, planArr) {
       scales: {
         y: {
           beginAtZero: true,
-          title: {
-            display: true, text: "Qty (kg)"
-          }
+          title: { display: true, text: "Qty (kg)" }
         }
       }
-    }
+    },
+    plugins: [ChartDataLabels]
   });
 }
 
