@@ -57,7 +57,7 @@ function createStatusLabel(status) {
 
     // ZLogix
     case "newjob":
-      span.style.backgroundColor = "#3498db"; // Biru
+      span.style.backgroundColor = "#e74c3c"; // Merah
       break;
     case "downloaded":
     case "picked":
