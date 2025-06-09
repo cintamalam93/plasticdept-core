@@ -268,7 +268,7 @@ body {
   box-shadow: var(--shadow);
   padding: 18px 18px 12px 18px;
   overflow-x: auto;
-  max-width: 1240px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 #jobsTable {
