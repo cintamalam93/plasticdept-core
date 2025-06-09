@@ -1,11 +1,11 @@
-// Dashboard Progress Outbound - Gabungan Team Sugity & Reguler (modular Firebase)
-
 import { db, authPromise } from "./config.js";
 import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// --- Konstanta Man Power Per Team ---
+// --- Konstanta Man Power & Plan Target per Team ---
 const MP_SUGITY = 2;
 const MP_REGULER = 1;
+const PLAN_SUGITY = 35280;
+const PLAN_REGULER = 17640;
 
 // --- DOM Elements (dashboard matrix) ---
 const manpowerValue = document.getElementById("manpowerValue");
@@ -32,47 +32,47 @@ const jobsTableBody = document.querySelector("#jobsTable tbody");
 // Chart.js chart objects
 let donutChart, barChart;
 
+// --- Status Order for Table Sorting ---
+const STATUS_ORDER = [
+  "newjob", "downloaded", "partialdownloaded", "partialpicked", "picked", "packed", "loaded", "completed"
+];
+
 // --- Helper Functions ---
 function formatNumber(num) {
   if (isNaN(num)) return "0";
   return Number(num).toLocaleString();
 }
-
-// --- Status Label Utility ---
 function getStatusClass(status) {
   switch ((status || "").toLowerCase()) {
     case "newjob": return "status-newjob";
-    case "downloaded":
+    case "downloaded": return "status-downloaded";
+    case "partialdownloaded": return "status-partialdownloaded";
     case "picked":
-    case "partialpicked": return "status-downloaded";
-    case "packed":
-    case "loaded": return "status-packed";
+    case "partialpicked": return "status-picked";
+    case "packed": return "status-packed";
+    case "loaded": return "status-loaded";
+    case "completed": return "status-completed";
     default: return "status-other";
   }
+}
+function getStatusOrder(status) {
+  const idx = STATUS_ORDER.indexOf((status || "").toLowerCase());
+  return idx === -1 ? 999 : idx;
 }
 
 // --- Main Data Loader ---
 async function loadDashboardData() {
-  // Ambil Plan Target dari Firebase
-  const [planSugitySnap, planRegulerSnap, outboundJobsSnap] = await Promise.all([
-    get(ref(db, "PlanTarget/Sugity")),
-    get(ref(db, "PlanTarget/Reguler")),
+  // Ambil data dari Firebase
+  const [outboundJobsSnap] = await Promise.all([
     get(ref(db, "PhxOutboundJobs")),
   ]);
-
-  // Plan Target
-  const planSugityVal = parseInt(planSugitySnap.exists() ? planSugitySnap.val() : 0) || 0;
-  const planRegulerVal = parseInt(planRegulerSnap.exists() ? planRegulerSnap.val() : 0) || 0;
 
   // Outbound Jobs
   const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
 
   // Per-team accumulator
-  let sumActualSugity = 0,
-      sumAchievedSugity = 0,
-      sumActualReguler = 0,
-      sumAchievedReguler = 0;
-
+  let sumActualSugity = 0, sumAchievedSugity = 0,
+      sumActualReguler = 0, sumAchievedReguler = 0;
   let sugityJobs = [], regulerJobs = [];
 
   for (const jobNo in outboundJobs) {
@@ -80,7 +80,6 @@ async function loadDashboardData() {
     const qty = parseInt(job.qty) || 0;
     const team = (job.team || '').toLowerCase();
     const status = (job.status || '').toLowerCase();
-
     if (team === "sugity") {
       sumActualSugity += qty;
       if (["packed", "loaded", "completed"].includes(status)) {
@@ -102,7 +101,7 @@ async function loadDashboardData() {
 
   // Gabungan
   const totalManPower = MP_SUGITY + MP_REGULER;
-  const totalPlanTarget = planSugityVal + planRegulerVal;
+  const totalPlanTarget = PLAN_SUGITY + PLAN_REGULER;
   const totalActual = sumActualSugity + sumActualReguler;
   const totalAchieved = sumAchievedSugity + sumAchievedReguler;
   const totalRemaining = totalActual - totalAchieved;
@@ -117,8 +116,8 @@ async function loadDashboardData() {
   // --- Isi Matrix Team ---
   mpSugity.textContent = MP_SUGITY;
   mpReguler.textContent = MP_REGULER;
-  planSugity.textContent = formatNumber(planSugityVal);
-  planReguler.textContent = formatNumber(planRegulerVal);
+  planSugity.textContent = formatNumber(PLAN_SUGITY);
+  planReguler.textContent = formatNumber(PLAN_REGULER);
   actualSugity.textContent = formatNumber(sumActualSugity);
   actualReguler.textContent = formatNumber(sumActualReguler);
   achievedSugity.textContent = formatNumber(sumAchievedSugity);
@@ -126,21 +125,33 @@ async function loadDashboardData() {
   remainingSugity.textContent = formatNumber(sumRemainingSugity);
   remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
-  // --- Chart Donut (Gabungan) ---
+  // --- Chart Donut ---
   renderDonutChart(totalAchieved, totalRemaining, totalActual);
 
   // --- Chart Bar (Team) ---
   renderBarChart(
     [sumActualSugity, sumActualReguler],
-    [planSugityVal, planRegulerVal]
+    [PLAN_SUGITY, PLAN_REGULER]
   );
 
-  // --- Tabel Outbound Jobs ---
-  renderJobsTable([...sugityJobs.map(j => ({...j, team: "Sugity"})),
-                   ...regulerJobs.map(j => ({...j, team: "Reguler"}))]);
+  // --- Tabel Outbound Jobs (urutkan sesuai status order) ---
+  const jobs = [
+    ...sugityJobs.map(j => ({...j, team: "Sugity"})),
+    ...regulerJobs.map(j => ({...j, team: "Reguler"}))
+  ];
+  jobs.sort((a, b) => {
+    const orderA = getStatusOrder(a.status);
+    const orderB = getStatusOrder(b.status);
+    if (orderA === orderB) {
+      // Jika status sama, urutkan descending qty
+      return (parseInt(b.qty)||0) - (parseInt(a.qty)||0);
+    }
+    return orderA - orderB;
+  });
+  renderJobsTable(jobs);
 }
 
-// --- Donut Chart ---
+// --- Donut Chart (tanpa box, legend hanya Achieved) ---
 function renderDonutChart(achieved, remaining, totalActual) {
   const ctx = document.getElementById("donutChart").getContext("2d");
   if (donutChart) donutChart.destroy();
@@ -150,14 +161,14 @@ function renderDonutChart(achieved, remaining, totalActual) {
       labels: ["Achieved", "Remaining"],
       datasets: [{
         data: [achieved, remaining],
-        backgroundColor: ["#2ecc71", "#ecf0f1"],
+        backgroundColor: ["#43a047", "#e0e0e0"],
         borderWidth: 2
       }]
     },
     options: {
-      cutout: "70%",
+      cutout: "76%",
       plugins: {
-        legend: { display: true, position: "bottom" },
+        legend: { display: false },
         tooltip: {
           callbacks: {
             label: function(ctx) {
@@ -168,10 +179,11 @@ function renderDonutChart(achieved, remaining, totalActual) {
       }
     }
   });
-
-  // Center Percentage Text
+  // Center Text (percent)
   const percent = totalActual ? Math.round((achieved / totalActual) * 100) : 0;
-  document.getElementById("donutCenterText").textContent = percent + "%";
+  const center = document.getElementById("donutCenterText");
+  center.textContent = percent + "%";
+  // Centering via CSS (already styled in css suggestion)
 }
 
 // --- Bar Chart (Progress Per Team) ---
@@ -191,7 +203,7 @@ function renderBarChart(actualArr, planArr) {
         {
           label: "Plan Target",
           data: planArr,
-          backgroundColor: "#f39c12"
+          backgroundColor: "#ff9800"
         }
       ]
     },
@@ -223,6 +235,8 @@ function renderBarChart(actualArr, planArr) {
 function renderJobsTable(jobs) {
   jobsTableBody.innerHTML = "";
   jobs.forEach(job => {
+    const statusClass = getStatusClass(job.status);
+    const statusLabel = (job.status||"").replace(/^\w/, c => c.toUpperCase());
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${job.team}</td>
@@ -231,7 +245,7 @@ function renderJobsTable(jobs) {
       <td>${job.deliveryNote}</td>
       <td>${job.remark}</td>
       <td>
-        <span class="status-label ${getStatusClass(job.status)}">${job.status}</span>
+        <span class="status-label ${statusClass}">${statusLabel}</span>
       </td>
       <td>${formatNumber(job.qty)}</td>
     `;
@@ -242,8 +256,6 @@ function renderJobsTable(jobs) {
 // --- Real-time update (modular Firebase) ---
 authPromise.then(() => {
   onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
-  onValue(ref(db, "PlanTarget/Sugity"), loadDashboardData);
-  onValue(ref(db, "PlanTarget/Reguler"), loadDashboardData);
   // Initial load
   loadDashboardData();
 }).catch((err) => {
