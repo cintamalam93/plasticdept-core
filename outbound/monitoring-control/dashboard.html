@@ -14,7 +14,8 @@
     <p class="subtitle">Live Overview of Team Sugity &amp; Reguler</p>
   </header>
   <section class="dashboard-main">
-    <div class="dashboard-matrix-donut">
+    <div style="display:flex;align-items:stretch;gap:36px;width:100%;justify-content:center;">
+      <!-- Matrix cards in one row -->
       <div class="grid-matrix">
         <div class="matrix-card accent-blue">
           <div class="matrix-icon"><span class="material-symbols-outlined">groups</span></div>
@@ -52,50 +53,59 @@
           </div>
         </div>
       </div>
-      <div class="donut-chart-standalone">
+      <!-- Donut Chart -->
+      <div class="dashboard-chartbox">
         <div class="donut-container">
           <canvas id="donutChart"></canvas>
           <div id="donutCenterText" class="donut-center-text"></div>
         </div>
         <div class="donut-labels">
-          <div class="donut-label achieved"><span></span>Achieved</div>
-          <div class="donut-label remaining"><span></span>Remaining</div>
+          <div class="donut-label achieved"><span></span> Achieved</div>
+          <div class="donut-label remaining"><span></span> Remaining</div>
         </div>
       </div>
     </div>
   </section>
   <section class="dashboard-section">
-  <h2>Per Team Progress</h2>
-  <div class="team-bar-flex">
-    <div class="team-matrix-card accent-blue">
-      <div class="team-header">
-        <span class="material-symbols-outlined">groups</span> Sugity
+    <h2>Per Team Progress</h2>
+    <div class="team-matrix-flex">
+      <div class="team-matrix-card accent-blue">
+        <div class="team-header team-header-center">
+          <span class="material-symbols-outlined">groups</span>
+          <span class="team-title">Sugity</span>
+        </div>
+        <div class="team-divider"></div>
+        <div class="team-matrix-row"><span>Man Power</span><span id="mpSugity">2</span></div>
+        <div class="team-matrix-row"><span>Plan Target</span><span id="planSugity">0</span> kg</div>
+        <div class="team-matrix-row"><span>Actual Target</span><span id="actualSugity">0</span> kg</div>
+        <div class="team-matrix-row"><span>Achieved</span><span id="achievedSugity">0</span> kg</div>
+        <div class="team-matrix-row"><span>Remaining</span><span id="remainingSugity">0</span> kg</div>
+        <div class="progress-bar">
+          <div class="progress-bar-inner accent-blue" id="progressSugity" style="width: 0%;"></div>
+        </div>
+        <div class="progress-text accent-blue" id="progressTextSugity">Progress: 0%</div>
       </div>
-      <table class="team-matrix-table">
-        <tr><td>Man Power</td><td class="team-matrix-value" id="mpSugity">2</td></tr>
-        <tr><td>Plan Target</td><td class="team-matrix-value" id="planSugity">0 kg</td></tr>
-        <tr><td>Actual Target</td><td class="team-matrix-value" id="actualSugity">0 kg</td></tr>
-        <tr><td>Achieved</td><td class="team-matrix-value" id="achievedSugity">0 kg</td></tr>
-        <tr><td>Remaining</td><td class="team-matrix-value" id="remainingSugity">0 kg</td></tr>
-      </table>
-    </div>
-    <div class="team-matrix-card accent-orange">
-      <div class="team-header">
-        <span class="material-symbols-outlined">groups</span> Reguler
+      <div class="team-matrix-card accent-orange">
+        <div class="team-header team-header-center">
+          <span class="material-symbols-outlined">groups</span>
+          <span class="team-title">Reguler</span>
+        </div>
+        <div class="team-divider"></div>
+        <div class="team-matrix-row"><span>Man Power</span><span id="mpReguler">1</span></div>
+        <div class="team-matrix-row"><span>Plan Target</span><span id="planReguler">0</span> kg</div>
+        <div class="team-matrix-row"><span>Actual Target</span><span id="actualReguler">0</span> kg</div>
+        <div class="team-matrix-row"><span>Achieved</span><span id="achievedReguler">0</span> kg</div>
+        <div class="team-matrix-row"><span>Remaining</span><span id="remainingReguler">0</span> kg</div>
+        <div class="progress-bar">
+          <div class="progress-bar-inner accent-orange" id="progressReguler" style="width: 0%;"></div>
+        </div>
+        <div class="progress-text accent-orange" id="progressTextReguler">Progress: 0%</div>
       </div>
-      <table class="team-matrix-table">
-        <tr><td>Man Power</td><td class="team-matrix-value" id="mpReguler">1</td></tr>
-        <tr><td>Plan Target</td><td class="team-matrix-value" id="planReguler">0 kg</td></tr>
-        <tr><td>Actual Target</td><td class="team-matrix-value" id="actualReguler">0 kg</td></tr>
-        <tr><td>Achieved</td><td class="team-matrix-value" id="achievedReguler">0 kg</td></tr>
-        <tr><td>Remaining</td><td class="team-matrix-value" id="remainingReguler">0 kg</td></tr>
-      </table>
+      <div class="team-bar-chartbox">
+        <canvas id="barChart"></canvas>
+      </div>
     </div>
-    <div class="team-bar-chartbox">
-      <canvas id="barChart"></canvas>
-    </div>
-  </div>
-</section>
+  </section>
   <section class="dashboard-section">
     <h2>Outbound Jobs Data</h2>
     <div class="jobs-table-container">
@@ -117,6 +127,7 @@
       </table>
     </div>
   </section>
+  <!-- Icon font (Google Material Icons) -->
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
