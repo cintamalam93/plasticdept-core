@@ -930,6 +930,28 @@ window.addEventListener("click", (e) => {
   }
 });
 
+// SHIFT TOGGLE LOGIC
+const shiftDayRadio = document.getElementById("shiftDay");
+const shiftNightRadio = document.getElementById("shiftNight");
+
+// Load saved shift on page load
+const savedShiftType = localStorage.getItem("shiftType") || "Day";
+if (savedShiftType === "Night") {
+  shiftNightRadio.checked = true;
+  shiftDayRadio.checked = false;
+} else {
+  shiftDayRadio.checked = true;
+  shiftNightRadio.checked = false;
+}
+localStorage.setItem("shiftType", savedShiftType); // ensure always set
+
+shiftDayRadio.addEventListener("change", function() {
+  if (this.checked) localStorage.setItem("shiftType", "Day");
+});
+shiftNightRadio.addEventListener("change", function() {
+  if (this.checked) localStorage.setItem("shiftType", "Night");
+});
+
 // Tampilkan shift dari localStorage di bagian user profile
 const shiftValue = localStorage.getItem("shift");
 const userShiftSpan = document.getElementById("userShift");
