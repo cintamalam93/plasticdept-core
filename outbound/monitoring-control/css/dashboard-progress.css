@@ -157,16 +157,16 @@ body {
 .donut-label.remaining span { background: var(--gray);}
 .team-matrix-flex {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 24px;
-  flex-wrap: wrap;
-  justify-content: flex-start;
+  flex-wrap: nowrap;
+  justify-content: space-between;
 }
 .team-matrix-card,
 .team-bar-chartbox {
-  flex: 1 1 0;
+  flex: 0 0 32%;
+  max-width: 32%;
   min-width: 0;
-  max-width: 410px;
   background: var(--white);
   border-radius: 12px;
   box-shadow: var(--shadow);
@@ -180,6 +180,8 @@ body {
 .team-bar-chartbox {
   align-items: center;
   justify-content: center;
+  height: 100%;
+  display: flex;
 }
 .team-align-left {
   align-items: flex-start;
@@ -195,7 +197,7 @@ body {
 }
 #barChart {
   width: 100% !important;
-  height: 185px !important;
+  height: 220px !important;
   min-width: 100px;
   max-width: 100%;
   display: block;
