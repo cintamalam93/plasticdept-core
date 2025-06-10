@@ -100,7 +100,7 @@ async function loadDashboardData() {
       outstandingQty += qty;
     }
   }
-  if (outstandingJobValue) outstandingJobValue.textContent = formatNumber(outstandingQty);
+  if (outstandingJobValue) outstandingJobValue.textContent = formatNumber(outstandingQty) + " kg";
 
   // Per-team accumulator
   let sumActualSugity = 0,
