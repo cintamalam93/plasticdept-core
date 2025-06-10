@@ -801,20 +801,89 @@ document.getElementById("exportExcelBtn").addEventListener("click", () => {
       showNotification("Tidak ada job yang sudah assign ke Sugity/Reguler.", true);
       return;
     }
+
+    // 1. Date Stamp (row 1)
+    const now = new Date();
+    const dateStr = now.toLocaleString("en-GB", {
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    }).replace(",", "");
+    const datestampRow = ["Exported: " + dateStr];
+
+    // 2. Header
     const header = [
-      ["Job No", "Delivery Date", "Delivery Note", "Remark", "Status", "Qty", "Team"]
+      "Job No", "Delivery Date", "Delivery Note",
+      "Remark", "Status", "Qty", "Type Job", "Team"
     ];
+
+    // 3. Data rows, qty as number, type job
     const rows = filtered.map(j => [
       j.jobNo || "",
       j.deliveryDate || "",
       j.deliveryNote || "",
       j.remark || "",
       j.status || "",
-      j.qty || "",
+      j.qty !== undefined && j.qty !== null && !isNaN(Number(j.qty)) ? Number(j.qty) : 0,
+      j.jobType || "",
       j.team || ""
     ]);
-    const ws_data = header.concat(rows);
+    // 4. Gabungkan semua data
+    const ws_data = [datestampRow, header, ...rows];
+
+    // 5. Buat worksheet
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+    // 6. Styling: Header kuning bold, border semua sel
+    const headerRow = 1; // baris ke-2 (0-based)
+    const totalCols = header.length;
+    const totalRows = ws_data.length;
+    const borderStyle = {
+      top:    { style: "thin", color: { rgb: "000000" } },
+      bottom: { style: "thin", color: { rgb: "000000" } },
+      left:   { style: "thin", color: { rgb: "000000" } },
+      right:  { style: "thin", color: { rgb: "000000" } }
+    };
+    // Style header
+    for (let c = 0; c < totalCols; c++) {
+      const cellAddr = XLSX.utils.encode_cell({ r: headerRow, c });
+      if (!ws[cellAddr]) continue;
+      ws[cellAddr].s = {
+        font: { bold: true },
+        fill: { fgColor: { rgb: "FFF59D" } }, // kuning
+        border: borderStyle,
+        alignment: { horizontal: "center", vertical: "center" }
+      };
+    }
+    // Style border all data
+    for (let r = 2; r < totalRows; r++) {
+      for (let c = 0; c < totalCols; c++) {
+        const cellAddr = XLSX.utils.encode_cell({ r, c });
+        if (!ws[cellAddr]) continue;
+        ws[cellAddr].s = ws[cellAddr].s || {};
+        ws[cellAddr].s.border = borderStyle;
+        if (c === 5) { // Qty kolom
+          ws[cellAddr].z = "#,##0";
+        }
+      }
+    }
+    // Style border for datestamp row
+    for (let c = 0; c < totalCols; c++) {
+      const cellAddr = XLSX.utils.encode_cell({ r: 0, c });
+      if (!ws[cellAddr]) ws[cellAddr] = { t: "s", v: "" };
+      ws[cellAddr].s = ws[cellAddr].s || {};
+      ws[cellAddr].s.border = borderStyle;
+    }
+    // Merge datestamp row
+    ws["!merges"] = ws["!merges"] || [];
+    ws["!merges"].push({
+      s: { r: 0, c: 0 },
+      e: { r: 0, c: totalCols - 1 }
+    });
+
+    // Optional: Autosize columns
+    ws["!cols"] = header.map(h => ({ wch: Math.max(10, h.length + 4) }));
+
+    // 7. Workbook & Download
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "TargetJob");
     XLSX.writeFile(wb, "target-job-assigned.xlsx");

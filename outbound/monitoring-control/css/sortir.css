@@ -486,6 +486,14 @@ tbody tr:hover {
   font-size: 1.08em;
 }
 
+button.success {
+  background: #43a047;
+  color: #fff;
+}
+button.success:hover {
+  background: #357a38;
+}
+
 /* Responsive tweaks: update nilai top hanya jika tinggi nyata sticky bar di atasnya berubah di mobile */
 @media (max-width: 600px) {
   .header-bar,
