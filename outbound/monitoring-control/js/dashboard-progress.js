@@ -245,6 +245,7 @@ function renderBarChart(actualArr, planArr) {
         }
       ]
     },
+    plugins: [ChartDataLabels], // Tambahkan ini
     options: {
       responsive: true,
       plugins: {
@@ -254,6 +255,17 @@ function renderBarChart(actualArr, planArr) {
             label: function(ctx) {
               return ctx.dataset.label + ": " + formatNumber(ctx.parsed.y) + " kg";
             }
+          }
+        },
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          color: '#111',
+          font: {
+            weight: 'bold'
+          },
+          formatter: function(value) {
+            return formatNumber(value) + " kg";
           }
         }
       },
