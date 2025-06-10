@@ -281,6 +281,27 @@ body {
    text-align: center;
 }
 
+.shift-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 16px;
+  padding: 4px 10px;
+  background: #f4f6fa;
+  border-radius: 14px;
+  font-size: 1em;
+}
+.shift-toggle input[type="radio"] {
+  accent-color: #1976d2;
+  margin-right: 2px;
+}
+.shift-toggle label {
+  margin-right: 9px;
+  font-weight: 600;
+  color: #1976d2;
+  cursor: pointer;
+}
+
 table {
   border-collapse: collapse;
   width: 100%;
