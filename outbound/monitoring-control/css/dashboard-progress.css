@@ -202,6 +202,12 @@ body {
   max-width: 100%;
   display: block;
 }
+.team-icon {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 6px;
+}
 .team-header {
   display: flex;
   align-items: center;
