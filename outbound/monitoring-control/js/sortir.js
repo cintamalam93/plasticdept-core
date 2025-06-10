@@ -786,6 +786,41 @@ teamOptions.addEventListener("change", () => {
 // Listener tombol clear database
 document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
 
+// ========== EXPORT EXCEL (Sugity & Reguler) ==========
+document.getElementById("exportExcelBtn").addEventListener("click", () => {
+  get(ref(db, "PhxOutboundJobs")).then(snapshot => {
+    if (!snapshot.exists()) {
+      showNotification("Tidak ada data untuk di-export.", true);
+      return;
+    }
+    const data = snapshot.val();
+    const filtered = Object.values(data).filter(j =>
+      j.team && (j.team.toLowerCase() === "sugity" || j.team.toLowerCase() === "reguler")
+    );
+    if (filtered.length === 0) {
+      showNotification("Tidak ada job yang sudah assign ke Sugity/Reguler.", true);
+      return;
+    }
+    const header = [
+      ["Job No", "Delivery Date", "Delivery Note", "Remark", "Status", "Qty", "Team"]
+    ];
+    const rows = filtered.map(j => [
+      j.jobNo || "",
+      j.deliveryDate || "",
+      j.deliveryNote || "",
+      j.remark || "",
+      j.status || "",
+      j.qty || "",
+      j.team || ""
+    ]);
+    const ws_data = header.concat(rows);
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "TargetJob");
+    XLSX.writeFile(wb, "target-job-assigned.xlsx");
+  });
+});
+
 // ========== Logout Modal ==========
 const headerLogoutBtn = document.getElementById("headerLogoutBtn");
 const logoutModal = document.getElementById("logoutModal");
