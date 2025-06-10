@@ -35,6 +35,33 @@ const progressTextReguler = document.getElementById("progressTextReguler");
 // Outbound jobs table
 const jobsTableBody = document.querySelector("#jobsTable tbody");
 
+const teamTitleSugity = document.querySelector('.team-matrix-card .team-title'); // biasanya yang pertama (Sugity)
+const teamTitleReguler = document.querySelectorAll('.team-matrix-card .team-title')[1]; // yang kedua (Reguler)
+
+function applyShiftLogicPerTeam() {
+  const shiftType = localStorage.getItem("shiftType") || "Day";
+  if (shiftType === "Night") {
+    // Night shift: Sugity aktif, Reguler kosong
+    if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Night Shift)";
+    if (teamTitleReguler) {
+      teamTitleReguler.textContent = "Reguler (Night Shift)";
+      // Kosongkan data Reguler
+      document.getElementById("mpReguler").textContent = "";
+      document.getElementById("planReguler").textContent = "";
+      document.getElementById("actualReguler").textContent = "";
+      document.getElementById("achievedReguler").textContent = "";
+      document.getElementById("remainingReguler").textContent = "";
+      document.getElementById("progressReguler").style.width = "0%";
+      document.getElementById("progressTextReguler").textContent = "";
+    }
+  } else {
+    // Day shift: Tampilkan semua
+    if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Day Shift)";
+    if (teamTitleReguler) teamTitleReguler.textContent = "Reguler (Day Shift)";
+    // Data diisi seperti biasa oleh loadDashboardData
+  }
+}
+
 // Chart.js chart objects
 let donutChart, barChart;
 
@@ -185,6 +212,8 @@ async function loadDashboardData() {
     return (a.jobNo || '').localeCompare(b.jobNo || '');
   });
   renderJobsTable(allJobs);
+
+  applyShiftLogicPerTeam(); 
 }
 
 // --- Update Progress per Team Otomatis ---
