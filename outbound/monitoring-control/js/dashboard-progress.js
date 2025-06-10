@@ -8,7 +8,7 @@ const MP_SUGITY = 2;
 const MP_REGULER = 1;
 
 // --- DOM Elements (dashboard matrix) ---
-const manpowerValue = document.getElementById("manpowerValue");
+const outstandingJobValue = document.getElementById("outstandingJobValue");
 const planTargetValue = document.getElementById("planTargetValue");
 const actualTargetValue = document.getElementById("actualTargetValue");
 const actualAchievedValue = document.getElementById("actualAchievedValue");
@@ -89,6 +89,19 @@ async function loadDashboardData() {
   // Outbound Jobs
   const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
 
+  // Hitung Outstanding Job For Next Shift
+  let outstandingQty = 0;
+  for (const jobNo in outboundJobs) {
+    const job = outboundJobs[jobNo];
+    const qty = parseInt(job.qty) || 0;
+    const status = (job.status || '').toLowerCase();
+    const team = (job.team || '').trim();
+    if (status === "newjob" && (!team || team === "")) {
+      outstandingQty += qty;
+    }
+  }
+  if (outstandingJobValue) outstandingJobValue.textContent = formatNumber(outstandingQty);
+
   // Per-team accumulator
   let sumActualSugity = 0,
       sumAchievedSugity = 0,
@@ -130,7 +143,6 @@ async function loadDashboardData() {
   const totalRemaining = totalActual - totalAchieved;
 
   // --- Isi Matrix Dashboard ---
-  manpowerValue.textContent = totalManPower;
   planTargetValue.textContent = formatNumber(totalPlanTarget) + " kg";
   actualTargetValue.textContent = formatNumber(totalActual) + " kg";
   actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
