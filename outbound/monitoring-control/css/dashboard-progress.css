@@ -53,8 +53,9 @@ body {
   box-shadow: var(--shadow);
   padding: 18px 22px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   min-height: 120px;
   transition: box-shadow .18s, transform .18s;
   border-left: 5px solid var(--accent);
@@ -68,6 +69,15 @@ body {
   font-size: 2.1em;
   display: flex;
   align-items: center;
+}
+.matrix-icon {
+  margin-bottom: 4px;
+}
+.matrix-icon img {
+  width: 40px;
+  height: 40px;
+  display: block;
+  margin: 0 auto;
 }
 .accent-blue { border-left-color: var(--blue);}
 .accent-orange { border-left-color: var(--orange);}
