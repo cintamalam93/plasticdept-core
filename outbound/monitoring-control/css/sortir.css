@@ -4,8 +4,8 @@ body {
   color: #232f3e;
   margin: 0;
 }
+
 .container {
-  overflow: visible !important;
   background: #fff;
   border-radius: 16px;
   box-shadow: 0 2px 16px rgba(23, 65, 115, 0.08);
@@ -13,7 +13,10 @@ body {
   padding: 32px 32px 24px 32px;
   max-width: 1440px;
   position: relative;
+  overflow: visible !important;
 }
+
+/* HEADER */
 .header-bar {
   position: sticky;
   top: 0;
@@ -22,12 +25,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 56px;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   padding: 0 24px 0 0;
-  margin-bottom: 0;
 }
+
 .logo-title {
   display: flex;
   align-items: center;
@@ -36,12 +38,13 @@ body {
   font-weight: 700;
   color: #2176ae;
 }
+
 .user-profile {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-right: 0;
 }
+
 .user-profile .avatar {
   width: 36px;
   height: 36px;
@@ -55,6 +58,8 @@ body {
   color: #2176ae;
   font-size: 1.1rem;
 }
+
+/* Logout Button */
 .logout-absolute {
   background: #e74c3c;
   color: #fff;
@@ -73,13 +78,8 @@ body {
 .logout-absolute:hover {
   background: #c0392b;
 }
-.logout-absolute .logout-icon {
-  width: 20px;
-  height: 20px;
-}
-
 #headerLogoutBtn {
-  background: #ffffff;
+  background: #fff;
   color: #fff;
   display: flex;
   align-items: center;
@@ -92,32 +92,26 @@ body {
   cursor: pointer;
   transition: background 0.2s, box-shadow 0.2s;
 }
-
 #headerLogoutBtn:hover {
   background: #c0392b;
   box-shadow: 0 3px 8px rgba(192, 57, 43, 0.25);
 }
 
-#headerLogoutBtn .logout-icon {
-  width: 20px;
-  height: 20px;
-}
-
-
+/* NOTIFICATION */
 .notification-bar {
-  position: fixed;         /* Agar selalu terlihat di layar */
-  top: 35px;               /* Jarak dari atas layar */
-  left: 50%;               /* Mulai dari tengah layar */
-  transform: translateX(-50%); /* Geser ke kiri setengah lebar elemen */
-  z-index: 10000;          /* Pastikan di atas elemen lain */
-  min-width: 300px;        /* Supaya tidak terlalu kecil */
-  max-width: 90vw;         /* Responsif */
-  background: #ffebeb;     /* Contoh warna error, sesuaikan */
+  position: fixed;
+  top: 35px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  min-width: 300px;
+  max-width: 90vw;
+  background: #ffebeb;
   color: #e74c3c;
   border: 1.5px solid #e74c3c;
   border-radius: 8px;
   padding: 12px 28px;
-  text-align: center;      /* Teks di tengah */
+  text-align: center;
   font-weight: 500;
   box-shadow: 0 4px 16px rgba(231,76,60,0.10);
   opacity: 0;
@@ -137,96 +131,102 @@ body {
   border: 1.5px solid #229954;
 }
 
-/* ====== TOP BAR FLEX (UPLOAD + PLAN) ====== */
+/* TOP BAR */
 .top-bar {
   position: sticky;
-  top: 72px; 
+  top: 72px;
   z-index: 99;
-  height: 64px;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   padding: 12px 0;
 }
-.top-bar-left,
-.top-bar-right {
+
+.top-bar-left {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .top-bar label {
   font-weight: 500;
   color: #2176ae;
 }
-.top-bar input[type="file"], .top-bar input[type="number"], .top-bar select {
+
+/* PLAN & MANPOWER BLOCK */
+.top-bar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 530px;
+  width: 100%;
+}
+
+.form-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.form-row label {
+  min-width: 155px;
+  text-align: right;
+  color: #2176ae;
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+.form-row input[type="number"] {
+  width: 185px;
+  height: 40px;
+  font-size: 1rem;
   border-radius: 6px;
   border: 1.2px solid #cdd7e1;
-  padding: 7px 10px;
-  font-family: inherit;
-  font-size: 1rem;
+  padding: 0 10px;
+  box-sizing: border-box;
 }
-.top-bar button {
-  border-radius: 7px;
-  border: none;
+
+.form-row select {
+  width: 145px;
+  height: 40px;
   font-size: 1rem;
+  border-radius: 6px;
+  border: 1.2px solid #cdd7e1;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.form-row button {
+  height: 40px;
+  min-width: 110px;
+  padding: 0 18px;
+  font-size: 1rem;
+  border-radius: 6px;
   font-weight: 600;
   background: #2176ae;
   color: #fff;
-  padding: 8px 18px;
-  transition: box-shadow 0.13s, background 0.2s;
-  box-shadow: 0 1px 5px rgba(33,118,174,0.06);
+  border: none;
+  transition: background 0.18s;
+  box-shadow: 0 1px 5px rgba(33,118,174,0.10);
   cursor: pointer;
+  white-space: nowrap;
 }
-.top-bar button:hover {
+.form-row button:hover {
   background: #185a89;
 }
 
-#manPowerInput, #manPowerTeamSelector, #setManPowerBtn {
-  margin-left: 4px;
-  margin-right: 4px;
-  vertical-align: middle;
-}
-#manPowerInput {
-  max-width: 120px;
-  padding: 4px 8px;
-  border: 1px solid #bdbdbd;
-  border-radius: 4px;
-}
-#setManPowerBtn {
-  background: #1976d2;
-  color: #fff;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-#setManPowerBtn:hover {
-  background: #1565c0;
-}
-
-.top-bar-right {
-  display: flex;
-  align-items: center;
-  gap: 24px; /* jarak antar grup */
-}
-.top-bar-group {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-#manPowerInput, #manPowerTeamSelector, #setManPowerBtn {
-  vertical-align: middle;
-}
-
-/* ====== TOOLBAR ====== */
+/* TOOLBAR */
 .toolbar {
   position: sticky;
-  top: 160px; /* header-bar(72) + top-bar(48) */
+  top: 160px;
   z-index: 98;
   min-height: 114px;
   background: #e5eafc;
@@ -283,6 +283,8 @@ body {
   background: #2176ae;
   color: #fff;
 }
+
+/* DROPDOWN */
 .dropdown-container {
   position: relative;
   display: inline-block;
@@ -311,15 +313,18 @@ body {
   font-size: 1rem;
   background: #f8fafc;
 }
+
+/* FILTER INDICATOR */
 .filter-indicator {
-   margin: 13px 0 3px 0;
-   color: #ff0000;
-   font-size: 1rem;
-   font-weight: bold;
-   font-style: italic;
-   text-align: center;
+  margin: 13px 0 3px 0;
+  color: #ff0000;
+  font-size: 1rem;
+  font-weight: bold;
+  font-style: italic;
+  text-align: center;
 }
 
+/* SHIFT TOGGLE */
 .shift-toggle {
   display: inline-flex;
   align-items: center;
@@ -341,6 +346,7 @@ body {
   cursor: pointer;
 }
 
+/* TABLE */
 table {
   border-collapse: collapse;
   width: 100%;
@@ -349,11 +355,11 @@ table {
   font-weight: bold;
 }
 
-/* ====== TABLE HEADER STICKY ====== */
+/* TABLE HEADER */
 thead th {
   position: sticky;
   z-index: 97;
-  top: 300px; 
+  top: 300px;
   background: #0574be;
   color: #fafafa;
   font-weight: 600;
@@ -365,7 +371,6 @@ thead th {
 }
 th, td {
   border-right: 1px solid #ccc;
-  /* opsional: hilangkan border paling kanan */
 }
 th:last-child, td:last-child {
   border-right: none;
@@ -390,6 +395,8 @@ tbody tr:hover {
   background: #b0c4d3;
   transition: background 0.13s;
 }
+
+/* BADGES */
 .badge-info { background: #e93434; color: #fff; }
 .badge-success { background: #2ecc71; color: #fff; }
 .badge-warning { background: #f1c40f; color: #6f580d; }
@@ -404,6 +411,8 @@ tbody tr:hover {
   min-width: 68px;
   text-align: center;
 }
+
+/* TABLE ACTIONS */
 .table-actions {
   display: flex;
   gap: 7px;
@@ -431,7 +440,7 @@ tbody tr:hover {
 .table-actions button.assign:hover { background: #185a89; }
 .table-actions button.unassign:hover { background: #ffeaea; color: #c0392b; }
 
-/* ========== Modal ========== */
+/* MODAL */
 .modal {
   display: none;
   position: fixed;
@@ -546,6 +555,7 @@ tbody tr:hover {
   font-size: 1.08em;
 }
 
+/* BUTTON SUCCESS */
 button.success {
   background: #43a047;
   color: #fff;
@@ -554,7 +564,30 @@ button.success:hover {
   background: #357a38;
 }
 
-/* Responsive tweaks: update nilai top hanya jika tinggi nyata sticky bar di atasnya berubah di mobile */
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .top-bar-right {
+    min-width: 0;
+    width: 100%;
+  }
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 7px;
+  }
+  .form-row label {
+    text-align: left;
+    min-width: 0;
+  }
+  .form-row input[type="number"],
+  .form-row select,
+  .form-row button {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 600px) {
   .header-bar,
   .top-bar,
@@ -568,242 +601,24 @@ button.success:hover {
     min-width: 0 !important;
     padding: 8px 4px !important;
   }
-
-  .header-bar {
-    height: auto !important;
-    min-height: 0 !important;
-    padding: 8px 4px !important;
+  .header-bar { height: auto !important; min-height: 0 !important; padding: 8px 4px !important; }
+  .logo-title { font-size: 1.1rem !important; justify-content: flex-start; gap: 7px !important; }
+  .user-profile { margin-top: 8px !important; justify-content: flex-start !important; }
+  .top-bar { height: auto !important; padding: 8px 4px !important; gap: 8px !important; }
+  .top-bar-left, .top-bar-right { gap: 6px !important; flex-wrap: wrap !important; }
+  .top-bar input, .top-bar select, .top-bar button {
+    width: 100% !important; max-width: 100% !important; margin-bottom: 6px !important; font-size: 1em !important;
   }
-
-  .logo-title {
-    font-size: 1.1rem !important;
-    justify-content: flex-start;
-    gap: 7px !important;
-  }
-
-  .user-profile {
-    margin-top: 8px !important;
-    justify-content: flex-start !important;
-  }
-
-  .top-bar {
-    height: auto !important;
-    padding: 8px 4px !important;
-    gap: 8px !important;
-  }
-  .top-bar-left,
-  .top-bar-right {
-    gap: 6px !important;
-    flex-wrap: wrap !important;
-  }
-  .top-bar input,
-  .top-bar select,
-  .top-bar button {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-bottom: 6px !important;
-    font-size: 1em !important;
-  }
-
   .toolbar {
-    min-height: 0 !important;
-    padding: 10px 2px 8px 2px !important;
-    gap: 7px !important;
-    flex-wrap: wrap !important;
-    overflow-x: auto;
+    min-height: 0 !important; padding: 10px 2px 8px 2px !important;
+    gap: 7px !important; flex-wrap: wrap !important; overflow-x: auto;
   }
-  .toolbar button,
-  .toolbar .team-buttons button,
-  .toolbar .dropdown-container,
-  .toolbar .dropdown-menu select {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin-bottom: 5px !important;
-    font-size: 1em !important;
+  .toolbar button, .toolbar .team-buttons button, .toolbar .dropdown-container, .toolbar .dropdown-menu select {
+    width: 100% !important; max-width: 100% !important; margin-bottom: 5px !important; font-size: 1em !important;
   }
-  .toolbar .team-buttons {
-    flex-wrap: wrap !important;
-    gap: 6px !important;
-  }
-  .dropdown-container .dropdown-menu {
-    left: 0 !important;
-    min-width: 130px !important;
-    max-width: 100vw !important;
-  }
-
-  table, thead, tbody, th, td, tr {
-    display: block;
-    width: 100% !important;
-    font-size: 0.97em !important;
-  }
-  thead th, tbody td {
-    text-align: left !important;
-    padding: 8px 4px !important;
-  }
-  .table-actions {
-    flex-direction: row !important;
-    gap: 5px !important;
-  }
-}
-
-.top-bar-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  min-width: 480px;
-}
-
-.top-bar-block {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 0;
-}
-
-.top-bar-block label {
-  min-width: 142px; /* agar label rata kiri dan sejajar */
-  font-size: 1rem;
-  color: #2176ae;
-  font-weight: 600;
-}
-
-.top-bar-block input[type="number"],
-.top-bar-block select,
-.top-bar-block button {
-  height: 38px;
-  font-size: 1rem;
-  border-radius: 6px;
-  box-sizing: border-box;
-}
-
-.top-bar-block input[type="number"] {
-  width: 165px;
-  min-width: 120px;
-  max-width: 180px;
-  padding: 0 10px;
-}
-
-.top-bar-block select {
-  width: 135px;
-  min-width: 110px;
-  max-width: 150px;
-  padding: 0 10px;
-}
-
-.top-bar-block button {
-  min-width: 98px;
-  padding: 0 18px;
-  background: #2176ae;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  transition: background 0.18s;
-  box-shadow: 0 1px 5px rgba(33,118,174,0.10);
-  cursor: pointer;
-  height: 38px;
-}
-
-.top-bar-block button:hover {
-  background: #185a89;
-}
-
-/* Optional: Biar form tidak terlalu panjang di layar kecil */
-@media (max-width: 900px) {
-  .top-bar-right {
-    min-width: 0;
-    width: 100%;
-  }
-  .top-bar-block {
-    flex-wrap: wrap;
-    gap: 7px;
-  }
-  .top-bar-block input[type="number"] {
-    width: 110px;
-    max-width: 120px;
-  }
-  .top-bar-block select {
-    width: 100px;
-    max-width: 120px;
-  }
-  .top-bar-block button {
-    min-width: 70px;
-    padding: 0 10px;
-  }
-}
-
-.top-bar-right {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-  min-width: 480px;
-  width: 100%;
-}
-
-/* Form grid, label rata kiri, input dll rata kanan */
-.form-row {
-  display: grid;
-  grid-template-columns: 170px 165px 140px 110px;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 0;
-}
-
-.form-row label {
-  text-align: right;
-  color: #2176ae;
-  font-weight: 600;
-  font-size: 1rem;
-  white-space: nowrap;
-}
-
-.form-row input[type="number"],
-.form-row select {
-  height: 38px;
-  font-size: 1rem;
-  border-radius: 6px;
-  border: 1.2px solid #cdd7e1;
-  padding: 0 10px;
-  box-sizing: border-box;
-  width: 100%;
-}
-
-.form-row button {
-  height: 38px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
-  background: #2176ae;
-  color: #fff;
-  border: none;
-  padding: 0 18px;
-  min-width: 98px;
-  box-shadow: 0 1px 5px rgba(33,118,174,0.10);
-  transition: background 0.18s;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.form-row button:hover {
-  background: #185a89;
-}
-
-/* Responsif grid: stack column jadi 2/1 */
-@media (max-width: 900px) {
-  .top-bar-right {
-    min-width: 0;
-  }
-  .form-row {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px 10px;
-  }
-  .form-row label { grid-column: 1/3; text-align: left; margin-bottom: 2px; }
-  .form-row input[type="number"],
-  .form-row select,
-  .form-row button {
-    grid-column: span 1;
-    width: 100%;
-  }
+  .toolbar .team-buttons { flex-wrap: wrap !important; gap: 6px !important; }
+  .dropdown-container .dropdown-menu { left: 0 !important; min-width: 130px !important; max-width: 100vw !important; }
+  table, thead, tbody, th, td, tr { display: block; width: 100% !important; font-size: 0.97em !important; }
+  thead th, tbody td { text-align: left !important; padding: 8px 4px !important; }
+  .table-actions { flex-direction: row !important; gap: 5px !important; }
 }
