@@ -50,26 +50,24 @@
         <button id="uploadBtn">Upload</button>
       </div>
       <div class="top-bar-right">
-        <!-- Set Plan Target (baris atas) -->
-        <div class="top-bar-block">
-          <label for="planTargetInput"><strong>Set Plan Target (Kg):</strong></label>
-          <input type="number" id="planTargetInput" placeholder="Masukkan jumlah target" min="0">
+        <form class="form-row">
+          <label for="planTargetInput">Set Plan Target (Kg):</label>
+          <input type="number" id="planTargetInput" placeholder="Masukkan jumlah" min="0">
           <select id="planTeamSelector">
             <option value="Sugity">Team Sugity</option>
             <option value="Reguler">Team Reguler</option>
           </select>
-          <button id="setPlanTargetBtn">Set Target</button>
-        </div>
-        <!-- Set Man Power (baris bawah) -->
-        <div class="top-bar-block">
-          <label for="manPowerInput"><strong>Set Man Power:</strong></label>
+          <button id="setPlanTargetBtn" type="button">Set Target</button>
+        </form>
+        <form class="form-row">
+          <label for="manPowerInput">Set Man Power:</label>
           <input type="number" id="manPowerInput" placeholder="Jumlah man power" min="0">
           <select id="manPowerTeamSelector">
             <option value="Sugity">Team Sugity</option>
             <option value="Reguler">Team Reguler</option>
           </select>
-          <button id="setManPowerBtn">Set MP</button>
-        </div>
+          <button id="setManPowerBtn" type="button">Set MP</button>
+        </form>
       </div>
     </div>
 
