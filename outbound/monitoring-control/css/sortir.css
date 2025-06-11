@@ -184,6 +184,31 @@ body {
   background: #185a89;
 }
 
+#manPowerInput, #manPowerTeamSelector, #setManPowerBtn {
+  margin-left: 4px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+#manPowerInput {
+  max-width: 120px;
+  padding: 4px 8px;
+  border: 1px solid #bdbdbd;
+  border-radius: 4px;
+}
+#setManPowerBtn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#setManPowerBtn:hover {
+  background: #1565c0;
+}
+
 /* ====== TOOLBAR ====== */
 .toolbar {
   position: sticky;
