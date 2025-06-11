@@ -209,6 +209,20 @@ body {
   background: #1565c0;
 }
 
+.top-bar-right {
+  display: flex;
+  align-items: center;
+  gap: 24px; /* jarak antar grup */
+}
+.top-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+#manPowerInput, #manPowerTeamSelector, #setManPowerBtn {
+  vertical-align: middle;
+}
+
 /* ====== TOOLBAR ====== */
 .toolbar {
   position: sticky;
