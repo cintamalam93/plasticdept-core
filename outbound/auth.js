@@ -111,6 +111,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     localStorage.setItem("shift", user.Shift || "");
     localStorage.setItem("position", user.Position || "");
     localStorage.setItem("username", username);
+    localStorage.setItem("loginTime", Date.now());
     localStorage.setItem("pic", user.Name || username);
     localStorage.setItem("team", user.Shift || "");
     sessionStorage.setItem("userId", username);
