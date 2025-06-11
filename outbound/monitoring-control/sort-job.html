@@ -24,6 +24,13 @@
     <!-- Upload + Plan Target in one bar, flex -->
     <div class="top-bar">
       <div class="top-bar-left">
+        <!-- Shift Toggle -->
+        <div class="shift-toggle" style="margin-bottom: 16px;">
+          <input type="radio" name="shiftType" id="shiftDay" value="Day" checked>
+          <label for="shiftDay">Day Shift</label>
+          <input type="radio" name="shiftType" id="shiftNight" value="Night">
+          <label for="shiftNight">Night Shift</label>
+        </div>
         <!-- Toggle Phoenix/Z-Logix -->
         <div class="mode-toggle">
           <input type="radio" name="modeToggle" id="modePhoenix" value="phoenix" checked>
@@ -63,15 +70,6 @@
         </div>
       </div>
     </div>
-
-    <!-- Shift Toggle -->
-    <div class="shift-toggle" style="margin-bottom: 16px;">
-      <input type="radio" name="shiftType" id="shiftDay" value="Day" checked>
-      <label for="shiftDay">Day Shift</label>
-      <input type="radio" name="shiftType" id="shiftNight" value="Night">
-      <label for="shiftNight">Night Shift</label>
-    </div>
-
     <div class="toolbar">
       <button id="bulkAddBtn">Assign Job Selected</button>
       <div class="dropdown-container">
