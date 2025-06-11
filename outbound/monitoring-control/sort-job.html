@@ -50,25 +50,26 @@
         <button id="uploadBtn">Upload</button>
       </div>
       <div class="top-bar-right">
-        <!-- ...form Set Plan Target Start... -->
-        <label for="planTargetInput"><strong>Set Plan Target (Kg):</strong></label>
-        <input type="number" id="planTargetInput" placeholder="Masukkan jumlah target" min="0">
-        <select id="planTeamSelector">
-          <option value="Sugity">Team Sugity</option>
-          <option value="Reguler">Team Reguler</option>
-        </select>
-        <button id="setPlanTargetBtn">Set Target</button>
-        <!-- ...form Set Plan Target End... -->
-
-        <!-- ...form Set Man Power Start... -->
-        <label for="manPowerInput" style="margin-left:24px;"><strong>Set Man Power:</strong></label>
-        <input type="number" id="manPowerInput" placeholder="Jumlah man power" min="0" style="width:120px;">
-        <select id="manPowerTeamSelector">
-          <option value="Sugity">Team Sugity</option>
-          <option value="Reguler">Team Reguler</option>
-        </select>
-        <button id="setManPowerBtn">Set MP</button>
-        <!-- ...form Set Man Power End... -->
+        <!-- Set Plan Target -->
+        <div class="top-bar-group">
+          <label for="planTargetInput"><strong>Set Plan Target (Kg):</strong></label>
+          <input type="number" id="planTargetInput" placeholder="Masukkan jumlah target" min="0">
+          <select id="planTeamSelector">
+            <option value="Sugity">Team Sugity</option>
+            <option value="Reguler">Team Reguler</option>
+          </select>
+          <button id="setPlanTargetBtn">Set Target</button>
+        </div>
+        <!-- Set Man Power -->
+        <div class="top-bar-group" style="margin-left:18px">
+          <label for="manPowerInput"><strong>Set Man Power:</strong></label>
+          <input type="number" id="manPowerInput" placeholder="Jumlah man power" min="0" style="width:100px;">
+          <select id="manPowerTeamSelector">
+            <option value="Sugity">Team Sugity</option>
+            <option value="Reguler">Team Reguler</option>
+          </select>
+          <button id="setManPowerBtn">Set MP</button>
+        </div>
       </div>
     </div>
 
