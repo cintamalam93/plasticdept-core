@@ -151,6 +151,52 @@ body {
   gap: 10px;
 }
 
+.top-bar-left label {
+  font-weight: 500;
+  color: #2176ae;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Custom radio style untuk mode toggle */
+.top-bar-left input[type="radio"] {
+  accent-color: #2176ae;
+  width: 18px;
+  height: 18px;
+  margin-right: 3px;
+  vertical-align: middle;
+}
+
+/* Style untuk input file */
+.top-bar-left input[type="file"] {
+  border-radius: 6px;
+  border: 1.2px solid #cdd7e1;
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+  /* Agar tampilan konsisten meski style default OS berbeda */
+}
+
+.top-bar-left button {
+  border-radius: 7px;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  background: #2176ae;
+  color: #fff;
+  padding: 8px 18px;
+  transition: box-shadow 0.13s, background 0.2s;
+  box-shadow: 0 1px 5px rgba(33,118,174,0.06);
+  cursor: pointer;
+}
+.top-bar-left button:hover {
+  background: #185a89;
+}
+
 .top-bar label {
   font-weight: 500;
   color: #2176ae;
