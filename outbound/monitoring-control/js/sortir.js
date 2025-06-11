@@ -59,36 +59,6 @@ function handleSetPlanTarget() {
   planTargetInput.value = "";
 }
 
-function saveManPowerToFirebase(team, manPower) {
-  if (!team || isNaN(manPower) || manPower <= 0) {
-    showNotification("Data man power tidak valid.", true);
-    return;
-  }
-  const dbPath = "ManPower/" + team;
-  set(ref(db, dbPath), manPower)
-    .then(() => {
-      showNotification(`Man Power untuk ${team} berhasil disimpan: ${manPower} orang.`);
-    })
-    .catch((err) => {
-      showNotification("Gagal menyimpan man power ke database.", true);
-      console.error(err);
-    });
-}
-
-function handleSetManPower() {
-  const team = manPowerTeamSelector.value;
-  const manPower = parseInt(manPowerInput.value);
-
-  if (isNaN(manPower) || manPower <= 0) {
-    showNotification("Masukkan jumlah man power yang valid.", true);
-    return;
-  }
-  saveManPowerToFirebase(team, manPower);
-  manPowerInput.value = "";
-}
-
-setManPowerBtn?.addEventListener("click", handleSetManPower);
-
 /**
  * Fungsi helper untuk membersihkan value agar selalu string.
  */
@@ -686,6 +656,37 @@ if (savedMode === "zlogix" || savedMode === "phoenix") {
 
 // Listener tombol set plan target (jika masih digunakan)
 setPlanTargetBtn?.addEventListener("click", handleSetPlanTarget);
+
+// Listener tombol set man power
+setManPowerBtn?.addEventListener("click", handleSetManPower);
+
+// --- Fungsi Set Man Power ---
+function saveManPowerToFirebase(team, manPower) {
+  if (!team || isNaN(manPower) || manPower <= 0) {
+    showNotification("Data man power tidak valid.", true);
+    return;
+  }
+  const dbPath = "ManPower/" + team;
+  set(ref(db, dbPath), manPower)
+    .then(() => {
+      showNotification(`Man Power untuk ${team} berhasil disimpan: ${manPower} orang.`);
+    })
+    .catch((err) => {
+      showNotification("Gagal menyimpan man power ke database.", true);
+      console.error(err);
+    });
+}
+function handleSetManPower() {
+  const team = manPowerTeamSelector.value;
+  const manPower = parseInt(manPowerInput.value);
+
+  if (isNaN(manPower) || manPower <= 0) {
+    showNotification("Masukkan jumlah man power yang valid.", true);
+    return;
+  }
+  saveManPowerToFirebase(team, manPower);
+  manPowerInput.value = "";
+}
 
 // Listener upload file Excel baru
 uploadBtn.addEventListener("click", () => {
