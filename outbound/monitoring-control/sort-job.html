@@ -38,16 +38,18 @@
     <!-- Upload + Plan Target in one bar, flex -->
     <div class="top-bar">
       <div class="top-bar-left">
-        <label>
+        <!-- Toggle Phoenix/Z-Logix -->
+        <div class="mode-toggle">
           <input type="radio" name="modeToggle" id="modePhoenix" value="phoenix" checked>
-          Phoenix
-        </label>
-        <label>
+          <label for="modePhoenix">Phoenix</label>
           <input type="radio" name="modeToggle" id="modeZLogix" value="zlogix">
-          Z-Logix
-        </label>
-        <input type="file" id="fileInput" accept=".xlsx, .xls" />
-        <button id="uploadBtn">Upload</button>
+          <label for="modeZLogix">Z-Logix</label>
+        </div>
+        <!-- Upload Section -->
+        <div class="upload-section">
+          <input type="file" id="fileInput" accept=".xlsx, .xls" />
+          <button id="uploadBtn">Upload</button>
+        </div>
       </div>
       <div class="top-bar-right">
         <div class="form-row">
