@@ -650,30 +650,66 @@ button.success:hover {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
-  min-width: 350px;
+  gap: 6px;
+  min-width: 480px;
 }
+
 .top-bar-block {
   display: flex;
   align-items: center;
   gap: 8px;
   margin-bottom: 0;
 }
+
 .top-bar-block label {
-  min-width: 120px;
-}
-#planTargetInput, #planTeamSelector, #setPlanTargetBtn,
-#manPowerInput, #manPowerTeamSelector, #setManPowerBtn {
-  margin: 0;
-  vertical-align: middle;
-  min-width: 0;
-}
-#planTargetInput, #manPowerInput {
-  width: 140px;
-  max-width: 180px;
+  min-width: 142px; /* agar label rata kiri dan sejajar */
+  font-size: 1rem;
+  color: #2176ae;
+  font-weight: 600;
 }
 
-/* Responsive fix for top-bar-right on smaller screens */
+.top-bar-block input[type="number"],
+.top-bar-block select,
+.top-bar-block button {
+  height: 38px;
+  font-size: 1rem;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.top-bar-block input[type="number"] {
+  width: 165px;
+  min-width: 120px;
+  max-width: 180px;
+  padding: 0 10px;
+}
+
+.top-bar-block select {
+  width: 135px;
+  min-width: 110px;
+  max-width: 150px;
+  padding: 0 10px;
+}
+
+.top-bar-block button {
+  min-width: 98px;
+  padding: 0 18px;
+  background: #2176ae;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: background 0.18s;
+  box-shadow: 0 1px 5px rgba(33,118,174,0.10);
+  cursor: pointer;
+  height: 38px;
+}
+
+.top-bar-block button:hover {
+  background: #185a89;
+}
+
+/* Optional: Biar form tidak terlalu panjang di layar kecil */
 @media (max-width: 900px) {
   .top-bar-right {
     min-width: 0;
@@ -683,8 +719,16 @@ button.success:hover {
     flex-wrap: wrap;
     gap: 7px;
   }
-  #planTargetInput, #manPowerInput {
+  .top-bar-block input[type="number"] {
+    width: 110px;
+    max-width: 120px;
+  }
+  .top-bar-block select {
     width: 100px;
     max-width: 120px;
+  }
+  .top-bar-block button {
+    min-width: 70px;
+    padding: 0 10px;
   }
 }
