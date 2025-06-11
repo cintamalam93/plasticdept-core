@@ -692,3 +692,45 @@ button.success:hover {
   thead th, tbody td { text-align: left !important; padding: 8px 4px !important; }
   .table-actions { flex-direction: row !important; gap: 5px !important; }
 }
+
+#mpOvertimeRow {
+  margin-top: 12px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+}
+#mpOvertimeRow label {
+  min-width: 155px;
+  text-align: left;
+  color: #2176ae;
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+#mpOvertimeInput, #mpOvertimeTeamSelector {
+  width: 185px;
+  height: 40px;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: 1.2px solid #cdd7e1;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+#setMpOvertimeBtn {
+  height: 40px;
+  min-width: 110px;
+  padding: 0 18px;
+  font-size: 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  background: #2176ae;
+  color: #fff;
+  border: none;
+  transition: background 0.18s;
+  box-shadow: 0 1px 5px rgba(33,118,174,0.10);
+  cursor: pointer;
+  white-space: nowrap;
+}
+#setMpOvertimeBtn:hover {
+  background: #185a89;
+}
