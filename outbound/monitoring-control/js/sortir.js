@@ -688,6 +688,32 @@ function handleSetManPower() {
   manPowerInput.value = "";
 }
 
+// Fungsi simpan MP Overtime ke Firebase
+function saveMpOvertimeToFirebase(mpOvertime) {
+  if (isNaN(mpOvertime) || mpOvertime < 0) {
+    showNotification("Masukkan jumlah man power overtime yang valid.", true);
+    return;
+  }
+  set(ref(db, "ManPowerOvertime"), mpOvertime)
+    .then(() => {
+      showNotification(`Man Power Overtime berhasil disimpan: ${mpOvertime} orang.`);
+    })
+    .catch((err) => {
+      showNotification("Gagal menyimpan man power overtime ke database.", true);
+      console.error(err);
+    });
+}
+function handleSetMpOvertime() {
+  const mpOvertime = parseInt(document.getElementById("mpOvertimeInput").value);
+  if (isNaN(mpOvertime) || mpOvertime < 0) {
+    showNotification("Masukkan jumlah man power overtime yang valid.", true);
+    return;
+  }
+  saveMpOvertimeToFirebase(mpOvertime);
+  document.getElementById("mpOvertimeInput").value = "";
+}
+document.getElementById("setMpOvertimeBtn")?.addEventListener("click", handleSetMpOvertime);
+
 // Listener upload file Excel baru
 uploadBtn.addEventListener("click", () => {
   const file = fileInput.files[0];
