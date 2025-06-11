@@ -645,3 +645,46 @@ button.success:hover {
     gap: 5px !important;
   }
 }
+
+.top-bar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 350px;
+}
+.top-bar-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+.top-bar-block label {
+  min-width: 120px;
+}
+#planTargetInput, #planTeamSelector, #setPlanTargetBtn,
+#manPowerInput, #manPowerTeamSelector, #setManPowerBtn {
+  margin: 0;
+  vertical-align: middle;
+  min-width: 0;
+}
+#planTargetInput, #manPowerInput {
+  width: 140px;
+  max-width: 180px;
+}
+
+/* Responsive fix for top-bar-right on smaller screens */
+@media (max-width: 900px) {
+  .top-bar-right {
+    min-width: 0;
+    width: 100%;
+  }
+  .top-bar-block {
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+  #planTargetInput, #manPowerInput {
+    width: 100px;
+    max-width: 120px;
+  }
+}
