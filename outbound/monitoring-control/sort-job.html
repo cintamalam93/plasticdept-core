@@ -63,11 +63,15 @@
     <div class="form-row" id="mpOvertimeRow" style="margin-top: 12px; align-items: flex-start; justify-content: flex-start;">
       <label for="mpOvertimeInput">Set MP Overtime:</label>
       <input type="number" id="mpOvertimeInput" placeholder="Jumlah man power OT" min="0">
-      <select id="mpOvertimeTeamSelector">
-        <option value="Sugity">Team Sugity</option>
-        <option value="Reguler">Team Reguler</option>
-      </select>
       <button id="setMpOvertimeBtn" type="button">Set MP OT</button>
+    </div>
+
+    <!-- Shift Toggle -->
+    <div class="shift-toggle" style="margin-bottom: 16px;">
+      <input type="radio" name="shiftType" id="shiftDay" value="Day" checked>
+      <label for="shiftDay">Day Shift</label>
+      <input type="radio" name="shiftType" id="shiftNight" value="Night">
+      <label for="shiftNight">Night Shift</label>
     </div>
 
     <div class="toolbar">
