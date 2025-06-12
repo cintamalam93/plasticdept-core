@@ -146,6 +146,11 @@ table.dataTable thead th {
   background-color: #2ecc71;
 }
 
+.status-label.completed {
+  background: #232323 !important;
+  color: #fff !important;
+}
+
 /* =======================================
    Job Type Styling
 ======================================= */
