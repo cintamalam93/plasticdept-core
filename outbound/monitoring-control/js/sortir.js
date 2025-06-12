@@ -105,6 +105,7 @@ function badgeForStatus(status) {
     case "PartialPicked": return "badge-warning";
     case "Packed":
     case "Loaded": return "badge-success";
+    case "completed": return "badge-completed"; 
     default: return "badge-info";
   }
 }
