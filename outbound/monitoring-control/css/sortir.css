@@ -296,7 +296,7 @@ body {
 /* TOOLBAR */
 .toolbar {
   position: sticky;
-  top: 160px;
+  top: 214px;
   z-index: 98;
   min-height: 114px;
   background: #e5eafc;
