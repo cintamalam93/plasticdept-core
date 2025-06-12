@@ -276,7 +276,7 @@ body {
 
 .form-row button {
   height: 40px;
-  min-width: 110px;
+  min-width: 119.5px;
   padding: 0 18px;
   font-size: 1rem;
   border-radius: 6px;
@@ -398,9 +398,8 @@ body {
 .shift-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  margin-left: 16px;
-  padding: 4px 10px;
+  gap: 10px;
+  padding: 4px 12px;
   background: #f4f6fa;
   border-radius: 14px;
   font-size: 1em;
@@ -718,7 +717,7 @@ button.success:hover {
 }
 #setMpOvertimeBtn {
   height: 40px;
-  min-width: 110px;
+  min-width: 119.5px;
   padding: 0 18px;
   font-size: 1rem;
   border-radius: 6px;
