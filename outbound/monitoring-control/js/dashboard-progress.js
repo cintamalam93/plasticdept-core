@@ -289,6 +289,11 @@ function renderBarChart(actualArr, planArr) {
     plugins: [ChartDataLabels], // Tambahkan ini
     options: {
       responsive: true,
+      layout: {
+      padding: {
+        top: 40 // Tambahkan padding atas agar label tidak terpotong
+      }
+    },
       plugins: {
         legend: { display: true, position: "bottom" },
         tooltip: {
