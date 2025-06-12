@@ -157,7 +157,7 @@ body {
 .mode-toggle {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
   background: #f4f6fa;
   border-radius: 14px;
   padding: 4px 12px;
@@ -395,23 +395,27 @@ body {
 
 /* SHIFT TOGGLE */
 .shift-toggle {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   padding: 4px 12px;
   background: #f4f6fa;
   border-radius: 14px;
   font-size: 1em;
+  margin-bottom: 0;
 }
 .shift-toggle input[type="radio"] {
-  accent-color: #1976d2;
+  width: 18px;
+  height: 18px;
   margin-right: 2px;
+  vertical-align: middle;
 }
 .shift-toggle label {
-  margin-right: 9px;
+  margin-right: 7px;
   font-weight: 600;
   color: #1976d2;
   cursor: pointer;
+  font-size: 1em;
 }
 
 /* TABLE */
