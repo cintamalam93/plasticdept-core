@@ -206,7 +206,7 @@ body {
 }
 #barChart {
   width: 100% !important;
-  height: 220px !important;
+  height: 300px !important;
   min-width: 100px;
   max-width: 100%;
   display: block;
