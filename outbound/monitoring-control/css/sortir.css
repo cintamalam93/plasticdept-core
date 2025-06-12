@@ -157,7 +157,7 @@ body {
 .mode-toggle {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 23px;
   background: #f4f6fa;
   border-radius: 14px;
   padding: 4px 12px;
