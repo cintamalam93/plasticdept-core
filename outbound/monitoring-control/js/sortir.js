@@ -1098,3 +1098,15 @@ function populateStatusOptions(mode) {
     statusOptions.appendChild(option);
   });
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Ambil nama dari localStorage (sudah di-set di proses login: localStorage.setItem("pic", user.Name || username);)
+  const userName = localStorage.getItem('pic') || 'User';
+  function getInitials(name) {
+    return name.split(' ').map(part => part[0]).join('').toUpperCase();
+  }
+  const userAvatar = document.getElementById('userAvatar');
+  const userFullName = document.getElementById('userFullName');
+  if (userAvatar) userAvatar.textContent = getInitials(userName);
+  if (userFullName) userFullName.textContent = userName;
+});
