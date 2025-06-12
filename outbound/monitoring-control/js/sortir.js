@@ -323,13 +323,9 @@ function clearAllJobs() {
     okClass: "logout",
     onConfirm: () => {
       const outboundRef = ref(db, "PhxOutboundJobs");
-      const targetRef = ref(db, "PlanTarget");
-
+      
       // Jalankan penghapusan paralel
-      Promise.all([
-        remove(outboundRef),
-        remove(targetRef)
-      ])
+      remove(outboundRef)
         .then(() => {
           showNotification("✅ Semua job dan plan target berhasil dihapus.");
           loadJobsFromFirebase(); // Pastikan fungsi ini tidak tergantung PlanTarget
