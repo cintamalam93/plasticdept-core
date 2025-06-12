@@ -98,13 +98,13 @@ function formatDate(input) {
  * Badge color untuk status tertentu.
  */
 function badgeForStatus(status) {
-  switch (status) {
-    case "NewJob": return "badge-info";
-    case "Downloaded":
-    case "Picked":
-    case "PartialPicked": return "badge-warning";
-    case "Packed":
-    case "Loaded": return "badge-success";
+  switch (status.toLowerCase()) { // <-- tambahkan .toLowerCase()
+    case "newjob": return "badge-info";
+    case "downloaded":
+    case "picked":
+    case "partialpicked": return "badge-warning";
+    case "packed":
+    case "loaded": return "badge-success";
     case "completed": return "badge-completed"; 
     default: return "badge-info";
   }
