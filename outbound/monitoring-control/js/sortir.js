@@ -909,8 +909,7 @@ document.getElementById("exportExcelBtn").addEventListener("click", () => {
     const ws_data = [datestampRow, qtyTotalRow, header, ...rows];
 
     // 6. Buat worksheet
-    const ws = {};
-    XLSX.utils.sheet_add_aoa(ws, ws_data, {origin: "A1"});
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
     // 7. Styling
     const headerRow = 2; // baris ke-3 (0-based)
