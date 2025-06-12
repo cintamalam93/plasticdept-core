@@ -80,12 +80,12 @@ body {
 }
 #headerLogoutBtn {
   background: #fff;
-  color: #970505;
+  color: #57616d;
   display: flex;
   align-items: center;
   gap: 8px;
   border: none;
-  border-radius: 8px;
+  border-radius: 100px;
   padding: 6px 12px;
   font-weight: 600;
   font-size: 1rem;
