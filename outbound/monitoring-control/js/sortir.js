@@ -464,43 +464,55 @@ function parseExcel(file) {
 }
 /**
  * Simpan data hasil parsing ke PhxOutboundJobs di Firebase.
+ * Jika ada job di database yang tidak ada di data baru, status-nya diubah menjadi "Completed".
  */
 function syncJobsToFirebase(jobs) {
-  let uploadCount = 0;
-  let errorCount = 0;
-  jobs.forEach(job => {
-    const jobNo = sanitizeValue(job.JobNo);
-    if (!jobNo || /[.#$\[\]]/.test(jobNo)) {
-      return;
-    }
-    const formattedDate = formatDate(job.ETD);
-    const jobRef = ref(db, "PhxOutboundJobs/" + jobNo);
-    get(jobRef).then(existingSnap => {
-      const existing = existingSnap.exists() ? existingSnap.val() : {};
-      const jobData = {
-        jobNo,
-        deliveryDate: sanitizeValue(formattedDate),
-        deliveryNote: sanitizeValue(job.DeliveryNoteNo),
-        remark: sanitizeValue(job.RefNo),
-        status: sanitizeValue(job.Status),
-        qty: sanitizeValue(job.BCNo),
-        team: existing.team || "",
-        jobType: existing.jobType || ""
-      };
-      return set(jobRef, jobData);
-    })
-    .then(() => {
-      uploadCount++;
-      if (uploadCount + errorCount === jobs.length) {
-        showNotification("Upload selesai. Berhasil: " + uploadCount + ", Gagal: " + errorCount);
-        loadJobsFromFirebase();
-      }
-    })
-    .catch(() => {
-      errorCount++;
-      if (uploadCount + errorCount === jobs.length) {
-        showNotification("Upload selesai. Berhasil: " + uploadCount + ", Gagal: " + errorCount, true);
-      }
+  // 1. Ambil semua jobNo dari data baru
+  const newJobNos = jobs.map(job => sanitizeValue(job.JobNo)).filter(jn => jn && !/[.#$\[\]]/.test(jn));
+
+  // 2. Ambil semua job di database
+  get(ref(db, "PhxOutboundJobs")).then(snapshot => {
+    const existingJobs = snapshot.exists() ? snapshot.val() : {};
+    const existingJobNos = Object.keys(existingJobs);
+
+    // 3. Cari jobNo yang tidak ada di data baru
+    const missingJobNos = existingJobNos.filter(jobNo => !newJobNos.includes(jobNo));
+
+    // 4. Update status job yang tidak ada di data baru menjadi "Completed"
+    const updateMissing = missingJobNos.map(jobNo =>
+      update(ref(db, "PhxOutboundJobs/" + jobNo), { status: "Completed" })
+    );
+
+    // 5. Upload/update data baru
+    let uploadCount = 0;
+    let errorCount = 0;
+    const uploadJobs = jobs.map(job => {
+      const jobNo = sanitizeValue(job.JobNo);
+      if (!jobNo || /[.#$\[\]]/.test(jobNo)) return Promise.resolve();
+      const formattedDate = formatDate(job.ETD);
+      const jobRef = ref(db, "PhxOutboundJobs/" + jobNo);
+      return get(jobRef).then(existingSnap => {
+        const existing = existingSnap.exists() ? existingSnap.val() : {};
+        const jobData = {
+          jobNo,
+          deliveryDate: sanitizeValue(formattedDate),
+          deliveryNote: sanitizeValue(job.DeliveryNoteNo),
+          remark: sanitizeValue(job.RefNo),
+          status: sanitizeValue(job.Status),
+          qty: sanitizeValue(job.BCNo),
+          team: existing.team || "",
+          jobType: existing.jobType || ""
+        };
+        return set(jobRef, jobData);
+      })
+      .then(() => { uploadCount++; })
+      .catch(() => { errorCount++; });
+    });
+
+    // 6. Setelah semua selesai, tampilkan notifikasi & refresh
+    Promise.all([...updateMissing, ...uploadJobs]).then(() => {
+      showNotification("Upload selesai. Berhasil: " + uploadCount + ", Gagal: " + errorCount);
+      loadJobsFromFirebase();
     });
   });
 }
