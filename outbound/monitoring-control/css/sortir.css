@@ -484,6 +484,11 @@ tbody tr:hover {
   text-align: center;
 }
 
+.badge-completed {
+  background: #232323 !important;
+  color: #fff !important;
+}
+
 /* TABLE ACTIONS */
 .table-actions {
   display: flex;
