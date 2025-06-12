@@ -30,17 +30,16 @@ function setPicMetricFromDb(teamKey = "TeamSugity") {
   });
 }
 
+// ...
 function createStatusLabel(status) {
   const span = document.createElement("span");
   span.textContent = status;
   span.classList.add("status-label");
 
-  // Normalisasi status (tanpa spasi, huruf besar-kecil tidak sensitif)
+  // Normalisasi status (tanpa spasi, huruf besar-kecil TIDAK sensitif)
   const normalized = (status || "").replace(/\s/g, "").toLowerCase();
 
-  // Gabungan mapping Phoenix dan ZLogix
   switch (normalized) {
-    // Phoenix
     case "pendingpick":
     case "pendingallocation":
       span.style.backgroundColor = "#e74c3c"; // Merah
@@ -49,9 +48,12 @@ function createStatusLabel(status) {
     case "partialpacked":
       span.style.backgroundColor = "#f39c12"; // Oranye
       break;
+    case "completed":
+      span.style.backgroundColor = "#232323"; // Hitam untuk completed
+      span.style.color = "#fff";
+      break;
     case "packed":
     case "loading":
-    case "completed":
       span.style.backgroundColor = "#2ecc71"; // Hijau
       break;
 
@@ -63,10 +65,6 @@ function createStatusLabel(status) {
     case "picked":
       span.style.backgroundColor = "#f39c12"; // Kuning/Oranye
       break;
-    case "partialpicked": // Sudah ada di atas, jika ingin warna sama boleh diabaikan
-      span.style.backgroundColor = "#f39c12";
-      break;
-    case "packed": // Sudah ada di atas
     case "loaded":
       span.style.backgroundColor = "#2ecc71";
       break;
@@ -77,10 +75,11 @@ function createStatusLabel(status) {
 
   span.style.padding = "4px 8px";
   span.style.borderRadius = "6px";
-  span.style.color = "white";
   span.style.fontSize = "0.85em";
+  if (normalized !== "completed") span.style.color = "white";
   return span;
 }
+
 
 let currentPercent = 0;
 let animationFrame;
