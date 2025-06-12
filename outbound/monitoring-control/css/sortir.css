@@ -133,7 +133,6 @@ body {
 
 /* TOP BAR */
 .top-bar {
-  position: sticky;
   top: 72px;
   z-index: 99;
   background: #fff;
