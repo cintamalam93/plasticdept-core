@@ -295,7 +295,7 @@ body {
 /* TOOLBAR */
 .toolbar {
   position: sticky;
-  top: 214px;
+  top: 72px;
   z-index: 98;
   min-height: 114px;
   background: #e5eafc;
@@ -427,7 +427,7 @@ table {
 thead th {
   position: sticky;
   z-index: 97;
-  top: 300px;
+  top: 214px;
   background: #0574be;
   color: #fafafa;
   font-weight: 600;
