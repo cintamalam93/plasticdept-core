@@ -1171,7 +1171,6 @@ async function populateMpPicSelector() {
 document.getElementById("setMpPicBtn")?.addEventListener("click", async function() {
   const mpPicSelector = document.getElementById("mpPicSelector");
   const selectedName = mpPicSelector.value;
-  // Ambil dari dropdown khusus Set MP PIC!
   const team = document.getElementById("mpPicTeamSelector")?.value || "";
   if (!selectedName || !picUserMap[selectedName]) {
     showNotification("Pilih PIC yang valid.", true);
@@ -1182,8 +1181,22 @@ document.getElementById("setMpPicBtn")?.addEventListener("click", async function
     showNotification("User ID PIC tidak ditemukan.", true);
     return;
   }
-  const waktu_set = new Date().toISOString();
+
+  // ==== CEK JUMLAH MP PIC DI TEAM INI ====
   try {
+    const snapshot = await get(ref(db, "MPPIC"));
+    let countForTeam = 0;
+    if (snapshot.exists()) {
+      const mpPicData = snapshot.val();
+      countForTeam = Object.values(mpPicData).filter(entry => entry.team === team).length;
+    }
+    if (countForTeam >= 2) {
+      showNotification(`Maksimal MP PIC untuk Team ${team} sudah 2 orang!`, true);
+      return;
+    }
+
+    // ==== LANJUTKAN SET ====
+    const waktu_set = new Date().toISOString();
     await set(ref(db, `MPPIC/${userID}`), {
       name,
       userID,
