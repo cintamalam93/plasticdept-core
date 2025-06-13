@@ -1171,7 +1171,8 @@ async function populateMpPicSelector() {
 document.getElementById("setMpPicBtn")?.addEventListener("click", async function() {
   const mpPicSelector = document.getElementById("mpPicSelector");
   const selectedName = mpPicSelector.value;
-  const team = document.getElementById("manPowerTeamSelector")?.value || ""; // atau sesuaikan dengan logikamu jika ada tim
+  // Ambil dari dropdown khusus Set MP PIC!
+  const team = document.getElementById("mpPicTeamSelector")?.value || "";
   if (!selectedName || !picUserMap[selectedName]) {
     showNotification("Pilih PIC yang valid.", true);
     return;
@@ -1181,15 +1182,19 @@ document.getElementById("setMpPicBtn")?.addEventListener("click", async function
     showNotification("User ID PIC tidak ditemukan.", true);
     return;
   }
-  // Simpan ke database, contoh di node: MPPIC/[userID]
   const waktu_set = new Date().toISOString();
-  await set(ref(db, `MPPIC/${userID}`), {
-    name,
-    userID,
-    waktu_set,
-    team
-  });
-  showNotification(`PIC ${name} (${userID}) berhasil diset!`);
+  try {
+    await set(ref(db, `MPPIC/${userID}`), {
+      name,
+      userID,
+      waktu_set,
+      team
+    });
+    showNotification(`PIC ${name} (${userID}) berhasil diset!`);
+  } catch (err) {
+    showNotification("Gagal menyimpan PIC ke database.", true);
+    console.error(err);
+  }
 });
 
 document.addEventListener("DOMContentLoaded", populateMpPicSelector);
