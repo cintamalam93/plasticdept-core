@@ -241,7 +241,7 @@ body {
 
 .form-row {
   display: flex;
-  align-items: center;
+  align-items: center !important;
   justify-content: flex-end;
   gap: 8px;
   width: 100%;
@@ -266,6 +266,9 @@ body {
   border: 1.2px solid #cdd7e1;
   padding: 0 10px;
   box-sizing: border-box;
+  margin: 0;
+  vertical-align: middle;
+  align-self: center;
 }
 
 .form-row select {
@@ -276,6 +279,9 @@ body {
   border: 1.2px solid #cdd7e1;
   padding: 0 10px;
   box-sizing: border-box;
+  margin: 0;
+  vertical-align: middle;
+  align-self: center;
 }
 
 .form-row button {
@@ -292,6 +298,9 @@ body {
   box-shadow: 0 1px 5px rgba(33,118,174,0.10);
   cursor: pointer;
   white-space: nowrap;
+  margin: 0;
+  vertical-align: middle;
+  align-self: center;
 }
 .form-row button:hover {
   background: #185a89;
