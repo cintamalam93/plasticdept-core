@@ -246,7 +246,8 @@ body {
   gap: 8px;
   width: 100%;
   margin-bottom: 0;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 
 .form-row label {
