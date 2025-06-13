@@ -198,6 +198,9 @@ body {
   outline: none;
   box-sizing: border-box;
 }
+input#fileInput {
+  max-width: 179px;
+}
 .upload-section button {
   border-radius: 7px;
   border: none;
