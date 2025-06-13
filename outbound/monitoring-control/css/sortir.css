@@ -740,7 +740,7 @@ button.success:hover {
 }
 #setMpOvertimeBtn {
   height: 40px;
-  min-width: 119.5px;
+  min-width: 125px;
   padding: 0 18px;
   font-size: 1rem;
   border-radius: 6px;
