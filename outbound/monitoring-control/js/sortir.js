@@ -1121,7 +1121,7 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 
-// Fungsi untuk populate dropdown PIC sesuai shift user login
+// Fungsi untuk populate dropdown PIC sesuai shift user login===================================================================================================================
 async function populateMpPicSelector() {
   const shift = (localStorage.getItem("shift") || "").toLowerCase();
   const mpPicSelector = document.getElementById("mpPicSelector");
@@ -1166,5 +1166,90 @@ async function populateMpPicSelector() {
     mpPicSelector.appendChild(opt);
   });
 }
+
+document.addEventListener("DOMContentLoaded", populateMpPicSelector);
+
+// Kumpulkan mapping nama ke user (agar bisa ambil userID dari nama)==================================================================================
+let picUserMap = {}; // { name: { userID, ... } }
+
+async function populateMpPicSelector() {
+  const shift = (localStorage.getItem("shift") || "").toLowerCase();
+  const mpPicSelector = document.getElementById("mpPicSelector");
+  if (!mpPicSelector) return;
+
+  mpPicSelector.innerHTML = '<option value="">-- Pilih PIC --</option>';
+  const snapshot = await get(ref(db, "users"));
+  if (!snapshot.exists()) return;
+  const usersRaw = snapshot.val();
+  const users = Object.values(usersRaw);
+
+  let filtered;
+  if (shift === "green team") {
+    filtered = users.filter(u => {
+      const s = (u.Shift || "").toLowerCase();
+      return s === "green team" || s === "non shift" || s === "non-shift" || s === "nonshift";
+    });
+  } else if (shift === "blue team") {
+    filtered = users.filter(u => {
+      const s = (u.Shift || "").toLowerCase();
+      return s === "blue team" || s === "non shift" || s === "non-shift" || s === "nonshift";
+    });
+  } else if (shift === "non shift" || shift === "non-shift" || shift === "nonshift") {
+    filtered = users.filter(u => {
+      const s = (u.Shift || "").toLowerCase();
+      return (
+        s === "green team" ||
+        s === "blue team" ||
+        s === "non shift" ||
+        s === "non-shift" ||
+        s === "nonshift"
+      );
+    });
+  } else {
+    filtered = users;
+  }
+
+  // Bangun mapping nama ke data user
+  picUserMap = {};
+  filtered.forEach(u => {
+    const name = u.Name || u.Username || "";
+    if (name) {
+      picUserMap[name] = {
+        userID: u.UserID || u.userID || u.username || "",
+        name: name
+      };
+      // Option dropdown
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      mpPicSelector.appendChild(opt);
+    }
+  });
+}
+
+// Handler tombol Set MP PIC
+document.getElementById("setMpPicBtn")?.addEventListener("click", async function() {
+  const mpPicSelector = document.getElementById("mpPicSelector");
+  const selectedName = mpPicSelector.value;
+  const team = document.getElementById("manPowerTeamSelector")?.value || ""; // atau sesuaikan dengan logikamu jika ada tim
+  if (!selectedName || !picUserMap[selectedName]) {
+    showNotification("Pilih PIC yang valid.", true);
+    return;
+  }
+  const { userID, name } = picUserMap[selectedName];
+  if (!userID) {
+    showNotification("User ID PIC tidak ditemukan.", true);
+    return;
+  }
+  // Simpan ke database, contoh di node: MPPIC/[userID]
+  const waktu_set = new Date().toISOString();
+  await set(ref(db, `MPPIC/${userID}`), {
+    name,
+    userID,
+    waktu_set,
+    team
+  });
+  showNotification(`PIC ${name} (${userID}) berhasil diset!`);
+});
 
 document.addEventListener("DOMContentLoaded", populateMpPicSelector);
