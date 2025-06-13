@@ -140,7 +140,7 @@ body {
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 24px;
   padding: 12px 0;
   flex-wrap: wrap;
