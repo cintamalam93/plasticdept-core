@@ -217,6 +217,84 @@ input#fileInput {
   background: #185a89;
 }
 
+.top-bar-mp-pic-list {
+  min-width: 420px;
+  max-width: 520px;
+  margin: 0 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 0 0 420px;
+}
+
+.mp-pic-list-title {
+  font-weight: 700;
+  color: #2176ae;
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+  text-align: center;
+  width: 100%;
+}
+
+.mp-pic-list-table {
+  width: 100%;
+  min-width: 380px;
+  max-width: 500px;
+  background: #f8fafc;
+  border-radius: 8px;
+  box-shadow: 0 2px 7px rgba(33,118,174,0.07);
+  font-size: 1em;
+  table-layout: fixed;
+}
+
+.mp-pic-list-table th, .mp-pic-list-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5ecf3;
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mp-pic-list-table th {
+  background: #2176ae;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 4px 4px 0 0;
+  text-align: center;
+}
+.mp-pic-list-table tr:last-child td {
+  border-bottom: none;
+}
+.mp-pic-list-table td button {
+  background: #e74c3c;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  padding: 5px 14px;
+  font-weight: 600;
+  font-size: 0.97em;
+  cursor: pointer;
+  transition: background 0.14s;
+}
+.mp-pic-list-table td button:hover {
+  background: #b71c1c;
+}
+
+/* Responsive: pada layar kecil, tetap tampilkan di bawah */
+@media (max-width: 1200px) {
+  .top-bar {
+    flex-wrap: wrap !important;
+  }
+  .top-bar-mp-pic-list {
+    margin: 18px 0 0 0;
+    min-width: 270px;
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+}
+
 /* Responsive */
 @media (max-width: 900px) {
   .top-bar-left {
