@@ -139,7 +139,7 @@ body {
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 24px;
   padding: 12px 0;
@@ -151,7 +151,8 @@ body {
   flex-direction: column;
   align-items: flex-start;
   gap: 24px;
-  min-width: 380px;
+  min-width: 280px;   /* dari 380px, kecilkan */
+  max-width: 380px; 
   width: 100%;
 }
 
@@ -233,7 +234,8 @@ body {
   flex-direction: column;
   align-items: flex-end;
   gap: 10px;
-  min-width: 340px;
+  min-width: 320px;   /* dari 530px, kecilkan */
+  max-width: 600px; 
   width: 100%;
   flex: 1
 }
