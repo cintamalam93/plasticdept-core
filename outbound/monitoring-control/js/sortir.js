@@ -1134,13 +1134,26 @@ async function populateMpPicSelector() {
 
   let filtered;
   if (shift === "green team") {
-    filtered = users.filter(u => (u.Shift || "").toLowerCase() === "green team");
+    filtered = users.filter(u => {
+      const s = (u.Shift || "").toLowerCase();
+      return s === "green team" || s === "non shift" || s === "non-shift" || s === "nonshift";
+    });
   } else if (shift === "blue team") {
-    filtered = users.filter(u => (u.Shift || "").toLowerCase() === "blue team");
-  } else if (shift === "non shift" || shift === "nonshift" || shift === "non-shift") {
-    filtered = users.filter(u =>
-      ["green team", "blue team", "non shift", "nonshift", "non-shift"].includes((u.Shift || "").toLowerCase())
-    );
+    filtered = users.filter(u => {
+      const s = (u.Shift || "").toLowerCase();
+      return s === "blue team" || s === "non shift" || s === "non-shift" || s === "nonshift";
+    });
+  } else if (shift === "non shift" || shift === "non-shift" || shift === "nonshift") {
+    filtered = users.filter(u => {
+      const s = (u.Shift || "").toLowerCase();
+      return (
+        s === "green team" ||
+        s === "blue team" ||
+        s === "non shift" ||
+        s === "non-shift" ||
+        s === "nonshift"
+      );
+    });
   } else {
     // Default, tampilkan semua
     filtered = users;
@@ -1154,5 +1167,4 @@ async function populateMpPicSelector() {
   });
 }
 
-// Panggil populateMpPicSelector saat halaman siap
 document.addEventListener("DOMContentLoaded", populateMpPicSelector);
