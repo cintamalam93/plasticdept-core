@@ -1119,3 +1119,40 @@ document.addEventListener('DOMContentLoaded', function () {
   if (userAvatar) userAvatar.textContent = getInitials(userName);
   if (userFullName) userFullName.textContent = userName;
 });
+
+
+// Fungsi untuk populate dropdown PIC sesuai shift user login
+async function populateMpPicSelector() {
+  const shift = (localStorage.getItem("shift") || "").toLowerCase();
+  const mpPicSelector = document.getElementById("mpPicSelector");
+  if (!mpPicSelector) return;
+
+  mpPicSelector.innerHTML = '<option value="">-- Pilih PIC --</option>';
+  const snapshot = await get(ref(db, "users"));
+  if (!snapshot.exists()) return;
+  const users = Object.values(snapshot.val());
+
+  let filtered;
+  if (shift === "green team") {
+    filtered = users.filter(u => (u.Shift || "").toLowerCase() === "green team");
+  } else if (shift === "blue team") {
+    filtered = users.filter(u => (u.Shift || "").toLowerCase() === "blue team");
+  } else if (shift === "non shift" || shift === "nonshift" || shift === "non-shift") {
+    filtered = users.filter(u =>
+      ["green team", "blue team", "non shift", "nonshift", "non-shift"].includes((u.Shift || "").toLowerCase())
+    );
+  } else {
+    // Default, tampilkan semua
+    filtered = users;
+  }
+
+  filtered.forEach(u => {
+    const opt = document.createElement("option");
+    opt.value = u.Name || u.Username || "";
+    opt.textContent = u.Name || u.Username || "";
+    mpPicSelector.appendChild(opt);
+  });
+}
+
+// Panggil populateMpPicSelector saat halaman siap
+document.addEventListener("DOMContentLoaded", populateMpPicSelector);
