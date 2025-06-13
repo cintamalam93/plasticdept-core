@@ -1120,55 +1120,6 @@ document.addEventListener('DOMContentLoaded', function () {
   if (userFullName) userFullName.textContent = userName;
 });
 
-
-// Fungsi untuk populate dropdown PIC sesuai shift user login===================================================================================================================
-async function populateMpPicSelector() {
-  const shift = (localStorage.getItem("shift") || "").toLowerCase();
-  const mpPicSelector = document.getElementById("mpPicSelector");
-  if (!mpPicSelector) return;
-
-  mpPicSelector.innerHTML = '<option value="">-- Pilih PIC --</option>';
-  const snapshot = await get(ref(db, "users"));
-  if (!snapshot.exists()) return;
-  const users = Object.values(snapshot.val());
-
-  let filtered;
-  if (shift === "green team") {
-    filtered = users.filter(u => {
-      const s = (u.Shift || "").toLowerCase();
-      return s === "green team" || s === "non shift" || s === "non-shift" || s === "nonshift";
-    });
-  } else if (shift === "blue team") {
-    filtered = users.filter(u => {
-      const s = (u.Shift || "").toLowerCase();
-      return s === "blue team" || s === "non shift" || s === "non-shift" || s === "nonshift";
-    });
-  } else if (shift === "non shift" || shift === "non-shift" || shift === "nonshift") {
-    filtered = users.filter(u => {
-      const s = (u.Shift || "").toLowerCase();
-      return (
-        s === "green team" ||
-        s === "blue team" ||
-        s === "non shift" ||
-        s === "non-shift" ||
-        s === "nonshift"
-      );
-    });
-  } else {
-    // Default, tampilkan semua
-    filtered = users;
-  }
-
-  filtered.forEach(u => {
-    const opt = document.createElement("option");
-    opt.value = u.Name || u.Username || "";
-    opt.textContent = u.Name || u.Username || "";
-    mpPicSelector.appendChild(opt);
-  });
-}
-
-document.addEventListener("DOMContentLoaded", populateMpPicSelector);
-
 // Kumpulkan mapping nama ke user (agar bisa ambil userID dari nama)==================================================================================
 let picUserMap = {}; // { name: { userID, ... } }
 
