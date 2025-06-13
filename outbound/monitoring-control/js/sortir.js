@@ -1120,8 +1120,8 @@ document.addEventListener('DOMContentLoaded', function () {
   if (userFullName) userFullName.textContent = userName;
 });
 
-// Kumpulkan mapping nama ke user (agar bisa ambil userID dari nama)==================================================================================
-let picUserMap = {}; // { name: { userID, ... } }
+// Kumpulkan mapping nama ke userID (ambil dari key node, bukan isi objek)==================================================================================
+let picUserMap = {}; // { name: { userID, name } }
 
 async function populateMpPicSelector() {
   const shift = (localStorage.getItem("shift") || "").toLowerCase();
@@ -1132,44 +1132,33 @@ async function populateMpPicSelector() {
   const snapshot = await get(ref(db, "users"));
   if (!snapshot.exists()) return;
   const usersRaw = snapshot.val();
-  const users = Object.values(usersRaw);
+  // usersRaw: { "100159": { Name: "Rizki Aldiansyah", ... }, ... }
 
-  let filtered;
-  if (shift === "green team") {
-    filtered = users.filter(u => {
-      const s = (u.Shift || "").toLowerCase();
-      return s === "green team" || s === "non shift" || s === "non-shift" || s === "nonshift";
-    });
-  } else if (shift === "blue team") {
-    filtered = users.filter(u => {
-      const s = (u.Shift || "").toLowerCase();
-      return s === "blue team" || s === "non shift" || s === "non-shift" || s === "nonshift";
-    });
-  } else if (shift === "non shift" || shift === "non-shift" || shift === "nonshift") {
-    filtered = users.filter(u => {
-      const s = (u.Shift || "").toLowerCase();
-      return (
-        s === "green team" ||
-        s === "blue team" ||
-        s === "non shift" ||
-        s === "non-shift" ||
-        s === "nonshift"
-      );
-    });
-  } else {
-    filtered = users;
-  }
+  let filtered = [];
+  Object.entries(usersRaw).forEach(([userID, userObj]) => {
+    const s = (userObj.Shift || "").toLowerCase();
+    // Logika filter shift:
+    if (
+      (shift === "green team" && (s === "green team" || s.includes("non shift"))) ||
+      (shift === "blue team" && (s === "blue team" || s.includes("non shift"))) ||
+      ((shift === "non shift" || shift === "non-shift" || shift === "nonshift") && (
+        s === "green team" || s === "blue team" || s.includes("non shift")
+      )) ||
+      (!["green team", "blue team", "non shift", "nonshift", "non-shift"].includes(shift)) // default: tampilkan semua
+    ) {
+      filtered.push({ ...userObj, userID });
+    }
+  });
 
-  // Bangun mapping nama ke data user
+  // Bangun mapping nama ke userID dan render option
   picUserMap = {};
   filtered.forEach(u => {
     const name = u.Name || u.Username || "";
     if (name) {
       picUserMap[name] = {
-        userID: u.UserID || u.userID || u.username || "",
+        userID: u.userID,
         name: name
       };
-      // Option dropdown
       const opt = document.createElement("option");
       opt.value = name;
       opt.textContent = name;
