@@ -227,15 +227,6 @@ input#fileInput {
   flex: 0 0 420px;
 }
 
-.mp-pic-list-title {
-  font-weight: 700;
-  color: #2176ae;
-  font-size: 1.2rem;
-  margin-bottom: 8px;
-  text-align: center;
-  width: 100%;
-}
-
 .mp-pic-list-table {
   width: 100%;
   min-width: 380px;
