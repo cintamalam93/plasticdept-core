@@ -20,6 +20,7 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 
 let isAuthenticated = false;
+// Proses autentikasi anonymous Firebase
 let authPromise = signInAnonymously(auth)
   .then(() => { isAuthenticated = true; })
   .catch((error) => {
@@ -32,19 +33,22 @@ let authPromise = signInAnonymously(auth)
     if (loginBtn) loginBtn.disabled = true;
   });
 
-// Elemen
+// Ambil elemen DOM yang dibutuhkan
 const usernameInput = document.getElementById("username");
 const passwordInput = document.getElementById("password");
 const shiftInput = document.getElementById("shift");
 const positionInput = document.getElementById("position");
 const operatorFields = document.getElementById("operatorFields");
-const teamSelect = document.getElementById("teamSelect");
+const teamInput = document.getElementById("teamInput"); // input team sekarang readonly
 const loginBtn = document.getElementById("loginBtn");
 const loginBtnText = document.getElementById("loginBtnText");
 const loginLoader = document.getElementById("loginLoader");
 const errorMsg = document.getElementById("errorMsg");
 
-// Otomatis isi shift & position ketika userID diinput
+/**
+ * Ketika kolom User ID kehilangan fokus,
+ * otomatis isi SHIFT, POSITION, dan TEAM (khusus operator ambil dari node MPPIC).
+ */
 usernameInput.addEventListener("blur", getUserDataAndFill);
 
 async function getUserDataAndFill() {
@@ -53,35 +57,50 @@ async function getUserDataAndFill() {
   shiftInput.value = "";
   positionInput.value = "";
   operatorFields.style.display = "none";
-  teamSelect.value = "";
+  teamInput.value = "";
 
   if (!username) return;
 
   await authPromise;
+  // Ambil data user dari node users
   const userSnap = await get(ref(db, `users/${username}`));
   if (!userSnap.exists()) {
     shiftInput.value = "";
     positionInput.value = "";
     operatorFields.style.display = "none";
+    teamInput.value = "";
     return;
   }
   const user = userSnap.val();
 
   shiftInput.value = user.Shift || "";
 
-  // Jika posisi mengandung "operator", selalu tampilkan "Operator" saja
+  // Jika posisi mengandung "operator", tampilkan field team dan cek di node MPPIC
   let dispPosition = user.Position || "";
   if ((dispPosition || "").toLowerCase().includes("operator")) {
     dispPosition = "Operator";
     operatorFields.style.display = "block";
+    // Cek keberadaan user di node MPPIC
+    const mppicSnap = await get(ref(db, `MPPIC/${username}`));
+    if (mppicSnap.exists()) {
+      const mppic = mppicSnap.val();
+      teamInput.value = mppic.team || "";
+    } else {
+      teamInput.value = "";
+    }
   } else {
     operatorFields.style.display = "none";
-    teamSelect.value = "";
+    teamInput.value = "";
   }
   positionInput.value = dispPosition;
 }
 
-// Login logic
+/**
+ * Listener untuk proses login ketika form di-submit.
+ * - Validasi password.
+ * - Untuk operator: validasi userID harus ada di node MPPIC dan ambil team dari sana.
+ * - Redirect sesuai role dan team.
+ */
 document.getElementById("loginForm").addEventListener("submit", async function(e) {
   e.preventDefault();
 
@@ -101,13 +120,14 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     const password = passwordInput.value;
 
     await authPromise;
+    // Validasi user di node users
     const userSnap = await get(ref(db, `users/${username}`));
     if (!userSnap.exists()) throw new Error("User ID tidak ditemukan!");
 
     const user = userSnap.val();
     if (String(user.Password) !== String(password)) throw new Error("Password salah!");
 
-    // Untuk penyimpanan ke storage, gunakan posisi asli dari database
+    // Simpan info ke localStorage/sessionStorage
     localStorage.setItem("shift", user.Shift || "");
     localStorage.setItem("position", user.Position || "");
     localStorage.setItem("username", username);
@@ -116,11 +136,16 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
     localStorage.setItem("team", user.Shift || "");
     sessionStorage.setItem("userId", username);
 
-    // Jika Operator, wajib pilih Team
+    // Jika Operator
     if ((user.Position || "").toLowerCase().includes("operator")) {
-      const team = teamSelect.value;
-      if (!team) throw new Error("Pilih Team terlebih dahulu.");
-      // Simpan PIC Operator ke Firebase
+      // Ambil data dari node MPPIC
+      const mppicSnap = await get(ref(db, `MPPIC/${username}`));
+      if (!mppicSnap.exists()) throw new Error("User ID tidak didaftarkan sebagai MP PIC oleh Team Leader.");
+      const mppic = mppicSnap.val();
+      const team = mppic.team;
+      if (!team) throw new Error("Team tidak ditemukan di database.");
+
+      // Simpan info login operator ke database (opsional, sesuai kebutuhan lama)
       const waktu_login = new Date().toISOString();
       const teamKey = team === "Sugity"
         ? "TeamSugity"
@@ -135,7 +160,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
           waktu_login
         }
       );
-      // Redirect sesuai team
+      // Redirect sesuai team dari node MPPIC
       if (team === "Sugity") {
         window.location.href = "monitoring-control/team-sugity.html";
       } else if (team === "Reguler") {
@@ -144,7 +169,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
         throw new Error("Team tidak valid.");
       }
     } else {
-      // Non-operator, langsung ke sort-job
+      // Non-operator, redirect ke sort-job
       window.location.href = "monitoring-control/sort-job.html";
     }
   } catch (err) {
@@ -157,14 +182,17 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   }
 });
 
-// === SETUP ROLE BUTTONS ===
+/**
+ * Fungsi utilitas untuk setup tombol role di halaman lain.
+ * Logout dan back button diatur sesuai role user.
+ */
 export async function setupRoleButtons() {
   await authPromise;
   const userId = sessionStorage.getItem("userId");
   const backBtn = document.getElementById("backToSortirBtn");
   const logoutBtn = document.getElementById("logoutBtn");
 
-  // Default: sembunyikan semua tombol dulu
+  // Sembunyikan semua tombol dulu secara default
   if (backBtn) backBtn.style.display = "none";
   if (logoutBtn) logoutBtn.style.display = "none";
 
