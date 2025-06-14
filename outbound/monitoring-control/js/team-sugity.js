@@ -6,27 +6,42 @@ const teamTable = document.getElementById("teamTable").getElementsByTagName("tbo
 const currentTeam = "Sugity";
 
 // --- Ambil PIC dari Firebase, bukan localStorage ---
-function renderPicMetric(picName) {
+// Ubah: menerima array nama PIC, render per baris
+function renderPicMetric(picNames) {
   // Hapus metric PIC lama jika sudah ada
   const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
   if (oldMetric) oldMetric.remove();
+
+  // Gabungkan nama jadi beberapa baris (jika lebih dari satu)
+  const namesHTML = Array.isArray(picNames)
+    ? picNames.map(name => `<div>${name}</div>`).join("")
+    : `<div>${picNames}</div>`;
 
   const picMetricHTML = `
     <div class="metric-box" data-pic-metric>
       <div class="icon">👤</div>
       <div class="label">PIC</div>
-      <div class="value" id="picMetricValue">${picName}</div>
+      <div class="value" id="picMetricValue">${namesHTML}</div>
     </div>
   `;
   document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
 }
 
-// Ambil PIC dari database (selalu real-time)
-function setPicMetricFromDb(teamKey = "TeamSugity") {
-  onValue(ref(db, `PICOperator/${teamKey}`), (snapshot) => {
-    const picData = snapshot.val();
-    const picName = picData && picData.name ? picData.name : "-";
-    renderPicMetric(picName);
+// Ambil semua PIC dengan team "Sugity" dari node MPPIC
+function setPicMetricFromDb() {
+  onValue(ref(db, `MPPIC`), (snapshot) => {
+    const allPicData = snapshot.val();
+    if (!allPicData) {
+      renderPicMetric("-");
+      return;
+    }
+    // Filter hanya team Sugity lalu ambil nama-nama
+    const picNames = Object.values(allPicData)
+      .filter(pic => (pic.team || "").toLowerCase() === "sugity")
+      .map(pic => pic.name || "-");
+
+    if (picNames.length === 0) picNames.push("-");
+    renderPicMetric(picNames);
   });
 }
 
