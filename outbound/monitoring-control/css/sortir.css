@@ -247,6 +247,9 @@ input#fileInput {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 42px;
+  line-height: 1.2;
+  vertical-align: middle;
 }
 
 .mp-pic-list-table th {
