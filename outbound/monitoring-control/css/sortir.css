@@ -18,8 +18,6 @@ body {
 
 /* HEADER */
 .header-bar {
-  position: sticky;
-  top: 0;
   z-index: 100;
   height: 72px;
   display: flex;
@@ -385,7 +383,7 @@ input#fileInput {
 /* TOOLBAR */
 .toolbar {
   position: sticky;
-  top: 72px;
+  top: 0.5px;
   z-index: 98;
   min-height: 114px;
   background: #e5eafc;
@@ -521,7 +519,7 @@ table {
 thead th {
   position: sticky;
   z-index: 97;
-  top: 214px;
+  top: 142px;
   background: #0574be;
   color: #fafafa;
   font-weight: 600;
@@ -845,4 +843,15 @@ button.success:hover {
   padding: 8px 10px; /* Biar konsisten dengan tabel MP PIC, bukan tabel utama */
   border-bottom: 1px solid #e5ecf3;
   cursor: pointer;
+}
+
+/* Perlebar kolom Nama di tabel MP PIC aktif */
+.mp-pic-list-table th:first-child,
+.mp-pic-list-table td:first-child {
+  width: 180px;          /* Atau lebih lebar sesuai kebutuhan, misal 220px */
+  min-width: 150px;
+  max-width: 260px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
