@@ -855,14 +855,14 @@ button.success:hover {
 
 .mp-pic-list-table th:nth-child(2),
 .mp-pic-list-table td:nth-child(2) {  /* Team */
-  width: 100px;
+  width: 104px;
   min-width: 90px;
   max-width: 120px;
 }
 
 .mp-pic-list-table th:nth-child(3),
 .mp-pic-list-table td:nth-child(3) {  /* User ID */
-  width: 95px;
+  width: 104px;
   min-width: 70px;
   max-width: 120px;
   text-align: center;
@@ -870,8 +870,8 @@ button.success:hover {
 
 .mp-pic-list-table th:nth-child(4),
 .mp-pic-list-table td:nth-child(4) {  /* Action */
-  width: 80px;
+  width: 104px;
   min-width: 70px;
-  max-width: 100px;
+  max-width: 120px;
   text-align: center;
 }
