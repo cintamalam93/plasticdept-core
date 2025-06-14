@@ -845,13 +845,33 @@ button.success:hover {
   cursor: pointer;
 }
 
-/* Perlebar kolom Nama di tabel MP PIC aktif */
-.mp-pic-list-table th:first-child,
-.mp-pic-list-table td:first-child {
-  width: 180px;          /* Atau lebih lebar sesuai kebutuhan, misal 220px */
-  min-width: 150px;
+/* Lebar kolom tabel MP PIC aktif */
+.mp-pic-list-table th:nth-child(1),
+.mp-pic-list-table td:nth-child(1) {  /* Nama */
+  width: 200px;
+  min-width: 160px;
   max-width: 260px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+}
+
+.mp-pic-list-table th:nth-child(2),
+.mp-pic-list-table td:nth-child(2) {  /* Team */
+  width: 100px;
+  min-width: 90px;
+  max-width: 120px;
+}
+
+.mp-pic-list-table th:nth-child(3),
+.mp-pic-list-table td:nth-child(3) {  /* User ID */
+  width: 95px;
+  min-width: 70px;
+  max-width: 120px;
+  text-align: center;
+}
+
+.mp-pic-list-table th:nth-child(4),
+.mp-pic-list-table td:nth-child(4) {  /* Action */
+  width: 80px;
+  min-width: 70px;
+  max-width: 100px;
+  text-align: center;
 }
