@@ -1,12 +1,11 @@
-// team-sugity.js
+// team-reguler.js
 import { db, authPromise } from "./config.js";
 import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Reguler";
 
-// --- Ambil PIC dari Firebase, bukan localStorage ---
-// Ubah: menerima array nama PIC, render per baris
+// --- Ambil PIC dari Firebase (node MPPIC) dan render semua nama PIC team Reguler ---
 function renderPicMetric(picNames) {
   // Hapus metric PIC lama jika sudah ada
   const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
@@ -27,7 +26,7 @@ function renderPicMetric(picNames) {
   document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
 }
 
-// Ambil semua PIC dengan team "Sugity" dari node MPPIC
+// Ambil semua PIC team Reguler dari node MPPIC, render nama-namanya
 function setPicMetricFromDb() {
   onValue(ref(db, `MPPIC`), (snapshot) => {
     const allPicData = snapshot.val();
@@ -35,9 +34,9 @@ function setPicMetricFromDb() {
       renderPicMetric("-");
       return;
     }
-    // Filter hanya team Sugity lalu ambil nama-nama
+    // Filter hanya team Reguler lalu ambil nama-nama
     const picNames = Object.values(allPicData)
-      .filter(pic => (pic.team || "").toLowerCase() === "sugity")
+      .filter(pic => (pic.team || "").toLowerCase() === "reguler")
       .map(pic => pic.name || "-");
 
     if (picNames.length === 0) picNames.push("-");
@@ -45,7 +44,8 @@ function setPicMetricFromDb() {
   });
 }
 
-// ...
+// ... (kode lain tidak berubah, lanjutkan seperti sebelumnya)
+
 function createStatusLabel(status) {
   const span = document.createElement("span");
   span.textContent = status;
@@ -94,7 +94,6 @@ function createStatusLabel(status) {
   if (normalized !== "completed") span.style.color = "white";
   return span;
 }
-
 
 let currentPercent = 0;
 let animationFrame;
@@ -292,7 +291,7 @@ async function setupRoleButtons() {
 
 // Pastikan semua akses database dilakukan setelah login anonymous sukses
 authPromise.then(() => {
-  setPicMetricFromDb("TeamSugity");
+  setPicMetricFromDb(); // panggil tanpa argumen!
   setupRoleButtons();
   onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
     if (snapshot.exists()) {
