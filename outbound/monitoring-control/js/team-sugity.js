@@ -12,6 +12,9 @@ function renderPicMetric(picNames) {
   const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
   if (oldMetric) oldMetric.remove();
 
+  // Icon path (relative dari HTML team-sugity/reguler)
+  const iconPath = "img/team_mp.png";
+
   // Gabungkan nama jadi beberapa baris (jika lebih dari satu)
   const namesHTML = Array.isArray(picNames)
     ? picNames.map(name => `<div>${name}</div>`).join("")
