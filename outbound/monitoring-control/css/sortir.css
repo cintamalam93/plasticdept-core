@@ -36,8 +36,8 @@ body {
   font-size: 1.7rem;
   font-weight: 700;
   color: #2176ae;
-  justify-content: flex-start;   /* tambahkan ini */
-  text-align: left;              /* tambahkan ini */
+  justify-content: flex-start;
+  text-align: left;
 }
 
 .user-profile {
@@ -219,13 +219,13 @@ input#fileInput {
 }
 
 .top-bar-mp-pic-list {
-  min-width: 420px;
-  max-width: 520px;
-  margin: 0 12px;
+  min-width: 600px;
+  max-width: 800px;
+  margin: 0 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  flex: 0 0 420px;
+  flex: 0 0 600px;
 }
 
 .mp-pic-list-table {
