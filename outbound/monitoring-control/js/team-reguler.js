@@ -5,22 +5,27 @@ import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/fire
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Reguler";
 
-// --- Ambil PIC dari Firebase (node MPPIC) dan render semua nama PIC team Reguler ---
+// PATCH: renderPicMetric tampilkan icon sebelum nama, dan nama rata kiri
 function renderPicMetric(picNames) {
   // Hapus metric PIC lama jika sudah ada
   const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
   if (oldMetric) oldMetric.remove();
 
-  // Gabungkan nama jadi beberapa baris (jika lebih dari satu)
+  // Icon path (relative dari HTML team-reguler)
+  const iconPath = "img/team_mp.png";
+
+  // Gabungkan nama jadi beberapa baris, tiap baris ada icon
   const namesHTML = Array.isArray(picNames)
-    ? picNames.map(name => `<div>${name}</div>`).join("")
-    : `<div>${picNames}</div>`;
+    ? picNames.map(name =>
+        `<div class="pic-row"><img src="${iconPath}" class="pic-icon" alt="MP" />${name}</div>`
+      ).join("")
+    : `<div class="pic-row"><img src="${iconPath}" class="pic-icon" alt="MP" />${picNames}</div>`;
 
   const picMetricHTML = `
     <div class="metric-box" data-pic-metric>
       <div class="icon">👤</div>
       <div class="label">PIC</div>
-      <div class="value" id="picMetricValue">${namesHTML}</div>
+      <div class="value pic-list" id="picMetricValue">${namesHTML}</div>
     </div>
   `;
   document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
@@ -43,8 +48,6 @@ function setPicMetricFromDb() {
     renderPicMetric(picNames);
   });
 }
-
-// ... (kode lain tidak berubah, lanjutkan seperti sebelumnya)
 
 function createStatusLabel(status) {
   const span = document.createElement("span");
