@@ -892,21 +892,15 @@ button.success:hover {
   background: #2176ae;
   color: #fff;
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 28px;   /* Ukuran icon sama tinggi tombol */
+  height: 40px;  /* Samakan dengan height tombol */
   font-size: 15px;
   font-weight: bold;
   text-align: center;
   cursor: pointer;
   transition: background 0.18s;
-  /* Tambahan agar tidak kegeser ke bawah pada form-row flex */
-  vertical-align: middle;
   box-shadow: 0 1px 3px rgba(33,118,174,0.06);
 }
 .help-tooltip:hover {
   background: #185a89;
-}
-/* Supaya space antar form-row konsisten */
-.form-row .help-tooltip {
-  margin-bottom: 0 !important;
 }
