@@ -1314,11 +1314,18 @@ async function renderMpPicListTable() {
     btn.addEventListener('click', async function() {
       const userID = this.getAttribute('data-userid');
       if (!userID) return;
-      if (confirm("Hapus MP PIC ini?")) {
-        await remove(ref(db, `MPPIC/${userID}`));
-        showNotification("MP PIC berhasil dihapus.");
-        renderMpPicListTable();
-      }
+      showConfirmModal({
+        title: "Konfirmasi Hapus MP PIC",
+        message: `Apakah Anda yakin ingin menghapus MP PIC ini?`,
+        okText: "Hapus",
+        okClass: "logout",
+        cancelText: "Batal",
+        onConfirm: async () => {
+          await remove(ref(db, `MPPIC/${userID}`));
+          showNotification("MP PIC berhasil dihapus.");
+          renderMpPicListTable();
+        }
+      });
     });
   });
 }
