@@ -57,39 +57,40 @@
       </div>
       <div class="top-bar-right">
         <div class="form-row">
-        <input type="number" id="planTargetInput" placeholder="Masukkan jumlah" min="0">
-        <select id="planTeamSelector">
-          <option value="Sugity">Team Sugity</option>
-          <option value="Reguler">Team Reguler</option>
-        </select>
-        <button id="setPlanTargetBtn" type="button">Set Target</button>
-        <span class="help-tooltip" title="Set target jumlah produksi/plan untuk team yang dipilih.">?</span>
-      </div>
-      <div class="form-row">
-        <input type="number" id="manPowerInput" placeholder="Jumlah man power" min="0">
-        <select id="manPowerTeamSelector">
-          <option value="Sugity">Team Sugity</option>
-          <option value="Reguler">Team Reguler</option>
-        </select>
-        <button id="setManPowerBtn" type="button">Set MP</button>
-        <span class="help-tooltip" title="Set jumlah man power (tenaga kerja) untuk team yang dipilih.">?</span>
-      </div>
-      <div class="form-row">
-        <input type="number" id="mpOvertimeInput" placeholder="Man Power OT" min="0">
-        <button id="setMpOvertimeBtn" type="button">Set MP OT</button>
-        <span class="help-tooltip" title="Set jumlah man power yang lembur (overtime).">?</span>
-      </div>
-      <div class="form-row" id="mpPicRow">
-        <select id="mpPicSelector">
-          <option value="">-- Pilih PIC --</option>
-          <!-- Opsi diisi via JS -->
-        </select>
-        <select id="mpPicTeamSelector">
-          <option value="Sugity">Team Sugity</option>
-          <option value="Reguler">Team Reguler</option>
-        </select>
-        <button id="setMpPicBtn" type="button">Set MP PIC</button>
-        <span class="help-tooltip" title="Set nama PIC (penanggung jawab) aktif untuk team yang dipilih.">?</span>
+          <input type="number" id="planTargetInput" placeholder="Masukkan jumlah" min="0">
+          <select id="planTeamSelector">
+            <option value="Sugity">Team Sugity</option>
+            <option value="Reguler">Team Reguler</option>
+          </select>
+          <button id="setPlanTargetBtn" type="button">Set Target</button>
+          <span class="help-tooltip" title="Set target jumlah produksi/plan untuk team yang dipilih.">?</span>
+        </div>
+        <div class="form-row">
+          <input type="number" id="manPowerInput" placeholder="Jumlah man power" min="0">
+          <select id="manPowerTeamSelector">
+            <option value="Sugity">Team Sugity</option>
+            <option value="Reguler">Team Reguler</option>
+          </select>
+          <button id="setManPowerBtn" type="button">Set MP</button>
+          <span class="help-tooltip" title="Set jumlah man power (tenaga kerja) untuk team yang dipilih.">?</span>
+        </div>
+        <div class="form-row">
+          <input type="number" id="mpOvertimeInput" placeholder="Man Power OT" min="0">
+          <button id="setMpOvertimeBtn" type="button">Set MP OT</button>
+          <span class="help-tooltip" title="Set jumlah man power yang lembur (overtime).">?</span>
+        </div>
+        <div class="form-row" id="mpPicRow">
+          <select id="mpPicSelector">
+            <option value="">-- Pilih PIC --</option>
+            <!-- Opsi diisi via JS -->
+          </select>
+          <select id="mpPicTeamSelector">
+            <option value="Sugity">Team Sugity</option>
+            <option value="Reguler">Team Reguler</option>
+          </select>
+          <button id="setMpPicBtn" type="button">Set MP PIC</button>
+          <span class="help-tooltip" title="Set nama PIC (penanggung jawab) aktif untuk team yang dipilih.">?</span>
+        </div>
       </div>
     <div class="toolbar">
       <button id="bulkAddBtn">Assign Job Selected</button>
