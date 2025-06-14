@@ -24,7 +24,8 @@ body {
   height: 72px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start; 
+  text-align: left;
   background: #fff;
   box-shadow: 0 1px 7px rgba(33,118,174,0.06);
   padding: 0 24px 0 0;
@@ -37,6 +38,8 @@ body {
   font-size: 1.7rem;
   font-weight: 700;
   color: #2176ae;
+  justify-content: flex-start;   /* tambahkan ini */
+  text-align: left;              /* tambahkan ini */
 }
 
 .user-profile {
@@ -827,4 +830,19 @@ button.success:hover {
 }
 #setMpOvertimeBtn:hover {
   background: #185a89;
+}
+
+/* OVERRIDE: Agar header tabel MP PIC tidak sticky/ikut scroll */
+.mp-pic-list-table thead th {
+  position: static !important;
+  top: unset !important;
+  background: #2176ae;
+  color: #fff;
+  font-weight: 700;
+  border-radius: 4px 4px 0 0;
+  text-align: center;
+  z-index: auto;
+  padding: 8px 10px; /* Biar konsisten dengan tabel MP PIC, bukan tabel utama */
+  border-bottom: 1px solid #e5ecf3;
+  cursor: pointer;
 }
