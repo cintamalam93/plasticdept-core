@@ -1250,7 +1250,7 @@ async function renderMpPicListTable() {
   const thead = document.createElement('thead');
   const headerRow = document.createElement('tr');
   const headers = [
-    { text: 'Nama PIC', key: 'name' },
+    { text: 'Nama', key: 'name' },
     { text: 'Team', key: 'team' },
     { text: 'User ID', key: 'userID' },
     { text: 'Action', key: 'action' }
