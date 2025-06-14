@@ -1152,6 +1152,13 @@ async function populateMpPicSelector() {
     }
   });
 
+  // Sort abjad A-Z berdasarkan nama
+  filtered.sort((a, b) => {
+    const nameA = (a.Name || a.Username || "").toUpperCase();
+    const nameB = (b.Name || b.Username || "").toUpperCase();
+    return nameA.localeCompare(nameB, 'id', { sensitivity: 'base' });
+  });
+  
   picUserMap = {};
   filtered.forEach(u => {
     const name = u.Name || u.Username || "";
