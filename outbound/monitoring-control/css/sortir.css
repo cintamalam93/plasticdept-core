@@ -232,12 +232,11 @@ input#fileInput {
   width: 100%;
   min-width: 380px;
   max-width: 500px;
-  background: #f8fafc;
+  background: #eaeef2;
   border-radius: 8px;
   box-shadow: 0 2px 7px rgba(33,118,174,0.07);
   font-size: 1em;
   table-layout: fixed;
-  border: 2px solid #465b6a;  
 }
 
 .mp-pic-list-table th, .mp-pic-list-table td {
