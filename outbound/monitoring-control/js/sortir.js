@@ -323,11 +323,19 @@ function clearAllJobs() {
     okClass: "logout",
     onConfirm: () => {
       const outboundRef = ref(db, "PhxOutboundJobs");
-      
+      const manPowerRef = ref(db, "ManPower");
+      const manPowerOvertimeRef = ref(db, "ManPowerOvertime");
+      const planTargetRef = ref(db, "PlanTarget");
+
       // Jalankan penghapusan paralel
-      remove(outboundRef)
+      Promise.all([
+        remove(outboundRef),
+        remove(manPowerRef),
+        remove(manPowerOvertimeRef),
+        remove(planTargetRef)
+      ])
         .then(() => {
-          showNotification("✅ Semua job dan plan target berhasil dihapus.");
+          showNotification("✅ Semua job, plan target, man power, dan overtime berhasil dihapus.");
           loadJobsFromFirebase(); // Pastikan fungsi ini tidak tergantung PlanTarget
         })
         .catch((err) => {
