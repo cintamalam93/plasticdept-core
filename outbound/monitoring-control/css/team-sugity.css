@@ -231,3 +231,21 @@ button {
 button:hover {
   background-color: #3498db;
 }
+
+/* Matrix PIC styling */
+.pic-list {
+  text-align: left;
+  margin-top: 6px;
+  padding-left: 18px; /* Biar tidak nempel kiri kartu */
+}
+.pic-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 2px;
+}
+.pic-icon {
+  width: 18px;
+  height: 18px;
+  margin-right: 7px;
+  vertical-align: middle;
+}
