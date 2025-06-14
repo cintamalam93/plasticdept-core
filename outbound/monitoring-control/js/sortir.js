@@ -1211,3 +1211,108 @@ document.getElementById("setMpPicBtn")?.addEventListener("click", async function
 });
 
 document.addEventListener("DOMContentLoaded", populateMpPicSelector);
+
+//==============================================================================================================================
+// Global state for current sort
+let mpPicSortOrder = 'team'; // 'team' or 'name'
+let mpPicSortAsc = true;
+
+// Render tabel MP PIC aktif
+async function renderMpPicListTable() {
+  const mpPicListTable = document.getElementById('mpPicListTable').querySelector('tbody');
+  if (!mpPicListTable) return;
+  // Ambil semua data (bukan filter berdasarkan team saja)
+  mpPicListTable.innerHTML = '<tr><td colspan="4" style="text-align:center;">Loading...</td></tr>';
+  try {
+    const snapshot = await get(ref(db, "MPPIC"));
+    let data = [];
+    if (snapshot.exists()) {
+      const mpPicData = snapshot.val();
+      data = Object.values(mpPicData)
+        .map(entry => ({
+          name: entry.name,
+          team: entry.team,
+          userID: entry.userID
+        }));
+    }
+    // Sort logic
+    data.sort((a, b) => {
+      let cmp = 0;
+      if (mpPicSortOrder === 'team') {
+        cmp = (a.team || '').localeCompare(b.team || '');
+        if (cmp === 0) cmp = (a.name || '').localeCompare(b.name || '');
+      } else {
+        cmp = (a.name || '').localeCompare(b.name || '');
+      }
+      return mpPicSortAsc ? cmp : -cmp;
+    });
+
+    if (data.length === 0) {
+      mpPicListTable.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada MP PIC</td></tr>';
+      return;
+    }
+    mpPicListTable.innerHTML = "";
+    data.forEach(entry => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${entry.name}</td>
+        <td>${entry.team}</td>
+        <td>${entry.userID}</td>
+        <td>
+          <button type="button" class="hapus-mp-pic-btn" data-userid="${entry.userID}">Hapus</button>
+        </td>
+      `;
+      mpPicListTable.appendChild(tr);
+    });
+
+    // Add event listener untuk hapus
+    mpPicListTable.querySelectorAll('.hapus-mp-pic-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const userID = this.getAttribute('data-userid');
+        if (!userID) return;
+        if (confirm("Hapus MP PIC ini?")) {
+          await remove(ref(db, `MPPIC/${userID}`));
+          showNotification("MP PIC berhasil dihapus.");
+          renderMpPicListTable();
+        }
+      });
+    });
+
+  } catch (err) {
+    mpPicListTable.innerHTML = '<tr><td colspan="4" style="text-align:center;">Gagal memuat data.</td></tr>';
+  }
+}
+
+// Tambah fitur sort pada judul kolom Team
+function addMpPicTableSortListeners() {
+  const ths = document.querySelectorAll('#mpPicListTable th');
+  if (!ths.length) return;
+  // Team column (index 1) = sort by team
+  // Nama PIC column (index 0) = sort by name
+  ths[1]?.addEventListener('click', function() {
+    if (mpPicSortOrder === 'team') {
+      mpPicSortAsc = !mpPicSortAsc;
+    } else {
+      mpPicSortOrder = 'team';
+      mpPicSortAsc = true;
+    }
+    renderMpPicListTable();
+  });
+  ths[0]?.addEventListener('click', function() {
+    if (mpPicSortOrder === 'name') {
+      mpPicSortAsc = !mpPicSortAsc;
+    } else {
+      mpPicSortOrder = 'name';
+      mpPicSortAsc = true;
+    }
+    renderMpPicListTable();
+  });
+}
+
+// Inisialisasi setelah DOM ready
+document.addEventListener("DOMContentLoaded", () => {
+  renderMpPicListTable();
+  addMpPicTableSortListeners();
+});
+
+// Setelah tambah/hapus MP PIC, panggil renderMpPicListTable();
