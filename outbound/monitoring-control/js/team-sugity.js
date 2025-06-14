@@ -6,7 +6,7 @@ const teamTable = document.getElementById("teamTable").getElementsByTagName("tbo
 const currentTeam = "Sugity";
 
 // --- Ambil PIC dari Firebase, bukan localStorage ---
-// Ubah: menerima array nama PIC, render per baris
+// Ubah: menerima array nama PIC, render per baris, tambahkan icon sebelum nama
 function renderPicMetric(picNames) {
   // Hapus metric PIC lama jika sudah ada
   const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
@@ -15,16 +15,18 @@ function renderPicMetric(picNames) {
   // Icon path (relative dari HTML team-sugity/reguler)
   const iconPath = "img/team_mp.png";
 
-  // Gabungkan nama jadi beberapa baris (jika lebih dari satu)
+  // Gabungkan nama jadi beberapa baris dengan icon
   const namesHTML = Array.isArray(picNames)
-    ? picNames.map(name => `<div>${name}</div>`).join("")
-    : `<div>${picNames}</div>`;
+    ? picNames.map(name =>
+        `<div class="pic-row"><img src="${iconPath}" class="pic-icon" alt="MP" />${name}</div>`
+      ).join("")
+    : `<div class="pic-row"><img src="${iconPath}" class="pic-icon" alt="MP" />${picNames}</div>`;
 
   const picMetricHTML = `
     <div class="metric-box" data-pic-metric>
       <div class="icon">👤</div>
       <div class="label">PIC</div>
-      <div class="value" id="picMetricValue">${namesHTML}</div>
+      <div class="value pic-list" id="picMetricValue">${namesHTML}</div>
     </div>
   `;
   document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
