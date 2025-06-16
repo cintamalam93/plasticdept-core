@@ -61,28 +61,35 @@ async function updateCapacityDayShiftActual(db) {
 async function loadReportData(db) {
   const today = getTodayDateObj();
   const todayStr = getDateString(today);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const tomorrowStr = getDateString(tomorrow);
+  let shiftState = localStorage.getItem("outbound_shift") || "day";
 
-  // Ambil shift dari localStorage, default day
-  let shiftState = localStorage.getItem("outbound_shift");
-  if (!shiftState) shiftState = "day";
+  // Ambil semua data PhxOutboundJobs SEKALI
+  const allJobSnap = await get(ref(db, "PhxOutboundJobs"));
 
   // 1. Remaining order day H (jobType: Remainning, today)
-  const allJobSnap = await get(ref(db, "PhxOutboundJobs"));
-    let remainingQty = 0;
-    if (allJobSnap.exists()) {
+  let remainingQty = 0;
+  // 2. Additional Day H (jobType: Additional, today)
+  let additionalQty = 0;
+  // 3. Order H-1 (selain hari ini)
+  let orderH1Qty = 0;
+
+  if (allJobSnap.exists()) {
     allJobSnap.forEach(childSnap => {
-        const job = childSnap.val();
-        if (
-        (job.jobType || "").trim() === "Remainning" &&
-        (job.deliveryDate || "") === todayStr
-        ) {
+      const job = childSnap.val();
+      const jobType = (job.jobType || "").trim();
+      const deliveryDate = (job.deliveryDate || "").trim();
+
+      if (jobType === "Remainning" && deliveryDate === todayStr) {
         remainingQty += Number(job.qty) || 0;
-        }
+      }
+      if (jobType === "Additional" && deliveryDate === todayStr) {
+        additionalQty += Number(job.qty) || 0;
+      }
+      if (deliveryDate && deliveryDate !== todayStr) {
+        orderH1Qty += Number(job.qty) || 0;
+      }
     });
-    }
+  }
   document.getElementById("remH-actual").textContent = formatNumber(remainingQty);
 
   // 2. Additional Day H (jobType: Additional, today)
