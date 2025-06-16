@@ -695,7 +695,7 @@ function saveManPowerToFirebase(team, manPower) {
 }
 function handleSetManPower() {
   const team = manPowerTeamSelector.value;
-  const manPower = parseInt(manPowerInput.value);
+  const manPower = parseFloat(manPowerInput.value);
 
   if (isNaN(manPower) || manPower <= 0) {
     showNotification("Masukkan jumlah man power yang valid.", true);
