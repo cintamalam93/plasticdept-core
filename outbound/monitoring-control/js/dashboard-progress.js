@@ -3,10 +3,6 @@
 import { db, authPromise } from "./config.js";
 import { ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// --- Konstanta Man Power Per Team ---
-const MP_SUGITY = 2;
-const MP_REGULER = 1;
-
 // --- DOM Elements (dashboard matrix) ---
 const outstandingJobValue = document.getElementById("outstandingJobValue");
 const planTargetValue = document.getElementById("planTargetValue");
@@ -103,7 +99,7 @@ function getStatusSortOrder(status) {
 // --- Main Data Loader ---
 async function loadDashboardData() {
   // Ambil Plan Target dari Firebase
-  const [planSugitySnap, planRegulerSnap, outboundJobsSnap] = await Promise.all([
+  const [planSugitySnap, planRegulerSnap, outboundJobsSnap, manPowerSnap] = await Promise.all([
     get(ref(db, "PlanTarget/Sugity")),
     get(ref(db, "PlanTarget/Reguler")),
     get(ref(db, "PhxOutboundJobs")),
