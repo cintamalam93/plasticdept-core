@@ -18,6 +18,13 @@ function getTodayDateObj() {
   today.setHours(0,0,0,0);
   return today;
 }
+function getTodayDateStrDDMMMYYYY() {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = today.toLocaleString("en-US", { month: "short" });
+  const year = today.getFullYear();
+  return `${day}-${month}-${year}`;
+}
 function getDateString(date) {
   return date.toISOString().slice(0,10);
 }
@@ -26,21 +33,10 @@ function prettyDate(date) {
   const bulan = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
   return `${hari[date.getDay()]}, ${date.getDate().toString().padStart(2,"0")}-${bulan[date.getMonth()]}-${date.getFullYear()}`;
 }
-// Helper: Format tanggal menjadi "16-Jun-2025"
-function getTodayDateStrDDMMMYYYY() {
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, "0");
-  const month = today.toLocaleString("en-US", { month: "short" });
-  const year = today.getFullYear();
-  return `${day}-${month}-${year}`;
-}
 
 async function loadReportData(db) {
   const today = getTodayDateObj();
   const todayStr = getTodayDateStrDDMMMYYYY();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const tomorrowStr = getTodayDateStrDDMMMYYYY();
 
   // Ambil shift dari localStorage, default day
   let shiftState = localStorage.getItem("outbound_shift");
@@ -78,17 +74,13 @@ async function loadReportData(db) {
       if (deliveryDate && deliveryDate !== todayStr) {
         orderH1Qty += qty;
       }
-      // Capacity day shift: team Reguler/Sugity, hari ini
-      if (
-        (team === "Reguler" || team === "Sugity") &&
-        deliveryDate === todayStr
-      ) {
+      // Capacity day shift: hanya filter team Reguler/Sugity SAJA
+      if (team === "Reguler" || team === "Sugity") {
         capDay += qty;
       }
       // Capacity night shift: jika ada shift/night field
       if (
         (team === "Reguler" || team === "Sugity") &&
-        deliveryDate === todayStr &&
         (v.shift || "").toLowerCase() === "night"
       ) {
         capNight += qty;
@@ -108,10 +100,8 @@ async function loadReportData(db) {
   const mpSnap = await get(ref(db, "ManPower"));
   let mpDay = 0, mpNight = 0;
   if (mpSnap.exists()) {
-    // Sesuai screenshot, node ManPower: Reguler:1, Sugity:2
     const mpVal = mpSnap.val();
     mpDay = (Number(mpVal.Reguler) || 0) + (Number(mpVal.Sugity) || 0);
-    // Jika butuh night shift, bisa ditambah dari struktur lain
   }
   document.getElementById("mpDay-actual").textContent = (shiftState === "day") ? formatNumber(mpDay) : "";
 
