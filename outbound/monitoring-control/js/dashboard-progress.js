@@ -219,15 +219,15 @@ async function loadDashboardData() {
 }
 
 // --- Update Progress per Team Otomatis ---
-function updateTeamProgress(actualSugityVal, achievedSugityVal, actualRegulerVal, achievedRegulerVal) {
+function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, achievedRegulerVal) {
   // Sugity
-  let progressSugity = actualSugityVal > 0 ? (achievedSugityVal / actualSugityVal * 100) : 0;
+  let progressSugity = planSugityVal > 0 ? (achievedSugityVal / planSugityVal * 100) : 0;
   progressSugity = Math.max(0, Math.min(progressSugity, 100));
   if (progressSugityBar) progressSugityBar.style.width = progressSugity + "%";
   if (progressTextSugity) progressTextSugity.textContent = `Progress: ${progressSugity.toFixed(1)}%`;
 
   // Reguler
-  let progressReguler = actualRegulerVal > 0 ? (achievedRegulerVal / actualRegulerVal * 100) : 0;
+  let progressReguler = planRegulerVal > 0 ? (achievedRegulerVal / planRegulerVal * 100) : 0;
   progressReguler = Math.max(0, Math.min(progressReguler, 100));
   if (progressRegulerBar) progressRegulerBar.style.width = progressReguler + "%";
   if (progressTextReguler) progressTextReguler.textContent = `Progress: ${progressReguler.toFixed(1)}%`;
