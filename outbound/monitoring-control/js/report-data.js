@@ -4,7 +4,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-import { firebaseConfig } from "./config.js";
+import { firebaseConfig } from "./config.js"; // pastikan file ini berisi export firebaseConfig
 
 // Helper: Format numbers with thousands separator
 function formatNumber(n) {
@@ -18,14 +18,6 @@ function getTodayDateObj() {
   today.setHours(0,0,0,0);
   return today;
 }
-function getTodayDateStrDDMMMYYYY() {
-  // Format: "16-Jun-2025"
-  const today = new Date();
-  const day = String(today.getDate()).padStart(2, "0");
-  const month = today.toLocaleString("en-US", { month: "short" });
-  const year = today.getFullYear();
-  return `${day}-${month}-${year}`;
-}
 function getDateString(date) {
   return date.toISOString().slice(0,10);
 }
@@ -34,36 +26,21 @@ function prettyDate(date) {
   const bulan = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
   return `${hari[date.getDay()]}, ${date.getDate().toString().padStart(2,"0")}-${bulan[date.getMonth()]}-${date.getFullYear()}`;
 }
-
-async function updateCapacityDayShiftActual(db) {
-  const todayStr = getTodayDateStrDDMMMYYYY();
-
-  // Ambil semua data PhxOutboundJobs
-  const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
-  let totalQty = 0;
-
-  if (jobsSnap.exists()) {
-    jobsSnap.forEach(childSnap => {
-      const job = childSnap.val();
-      const team = (job.team || "").trim();
-      const deliveryDate = (job.deliveryDate || "").trim();
-      if (
-        (team === "Reguler" || team === "Sugity") &&
-        deliveryDate === todayStr
-      ) {
-        totalQty += Number(job.qty) || 0;
-      }
-    });
-  }
-
-  // Tampilkan hasil pada elemen #capDay-actual
-  document.getElementById("capDay-actual").textContent = totalQty.toLocaleString("en-US");
+// Helper: Format tanggal menjadi "16-Jun-2025"
+function getTodayDateStrDDMMMYYYY() {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = today.toLocaleString("en-US", { month: "short" });
+  const year = today.getFullYear();
+  return `${day}-${month}-${year}`;
 }
 
 async function loadReportData(db) {
   const today = getTodayDateObj();
-  const todayStr = getDateString(today);
-  const todayStrDDMMMYYYY = getTodayDateStrDDMMMYYYY();
+  const todayStr = getTodayDateStrDDMMMYYYY();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const tomorrowStr = getTodayDateStrDDMMMYYYY();
 
   // Ambil shift dari localStorage, default day
   let shiftState = localStorage.getItem("outbound_shift");
@@ -83,33 +60,36 @@ async function loadReportData(db) {
 
   if (allJobSnap.exists()) {
     allJobSnap.forEach(childSnap => {
-      const job = childSnap.val();
-      const jobType = (job.jobType || "");
-      const deliveryDate = (job.deliveryDate || "");
-      const team = (job.team || "");
-      const qty = Number(job.qty) || 0;
+      const v = childSnap.val();
+      const jobType = (v.jobType || "");
+      const deliveryDate = (v.deliveryDate || "");
+      const team = (v.team || "");
+      const qty = Number(v.qty) || 0;
 
-      if (jobType === "Remainning" && deliveryDate === todayStrDDMMMYYYY) {
+      // Remaining order day H
+      if (jobType === "Remainning" && deliveryDate === todayStr) {
         remainingQty += qty;
       }
-      if (jobType === "Additional" && deliveryDate === todayStrDDMMMYYYY) {
+      // Additional Day H
+      if (jobType === "Additional" && deliveryDate === todayStr) {
         additionalQty += qty;
       }
-      if (deliveryDate && deliveryDate !== todayStrDDMMMYYYY) {
+      // Order H-1 (selain hari ini)
+      if (deliveryDate && deliveryDate !== todayStr) {
         orderH1Qty += qty;
       }
       // Capacity day shift: team Reguler/Sugity, hari ini
       if (
         (team === "Reguler" || team === "Sugity") &&
-        deliveryDate === todayStrDDMMMYYYY
+        deliveryDate === todayStr
       ) {
         capDay += qty;
       }
       // Capacity night shift: jika ada shift/night field
       if (
         (team === "Reguler" || team === "Sugity") &&
-        deliveryDate === todayStrDDMMMYYYY &&
-        (job.shift || "").toLowerCase() === "night"
+        deliveryDate === todayStr &&
+        (v.shift || "").toLowerCase() === "night"
       ) {
         capNight += qty;
       }
@@ -128,10 +108,10 @@ async function loadReportData(db) {
   const mpSnap = await get(ref(db, "ManPower"));
   let mpDay = 0, mpNight = 0;
   if (mpSnap.exists()) {
-    // Dari screenshot, node ManPower: Reguler:1, Sugity:2
+    // Sesuai screenshot, node ManPower: Reguler:1, Sugity:2
     const mpVal = mpSnap.val();
     mpDay = (Number(mpVal.Reguler) || 0) + (Number(mpVal.Sugity) || 0);
-    // Kalau ada shift night, tambahkan logika mpNight di sini
+    // Jika butuh night shift, bisa ditambah dari struktur lain
   }
   document.getElementById("mpDay-actual").textContent = (shiftState === "day") ? formatNumber(mpDay) : "";
 
