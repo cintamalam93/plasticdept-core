@@ -107,6 +107,7 @@ async function loadDashboardData() {
     get(ref(db, "PlanTarget/Sugity")),
     get(ref(db, "PlanTarget/Reguler")),
     get(ref(db, "PhxOutboundJobs")),
+    get(ref(db, "ManPower")),
   ]);
 
   // Plan Target
@@ -115,6 +116,11 @@ async function loadDashboardData() {
 
   // Outbound Jobs
   const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
+
+  // Data ManPower
+  const manPowerVal = manPowerSnap.exists() ? manPowerSnap.val() : {};
+  const MP_SUGITY = parseFloat(manPowerVal.Sugity) || 0;
+  const MP_REGULER = parseFloat(manPowerVal.Reguler) || 0;
 
   // Hitung Outstanding Job For Next Shift
   let outstandingQty = 0;
