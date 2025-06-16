@@ -193,7 +193,7 @@ async function loadDashboardData() {
    updateTeamProgress(sumActualSugity, sumAchievedSugity, sumActualReguler, sumAchievedReguler);
 
   // --- Chart Donut (Gabungan) ---
-  renderDonutChart(totalAchieved, totalRemaining);
+  renderDonutChart(totalAchieved, totalPlanTarget);
 
   // --- Chart Bar (Team) ---
   renderBarChart(
@@ -234,7 +234,10 @@ function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, ac
 }
 
 // --- Donut Chart ---
-function renderDonutChart(achieved, remaining) {
+function renderDonutChart(achieved, planTarget) {
+  const achievedVal = Number(achieved) || 0;
+  const planTargetVal = Number(planTarget) || 0;
+  const remaining = Math.max(0, planTargetVal - achievedVal);
   const ctx = document.getElementById("donutChart").getContext("2d");
   if (donutChart) donutChart.destroy();
   donutChart = new Chart(ctx, {
@@ -242,7 +245,7 @@ function renderDonutChart(achieved, remaining) {
     data: {
       labels: ["Achieved", "Remaining"],
       datasets: [{
-        data: [achieved, remaining],
+        data: [achievedVal, remaining],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
         borderWidth: 2
       }]
@@ -262,8 +265,7 @@ function renderDonutChart(achieved, remaining) {
     }
   });
   // Update donut center text
-  const total = achieved + remaining;
-  const percent = total > 0 ? (achieved / total * 100) : 0;
+  const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
   document.getElementById("donutCenterText").textContent = percent.toFixed(0) + "%";
 }
 
