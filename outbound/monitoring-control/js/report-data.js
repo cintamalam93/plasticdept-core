@@ -35,6 +35,31 @@ function prettyDate(date) {
   return `${hari[date.getDay()]}, ${date.getDate().toString().padStart(2,"0")}-${bulan[date.getMonth()]}-${date.getFullYear()}`;
 }
 
+async function updateCapacityDayShiftActual(db) {
+  const todayStr = getTodayDateStrDDMMMYYYY();
+
+  // Ambil semua data PhxOutboundJobs
+  const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
+  let totalQty = 0;
+
+  if (jobsSnap.exists()) {
+    jobsSnap.forEach(childSnap => {
+      const job = childSnap.val();
+      const team = (job.team || "").trim();
+      const deliveryDate = (job.deliveryDate || "").trim();
+      if (
+        (team === "Reguler" || team === "Sugity") &&
+        deliveryDate === todayStr
+      ) {
+        totalQty += Number(job.qty) || 0;
+      }
+    });
+  }
+
+  // Tampilkan hasil pada elemen #capDay-actual
+  document.getElementById("capDay-actual").textContent = totalQty.toLocaleString("en-US");
+}
+
 async function loadReportData(db) {
   const today = getTodayDateObj();
   const todayStr = getDateString(today);
