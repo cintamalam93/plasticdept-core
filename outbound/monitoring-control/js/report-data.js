@@ -3,10 +3,8 @@
 // sudah mendukung sign-in anonymous (modular SDK) dan filter data di JS tanpa orderByChild.
 // Komentar sudah ditambahkan pada setiap fungsi dan listener.
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-import { firebaseConfig } from "./config.js"; // pastikan file ini berisi export firebaseConfig
+import { db, authPromise } from "./config.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 /**
  * Helper untuk memformat angka dengan pemisah ribuan.
