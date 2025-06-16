@@ -5,17 +5,21 @@
     <title>Laporan Produksi Harian - DAY SHIFT</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/report.css">
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script type="module" src="js/config.js"></script>
 </head>
 <body>
     <div class="container">
         <h2>Laporan Produksi Harian - DAY SHIFT</h2>
-        <div class="report-date">Rabu, 11-Jun-2025</div>
+        <div class="report-date"></div>
         <table class="report-table">
             <thead>
                 <tr>
                     <th rowspan="2" class="header-data">Data</th>
-                    <th colspan="5" class="header-date">Rabu, 11-Jun-2025</th>
-                    <th colspan="2" class="header-shift">DAY SHIFT</th>
+                    <th colspan="5" class="header-date date-header"></th>
+                    <th colspan="2" class="header-shift shift-header"></th>
                 </tr>
                 <tr>
                     <th>Standar</th>
@@ -31,7 +35,7 @@
                 <tr>
                     <td>Remaining order day H</td>
                     <td>-</td>
-                    <td>26,123</td>
+                    <td id="remH-actual">-</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -41,7 +45,7 @@
                 <tr>
                     <td>Additional Day H</td>
                     <td>-</td>
-                    <td>-</td>
+                    <td id="addH-actual">-</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -51,7 +55,7 @@
                 <tr>
                     <td>Order H-1</td>
                     <td>88,200</td>
-                    <td>93,540</td>
+                    <td id="orderH1-actual">-</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -61,7 +65,7 @@
                 <tr>
                     <td>Total Order</td>
                     <td class="cell-highlight">88,200</td>
-                    <td class="cell-highlight">119,663</td>
+                    <td class="cell-highlight" id="totalOrder-actual">-</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -81,7 +85,7 @@
                 <tr>
                     <td>Mp day shift</td>
                     <td>3</td>
-                    <td>3</td>
+                    <td id="mpDay-actual">-</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -91,7 +95,7 @@
                 <tr>
                     <td>Capacity day shift</td>
                     <td>52,920</td>
-                    <td class="cell-warning">26,123</td>
+                    <td class="cell-warning" id="capDay-actual">-</td>
                     <td></td>
                     <td></td>
                     <td class="cell-warning">-</td>
@@ -102,7 +106,7 @@
                 <tr>
                     <td>Mp Night shift</td>
                     <td>2</td>
-                    <td></td>
+                    <td id="mpNight-actual">-</td>
                     <td></td>
                     <td></td>
                     <td class="cell-warning">2</td>
@@ -112,7 +116,7 @@
                 <tr>
                     <td>Capacity night shift</td>
                     <td>35,280</td>
-                    <td class="cell-warning"></td>
+                    <td class="cell-warning" id="capNight-actual">-</td>
                     <td></td>
                     <td></td>
                     <td class="cell-warning"></td>
@@ -122,7 +126,7 @@
                 <tr>
                     <td>Total MP</td>
                     <td class="cell-highlight">5</td>
-                    <td>3</td>
+                    <td id="totalMP-actual">-</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -132,7 +136,7 @@
                 <tr>
                     <td>Total Capacity</td>
                     <td class="cell-highlight">88,200</td>
-                    <td>26,123</td>
+                    <td id="totalCap-actual">-</td>
                     <td></td>
                     <td></td>
                     <td>62,077</td>
@@ -142,7 +146,7 @@
                 <tr>
                     <td>Remaining order</td>
                     <td>93,540</td>
-                    <td>93,540</td>
+                    <td id="remainingOrder-actual">-</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -157,5 +161,6 @@
             </div>
         </footer>
     </div>
+    <script type="module" src="js/report-data.js"></script>
 </body>
 </html>
