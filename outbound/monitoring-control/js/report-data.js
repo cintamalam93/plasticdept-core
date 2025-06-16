@@ -1,77 +1,64 @@
 import { db, authPromise } from "./config.js";
-import { ref, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// ...helper dan fungsi seperti sebelumnya...
-
+// Helper
 function formatNumber(n) {
   if (typeof n !== "number" || isNaN(n)) return "-";
   return n.toLocaleString("en-US");
 }
 function getTodayDateObj() {
   const today = new Date();
-  today.setHours(0,0,0,0);
+  today.setHours(0, 0, 0, 0);
   return today;
 }
 function getDateString(date) {
-  return date.toISOString().slice(0,10);
+  return date.toISOString().slice(0, 10);
 }
 function prettyDate(date) {
-  const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
-  const bulan = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
-  return `${hari[date.getDay()]}, ${date.getDate().toString().padStart(2,"0")}-${bulan[date.getMonth()]}-${date.getFullYear()}`;
+  const hari = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const bulan = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+  return `${hari[date.getDay()]}, ${date.getDate().toString().padStart(2, "0")}-${bulan[date.getMonth()]}-${date.getFullYear()}`;
 }
 
 async function loadReportData() {
   const today = getTodayDateObj();
   const todayStr = getDateString(today);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const tomorrowStr = getDateString(tomorrow);
 
   let shiftState = localStorage.getItem("outbound_shift") || "day";
 
-  // 1. Remaining order day H
+  // Fetch all jobs ONCE
+  const allJobsSnap = await get(ref(db, "PhxOutboundJobs"));
   let remainingQty = 0;
-  const remainSnap = await get(query(ref(db, "PhxOutboundJobs"), orderByChild("jobType"), equalTo("Remainning")));
-  if (remainSnap.exists()) {
-    remainSnap.forEach(childSnap => {
-      if (childSnap.val().deliveryDate === todayStr) {
-        remainingQty += Number(childSnap.val().qty) || 0;
-      }
-    });
-  }
-  document.getElementById("remH-actual").textContent = formatNumber(remainingQty);
-
-  // 2. Additional Day H
   let additionalQty = 0;
-  const addSnap = await get(query(ref(db, "PhxOutboundJobs"), orderByChild("jobType"), equalTo("Additional")));
-  if (addSnap.exists()) {
-    addSnap.forEach(childSnap => {
-      if (childSnap.val().deliveryDate === todayStr) {
-        additionalQty += Number(childSnap.val().qty) || 0;
-      }
-    });
-  }
-  document.getElementById("addH-actual").textContent = formatNumber(additionalQty);
-
-  // 3. Order H-1
-  const allJobSnap = await get(ref(db, "PhxOutboundJobs"));
   let orderH1Qty = 0;
-  if (allJobSnap.exists()) {
-    allJobSnap.forEach(childSnap => {
-      const d = childSnap.val().deliveryDate;
-      if (d && d !== todayStr) {
-        orderH1Qty += Number(childSnap.val().qty) || 0;
+  let capDay = 0, capNight = 0;
+
+  if (allJobsSnap.exists()) {
+    allJobsSnap.forEach(childSnap => {
+      const v = childSnap.val();
+      if (v.jobType === "Remainning" && v.deliveryDate === todayStr) {
+        remainingQty += Number(v.qty) || 0;
+      }
+      if (v.jobType === "Additional" && v.deliveryDate === todayStr) {
+        additionalQty += Number(v.qty) || 0;
+      }
+      if (v.deliveryDate && v.deliveryDate !== todayStr) {
+        orderH1Qty += Number(v.qty) || 0;
+      }
+      if (v.deliveryDate === todayStr && ["Reguler", "Sugity"].includes(v.team)) {
+        if ((v.shift || "day") === "day") capDay += Number(v.qty) || 0;
+        if ((v.shift || "day") === "night") capNight += Number(v.qty) || 0;
       }
     });
   }
-  document.getElementById("orderH1-actual").textContent = formatNumber(orderH1Qty);
 
-  // 4. Total Order
+  document.getElementById("remH-actual").textContent = formatNumber(remainingQty);
+  document.getElementById("addH-actual").textContent = formatNumber(additionalQty);
+  document.getElementById("orderH1-actual").textContent = formatNumber(orderH1Qty);
   const totalOrder = remainingQty + additionalQty + orderH1Qty;
   document.getElementById("totalOrder-actual").textContent = formatNumber(totalOrder);
 
-  // 5. Mp day shift
+  // ManPower
   const mpSnap = await get(ref(db, "ManPower"));
   let mpDay = 0, mpNight = 0;
   if (mpSnap.exists()) {
@@ -82,29 +69,11 @@ async function loadReportData() {
     });
   }
   document.getElementById("mpDay-actual").textContent = (shiftState === "day") ? formatNumber(mpDay) : "";
-
-  // 6. Capacity day shift & night shift
-  let capDay = 0, capNight = 0;
-  if (allJobSnap.exists()) {
-    allJobSnap.forEach(childSnap => {
-      const v = childSnap.val();
-      if (v.deliveryDate === todayStr && ["Reguler","Sugity"].includes(v.team)) {
-        if ((v.shift || "day") === "day") capDay += Number(v.qty) || 0;
-        if ((v.shift || "day") === "night") capNight += Number(v.qty) || 0;
-      }
-    });
-  }
   document.getElementById("capDay-actual").textContent = (shiftState === "day") ? formatNumber(capDay) : "";
   document.getElementById("mpNight-actual").textContent = (shiftState === "night") ? formatNumber(mpNight) : "";
   document.getElementById("capNight-actual").textContent = (shiftState === "night") ? formatNumber(capNight) : "";
-
-  // 9. Total MP
   document.getElementById("totalMP-actual").textContent = formatNumber(mpDay + mpNight);
-
-  // 10. Total Capacity
   document.getElementById("totalCap-actual").textContent = formatNumber(capDay + capNight);
-
-  // 11. Remaining order
   document.getElementById("remainingOrder-actual").textContent = formatNumber(totalOrder - (capDay + capNight));
 }
 
@@ -117,7 +86,7 @@ function setReportHeaders() {
   document.querySelectorAll(".shift-header").forEach(el => el.textContent = (shiftState === "night" ? "NIGHT SHIFT" : "DAY SHIFT"));
 }
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
   setReportHeaders();
   authPromise.then(() => {
     loadReportData();
