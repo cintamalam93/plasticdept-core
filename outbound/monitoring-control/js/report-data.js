@@ -1,3 +1,6 @@
+// File: js/report-data.js
+// Mengisi tabel report dengan data dari Firebase TANPA orderByChild (filter di JS saja sesuai logika permintaan user)
+
 import { db, authPromise } from "./config.js";
 import { ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
@@ -24,57 +27,89 @@ async function loadReportData() {
   const today = getTodayDateObj();
   const todayStr = getDateString(today);
 
-  let shiftState = localStorage.getItem("outbound_shift") || "day";
+  // Ambil shift yang dipilih user di halaman assignment job
+  const shiftToggle = (localStorage.getItem("outbound_shift") || "day").toLowerCase();
 
-  // Fetch all jobs ONCE
-  const allJobsSnap = await get(ref(db, "PhxOutboundJobs"));
-  let remainingQty = 0;
-  let additionalQty = 0;
-  let orderH1Qty = 0;
-  let capDay = 0, capNight = 0;
+  // Ambil semua data PhxOutboundJobs dan ManPower sekali saja
+  const [jobsSnap, mpSnap] = await Promise.all([
+    get(ref(db, "PhxOutboundJobs")),
+    get(ref(db, "ManPower"))
+  ]);
 
-  if (allJobsSnap.exists()) {
-    allJobsSnap.forEach(childSnap => {
+  // Inisialisasi
+  let qtyRemainning = 0;
+  let qtyAdditional = 0;
+  let qtyOrderH1 = 0;
+  let qtyCapDay = 0;
+  let qtyCapNight = 0;
+  let mpDay = 0;
+  let mpNight = 0;
+
+  // --------- 1,2,3,4,6,8 (Outbound jobs) ----------
+  if (jobsSnap.exists()) {
+    jobsSnap.forEach(childSnap => {
       const v = childSnap.val();
+      // 1. Remaining order day H: jobType == Remainning & deliveryDate == today
       if (v.jobType === "Remainning" && v.deliveryDate === todayStr) {
-        remainingQty += Number(v.qty) || 0;
+        qtyRemainning += Number(v.qty) || 0;
       }
+      // 2. Additional Day H: jobType == Additional & deliveryDate == today
       if (v.jobType === "Additional" && v.deliveryDate === todayStr) {
-        additionalQty += Number(v.qty) || 0;
+        qtyAdditional += Number(v.qty) || 0;
       }
+      // 3. Order H-1: deliveryDate != today
       if (v.deliveryDate && v.deliveryDate !== todayStr) {
-        orderH1Qty += Number(v.qty) || 0;
+        qtyOrderH1 += Number(v.qty) || 0;
       }
-      if (v.deliveryDate === todayStr && ["Reguler", "Sugity"].includes(v.team)) {
-        if ((v.shift || "day") === "day") capDay += Number(v.qty) || 0;
-        if ((v.shift || "day") === "night") capNight += Number(v.qty) || 0;
+      // 6 & 8. Capacity day/night shift: team Reguler/Sugity, group by shift
+      if (["Reguler", "Sugity"].includes(v.team) && v.deliveryDate === todayStr) {
+        const shiftVal = (v.shift || "day").toLowerCase();
+        if (shiftVal === "day") qtyCapDay += Number(v.qty) || 0;
+        if (shiftVal === "night") qtyCapNight += Number(v.qty) || 0;
       }
     });
   }
+  // 4. Total Order
+  const totalOrder = qtyRemainning + qtyAdditional + qtyOrderH1;
 
-  document.getElementById("remH-actual").textContent = formatNumber(remainingQty);
-  document.getElementById("addH-actual").textContent = formatNumber(additionalQty);
-  document.getElementById("orderH1-actual").textContent = formatNumber(orderH1Qty);
-  const totalOrder = remainingQty + additionalQty + orderH1Qty;
-  document.getElementById("totalOrder-actual").textContent = formatNumber(totalOrder);
-
-  // ManPower
-  const mpSnap = await get(ref(db, "ManPower"));
-  let mpDay = 0, mpNight = 0;
+  // --------- 5,7,9 (ManPower) ----------
   if (mpSnap.exists()) {
     mpSnap.forEach(childSnap => {
-      const s = (childSnap.val().shift || "").toLowerCase();
-      if (s === "day") mpDay += 1;
-      else if (s === "night") mpNight += 1;
+      const shift = (childSnap.val().shift || "day").toLowerCase();
+      if (shift === "day") mpDay++;
+      if (shift === "night") mpNight++;
     });
   }
-  document.getElementById("mpDay-actual").textContent = (shiftState === "day") ? formatNumber(mpDay) : "";
-  document.getElementById("capDay-actual").textContent = (shiftState === "day") ? formatNumber(capDay) : "";
-  document.getElementById("mpNight-actual").textContent = (shiftState === "night") ? formatNumber(mpNight) : "";
-  document.getElementById("capNight-actual").textContent = (shiftState === "night") ? formatNumber(capNight) : "";
-  document.getElementById("totalMP-actual").textContent = formatNumber(mpDay + mpNight);
-  document.getElementById("totalCap-actual").textContent = formatNumber(capDay + capNight);
-  document.getElementById("remainingOrder-actual").textContent = formatNumber(totalOrder - (capDay + capNight));
+  // 9. Total MP
+  const totalMP = mpDay + mpNight;
+  // 10. Total Capacity
+  const totalCapacity = qtyCapDay + qtyCapNight;
+  // 11. Remaining order
+  const sisaOrder = totalOrder - totalCapacity;
+
+  // --------- Set ke DOM ---------
+  // 1.
+  document.getElementById("remH-actual").textContent = formatNumber(qtyRemainning);
+  // 2.
+  document.getElementById("addH-actual").textContent = formatNumber(qtyAdditional);
+  // 3.
+  document.getElementById("orderH1-actual").textContent = formatNumber(qtyOrderH1);
+  // 4.
+  document.getElementById("totalOrder-actual").textContent = formatNumber(totalOrder);
+  // 5.
+  document.getElementById("mpDay-actual").textContent = (shiftToggle === "day") ? formatNumber(mpDay) : "";
+  // 6.
+  document.getElementById("capDay-actual").textContent = (shiftToggle === "day") ? formatNumber(qtyCapDay) : "";
+  // 7.
+  document.getElementById("mpNight-actual").textContent = (shiftToggle === "night") ? formatNumber(mpNight) : "";
+  // 8.
+  document.getElementById("capNight-actual").textContent = (shiftToggle === "night") ? formatNumber(qtyCapNight) : "";
+  // 9.
+  document.getElementById("totalMP-actual").textContent = formatNumber(totalMP);
+  // 10.
+  document.getElementById("totalCap-actual").textContent = formatNumber(totalCapacity);
+  // 11.
+  document.getElementById("remainingOrder-actual").textContent = formatNumber(sisaOrder);
 }
 
 function setReportHeaders() {
@@ -82,8 +117,8 @@ function setReportHeaders() {
   const pretty = prettyDate(today);
   document.querySelector(".report-date").textContent = pretty;
   document.querySelectorAll(".date-header").forEach(el => el.textContent = pretty);
-  const shiftState = localStorage.getItem("outbound_shift") || "DAY SHIFT";
-  document.querySelectorAll(".shift-header").forEach(el => el.textContent = (shiftState === "night" ? "NIGHT SHIFT" : "DAY SHIFT"));
+  const shiftToggle = (localStorage.getItem("outbound_shift") || "DAY").toLowerCase();
+  document.querySelectorAll(".shift-header").forEach(el => el.textContent = (shiftToggle === "night" ? "NIGHT SHIFT" : "DAY SHIFT"));
 }
 
 document.addEventListener("DOMContentLoaded", function () {
