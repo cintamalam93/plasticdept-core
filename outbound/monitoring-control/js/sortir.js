@@ -778,6 +778,8 @@ bulkAddBtn.addEventListener("click", async () => {
 confirmAdd.addEventListener("click", async () => {
   const team = document.getElementById("teamSelect").value;
   const jobType = document.getElementById("jobTypeSelect").value;
+  // PATCH: Ambil shift yang dipilih user
+  const shiftType = (localStorage.getItem("shiftType") === "Night") ? "Night Shift" : "Day Shift";
   const jobsToUpdate =
     window.jobsToBulkAssign && Array.isArray(window.jobsToBulkAssign) && window.jobsToBulkAssign.length > 0
       ? window.jobsToBulkAssign
@@ -792,7 +794,8 @@ confirmAdd.addEventListener("click", async () => {
   try {
     await Promise.all(
       jobsToUpdate.map(jobNo =>
-        update(ref(db, "PhxOutboundJobs/" + jobNo), { team, jobType })
+        // PATCH: Tambahkan property shift pada update
+        update(ref(db, "PhxOutboundJobs/" + jobNo), { team, jobType, shift: shiftType })
       )
     );
     showNotification(`Job berhasil ditambahkan ke team: ${team}`);
