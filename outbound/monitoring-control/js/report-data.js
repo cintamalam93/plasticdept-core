@@ -1,18 +1,12 @@
-// File: js/report-data.js
-// Mengisi tabel report dengan data dari Firebase, sudah mendukung sign-in anonymous (modular SDK)
+import { db, authPromise } from "./config.js";
+import { ref, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-import { getDatabase, ref, get, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-import { firebaseConfig } from "./config.js"; // pastikan file ini berisi export firebaseConfig
+// ...helper dan fungsi seperti sebelumnya...
 
-// Helper: Format numbers with thousands separator
 function formatNumber(n) {
   if (typeof n !== "number" || isNaN(n)) return "-";
   return n.toLocaleString("en-US");
 }
-
-// Helper: Date functions
 function getTodayDateObj() {
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -27,18 +21,16 @@ function prettyDate(date) {
   return `${hari[date.getDay()]}, ${date.getDate().toString().padStart(2,"0")}-${bulan[date.getMonth()]}-${date.getFullYear()}`;
 }
 
-async function loadReportData(db) {
+async function loadReportData() {
   const today = getTodayDateObj();
   const todayStr = getDateString(today);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   const tomorrowStr = getDateString(tomorrow);
 
-  // Ambil shift dari localStorage, default day
-  let shiftState = localStorage.getItem("outbound_shift");
-  if (!shiftState) shiftState = "day";
+  let shiftState = localStorage.getItem("outbound_shift") || "day";
 
-  // 1. Remaining order day H (jobType: Remainning, today)
+  // 1. Remaining order day H
   let remainingQty = 0;
   const remainSnap = await get(query(ref(db, "PhxOutboundJobs"), orderByChild("jobType"), equalTo("Remainning")));
   if (remainSnap.exists()) {
@@ -50,7 +42,7 @@ async function loadReportData(db) {
   }
   document.getElementById("remH-actual").textContent = formatNumber(remainingQty);
 
-  // 2. Additional Day H (jobType: Additional, today)
+  // 2. Additional Day H
   let additionalQty = 0;
   const addSnap = await get(query(ref(db, "PhxOutboundJobs"), orderByChild("jobType"), equalTo("Additional")));
   if (addSnap.exists()) {
@@ -62,7 +54,7 @@ async function loadReportData(db) {
   }
   document.getElementById("addH-actual").textContent = formatNumber(additionalQty);
 
-  // 3. Order H-1 (selain hari ini)
+  // 3. Order H-1
   const allJobSnap = await get(ref(db, "PhxOutboundJobs"));
   let orderH1Qty = 0;
   if (allJobSnap.exists()) {
@@ -125,16 +117,10 @@ function setReportHeaders() {
   document.querySelectorAll(".shift-header").forEach(el => el.textContent = (shiftState === "night" ? "NIGHT SHIFT" : "DAY SHIFT"));
 }
 
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", function() {
   setReportHeaders();
-  // Inisialisasi Firebase
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getDatabase(app);
-
-  // Sign-in anonymous, lalu baru load report
-  signInAnonymously(auth).then(() => {
-    loadReportData(db);
+  authPromise.then(() => {
+    loadReportData();
   }).catch((error) => {
     alert("Gagal sign-in anonymous ke Firebase: " + error.message);
   });
