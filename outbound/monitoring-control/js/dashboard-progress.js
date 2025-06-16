@@ -190,7 +190,7 @@ async function loadDashboardData() {
   remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
   // --- Progress Otomatis Per Team ---
-   updateTeamProgress(sumActualSugity, sumAchievedSugity, sumActualReguler, sumAchievedReguler);
+   updateTeamProgress(planSugityVal, sumAchievedSugity, planRegulerVal, sumAchievedReguler);
 
   // --- Chart Donut (Gabungan) ---
   renderDonutChart(totalAchieved, totalPlanTarget);
@@ -234,9 +234,9 @@ function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, ac
 }
 
 // --- Donut Chart ---
-function renderDonutChart(achieved, planTarget) {
-  const achievedVal = Number(achieved) || 0;
-  const planTargetVal = Number(planTarget) || 0;
+function renderDonutChart(totalAchieved, totalPlanTarget) {
+  const achievedVal = Number(totalAchieved) || 0;
+  const planTargetVal = Number(totalPlanTarget) || 0;
   const remaining = Math.max(0, planTargetVal - achievedVal);
   const ctx = document.getElementById("donutChart").getContext("2d");
   if (donutChart) donutChart.destroy();
