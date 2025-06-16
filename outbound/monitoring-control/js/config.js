@@ -2,7 +2,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase
 import { getDatabase } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 
-const firebaseConfig = {
+// Export firebaseConfig supaya bisa di-import secara named export oleh modul lain
+export const firebaseConfig = {
   apiKey: "AIzaSyAfIYig9-sv3RfazwAW6X937_5HJfgnYt4",
   authDomain: "outobund.firebaseapp.com",
   databaseURL: "https://outobund-default-rtdb.asia-southeast1.firebasedatabase.app",
