@@ -141,8 +141,8 @@ function animatePercentage(target) {
 
 function renderChart(achievedQty, totalQty) {
   const ctx = document.getElementById("progressChart").getContext("2d");
-  const percentage = totalQty === 0 ? 0 : Math.round((achievedQty / totalQty) * 100);
-  const remainingQty = totalQty - achievedQty;
+  const percentage = PLAN_TARGET_QTY === 0 ? 0 : Math.round((achievedQty / PLAN_TARGET_QTY) * 100);
+  const remainingQty = Math.max(0, PLAN_TARGET_QTY - achievedQty);
 
   if (window.progressChartInstance) window.progressChartInstance.destroy();
 
@@ -237,7 +237,7 @@ function loadTeamJobs() {
     document.getElementById("achievedTarget").textContent = `${achievedQty.toLocaleString()} kg`;
     document.getElementById("remainingTarget").textContent = `${remainingQty.toLocaleString()} kg`;
 
-    renderChart(achievedQty, totalQty);
+    renderChart(achievedQty, PLAN_TARGET_QTY);
 
     if (!$.fn.DataTable.isDataTable("#teamTable")) {
       $("#teamTable").DataTable({
