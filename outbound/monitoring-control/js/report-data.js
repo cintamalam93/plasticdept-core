@@ -70,15 +70,19 @@ async function loadReportData(db) {
   if (!shiftState) shiftState = "day";
 
   // 1. Remaining order day H (jobType: Remainning, today)
-  let remainingQty = 0;
-  const remainSnap = await get(query(ref(db, "PhxOutboundJobs"), orderByChild("jobType"), equalTo("Remainning")));
-  if (remainSnap.exists()) {
-    remainSnap.forEach(childSnap => {
-      if (childSnap.val().deliveryDate === todayStr) {
-        remainingQty += Number(childSnap.val().qty) || 0;
-      }
+  const allJobSnap = await get(ref(db, "PhxOutboundJobs"));
+    let remainingQty = 0;
+    if (allJobSnap.exists()) {
+    allJobSnap.forEach(childSnap => {
+        const job = childSnap.val();
+        if (
+        (job.jobType || "").trim() === "Remainning" &&
+        (job.deliveryDate || "") === todayStr
+        ) {
+        remainingQty += Number(job.qty) || 0;
+        }
     });
-  }
+    }
   document.getElementById("remH-actual").textContent = formatNumber(remainingQty);
 
   // 2. Additional Day H (jobType: Additional, today)
