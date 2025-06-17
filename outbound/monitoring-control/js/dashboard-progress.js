@@ -259,7 +259,9 @@ function renderMiniDonutSugity(achieved, planTarget) {
         tooltip: { enabled: false },
         datalabels: {
           display: true,
-          formatter: () => percent.toFixed(0) + '%',
+          formatter: (value, ctx) => {
+            return ctx.dataIndex === 0 ? percent.toFixed(0) + '%' : '';
+          },
           color: '#2c3e50',
           font: { weight: 'bold', size: 12 }
         }
