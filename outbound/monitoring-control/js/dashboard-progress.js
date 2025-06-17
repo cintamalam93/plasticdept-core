@@ -203,7 +203,7 @@ async function loadDashboardData() {
 
   // --- Chart Bar (Team) ---
   renderBarChart(
-    [sumActualSugity, sumActualReguler],
+    [sumAchievedSugity, sumAchievedReguler],
     [planSugityVal, planRegulerVal]
   );
 
