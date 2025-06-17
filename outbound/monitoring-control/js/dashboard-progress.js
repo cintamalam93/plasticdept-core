@@ -225,12 +225,10 @@ function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, ac
   // Sugity
   let progressSugity = planSugityVal > 0 ? (achievedSugityVal / planSugityVal * 100) : 0;
   if (progressSugityBar) progressSugityBar.style.width = progressSugity + "%";
-  if (progressTextSugity) progressTextSugity.textContent = `Progress: ${progressSugity.toFixed(0)}%`;
-
+  
   // Reguler
   let progressReguler = planRegulerVal > 0 ? (achievedRegulerVal / planRegulerVal * 100) : 0;
   if (progressRegulerBar) progressRegulerBar.style.width = progressReguler + "%";
-  if (progressTextReguler) progressTextReguler.textContent = `Progress: ${progressReguler.toFixed(0)}%`;
 }
 
 // --- Mini Donut Chart ---
