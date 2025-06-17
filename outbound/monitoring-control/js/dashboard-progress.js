@@ -259,6 +259,8 @@ function renderMiniDonutSugity(achieved, planTarget) {
         tooltip: { enabled: false },
         datalabels: {
           display: true,
+          anchor: 'center', // Tambahkan ini
+          align: 'center',  // Tambahkan ini
           formatter: (value, ctx) => {
             return ctx.dataIndex === 0 ? percent.toFixed(0) + '%' : '';
           },
