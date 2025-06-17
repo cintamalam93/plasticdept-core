@@ -3,6 +3,8 @@
 import { db, authPromise } from "./config.js";
 import { ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
+let miniDonutSugityChart;
+
 // --- DOM Elements (dashboard matrix) ---
 const outstandingJobValue = document.getElementById("outstandingJobValue");
 const planTargetValue = document.getElementById("planTargetValue");
@@ -191,6 +193,7 @@ async function loadDashboardData() {
 
   // --- Progress Otomatis Per Team ---
    updateTeamProgress(planSugityVal, sumAchievedSugity, planRegulerVal, sumAchievedReguler);
+   renderMiniDonutSugity(sumAchievedSugity, planSugityVal);
 
   // --- Chart Donut (Gabungan) ---
   renderDonutChart(totalAchieved, totalPlanTarget);
@@ -229,6 +232,44 @@ function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, ac
   let progressReguler = planRegulerVal > 0 ? (achievedRegulerVal / planRegulerVal * 100) : 0;
   if (progressRegulerBar) progressRegulerBar.style.width = progressReguler + "%";
   if (progressTextReguler) progressTextReguler.textContent = `Progress: ${progressReguler.toFixed(0)}%`;
+}
+
+// --- Mini Donut Chart ---
+function renderMiniDonutSugity(achieved, planTarget) {
+  const ctx = document.getElementById("miniDonutSugity").getContext("2d");
+  if (!ctx) return;
+  const achievedVal = Number(achieved) || 0;
+  const planTargetVal = Number(planTarget) || 0;
+  const remaining = Math.max(0, planTargetVal - achievedVal);
+  const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
+
+  if (miniDonutSugityChart) miniDonutSugityChart.destroy();
+
+  miniDonutSugityChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Achieved", "Remaining"],
+      datasets: [{
+        data: [achievedVal, remaining],
+        backgroundColor: ["#2ecc71", "#ecf0f1"],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      cutout: "70%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        datalabels: {
+          display: true,
+          formatter: () => percent.toFixed(0) + '%',
+          color: '#2c3e50',
+          font: { weight: 'bold', size: 12 }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
 }
 
 // --- Donut Chart ---
