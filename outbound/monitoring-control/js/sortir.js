@@ -710,13 +710,14 @@ function handleSetManPower() {
 
 // Fungsi simpan MP Overtime ke Firebase
 function saveMpOvertimeToFirebase(mpOvertime) {
+  const shiftType = (localStorage.getItem("shiftType") === "Night") ? "Night Shift" : "Day Shift";
   if (isNaN(mpOvertime) || mpOvertime < 0) {
     showNotification("Masukkan jumlah man power overtime yang valid.", true);
     return;
   }
-  set(ref(db, "ManPowerOvertime"), mpOvertime)
+  set(ref(db, `ManPowerOvertime/${shiftType}`), mpOvertime)
     .then(() => {
-      showNotification(`Man Power Overtime berhasil disimpan: ${mpOvertime} orang.`);
+      showNotification(`Man Power Overtime (${shiftType}) berhasil disimpan: ${mpOvertime} orang.`);
     })
     .catch((err) => {
       showNotification("Gagal menyimpan man power overtime ke database.", true);
