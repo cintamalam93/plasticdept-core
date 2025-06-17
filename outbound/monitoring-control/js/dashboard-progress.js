@@ -231,6 +231,35 @@ function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, ac
   if (progressRegulerBar) progressRegulerBar.style.width = progressReguler + "%";
 }
 
+// Tambahkan di atas atau bawah file:
+const centerLabelPlugin = {
+  id: 'centerLabelPlugin',
+  afterDraw: function(chart) {
+    if (chart.config.type !== 'doughnut') return;
+
+    const {ctx, chartArea: {left, right, top, bottom}, width, height} = chart;
+    ctx.save();
+
+    // Ambil persentase dari data chart
+    const achieved = chart.data.datasets[0].data[0];
+    const plan = achieved + chart.data.datasets[0].data[1];
+    const percent = plan > 0 ? (achieved / plan * 100) : 0;
+
+    // Styling text
+    ctx.font = 'bold 18px Inter, Arial, sans-serif';
+    ctx.fillStyle = '#2c3e50';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Posisi tengah chart
+    const centerX = (left + right) / 2;
+    const centerY = (top + bottom) / 2;
+
+    ctx.fillText(percent.toFixed(0) + '%', centerX, centerY);
+    ctx.restore();
+  }
+};
+
 // --- Mini Donut Chart ---
 function renderMiniDonutSugity(achieved, planTarget) {
   const ctx = document.getElementById("miniDonutSugity").getContext("2d");
@@ -238,7 +267,6 @@ function renderMiniDonutSugity(achieved, planTarget) {
   const achievedVal = Number(achieved) || 0;
   const planTargetVal = Number(planTarget) || 0;
   const remaining = Math.max(0, planTargetVal - achievedVal);
-  const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
 
   if (miniDonutSugityChart) miniDonutSugityChart.destroy();
 
@@ -258,18 +286,11 @@ function renderMiniDonutSugity(achieved, planTarget) {
         legend: { display: false },
         tooltip: { enabled: false },
         datalabels: {
-          display: true,
-          anchor: 'center',
-          align: 'center',
-          formatter: (value, ctx) => {
-            return ctx.dataIndex === 0 ? percent.toFixed(0) + '%' : '';
-          },
-          color: '#2c3e50',
-          font: { weight: 'bold', size: 16 }
+          display: false // Matikan datalabels
         }
       }
     },
-    plugins: [ChartDataLabels]
+    plugins: [centerLabelPlugin] // Pakai plugin custom
   });
 }
 
