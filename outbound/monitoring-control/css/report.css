@@ -1,108 +1,130 @@
-body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background: #f7f9fa;
+/* Reset some default styles */
+html, body {
     margin: 0;
     padding: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f6f8fa;
+    color: #222;
+    min-height: 100vh;
 }
 
 .container {
-    max-width: 1050px;
+    max-width: 1100px;
     margin: 40px auto;
     background: #fff;
-    box-shadow: 0 3px 24px 0 rgba(0,0,0,.07);
-    border-radius: 10px;
-    padding: 32px 28px;
+    border-radius: 12px;
+    box-shadow: 0 4px 24px rgba(50, 50, 93, 0.08);
+    padding: 36px 32px 28px 32px;
 }
 
 h2 {
-    text-align: center;
-    color: #008b4d;
-    margin-bottom: 5px;
+    font-size: 2rem;
     letter-spacing: 1px;
+    color: #174ea6;
+    margin-bottom: 8px;
+    font-weight: 600;
+    text-align: center;
 }
 
 .report-date {
-    text-align: center;
+    font-size: 1.1rem;
+    color: #5f6368;
     margin-bottom: 18px;
-    font-size: 1.05rem;
-    color: #444;
+    text-align: center;
+}
+
+.toggle-group {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.toggle-group input[type="radio"] {
+    display: none;
+}
+
+.toggle-group label {
+    cursor: pointer;
+    padding: 6px 18px;
+    border-radius: 20px;
+    border: 1.5px solid #cbd5e1;
+    font-size: 1rem;
+    background: #f3f6fa;
+    color: #174ea6;
+    font-weight: 500;
+    transition: background 0.2s, color 0.2s, border 0.2s;
+}
+
+.toggle-group input[type="radio"]:checked + label {
+    background: #174ea6;
+    color: #fff;
+    border: 1.5px solid #174ea6;
+}
+
+.toggle-group label + input[type="radio"]:checked + label {
+    margin-left: -2px;
+}
+
+.table-responsive {
+    margin-top: 10px;
+    overflow-x: auto;
 }
 
 .report-table {
-    border-collapse: collapse;
     width: 100%;
-    margin-bottom: 24px;
-    background: #fff;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #c71515;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    border-radius: 10px;
+    overflow: hidden;
+    font: bold 1rem 'Segoe UI', Arial, sans-serif;
 }
 
-.report-table th,
-.report-table td {
-    border: 1px solid #e3e3e3;
-    padding: 10px 8px;
-    text-align: center;
-    font-size: 1rem;
+.report-table th, .report-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .report-table th {
-    background: #00a651;
-    color: #fff;
+    background: #f3f6fa;
+    color: #1a237e;
+    font-size: 1.08rem;
     font-weight: 600;
-    border-bottom: 3px solid #007a42;
+    letter-spacing: 0.5px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    font: bold 1.08rem 'Segoe UI', Arial, sans-serif;
 }
 
-.header-shift {
-    background: #008b4d !important;
-    color: #fff !important;
-    font-style: italic;
+.report-table tbody tr:last-child td {
+    border-bottom: none;
 }
 
-.header-data {
-    background: #00a651 !important;
-    color: #fff !important;
+.report-table td {
+    font-size: 1rem;
+    color: #222;
+    background: #fff;
 }
 
-.header-date {
-    background: #00a651 !important;
-    color: #fff !important;
+.report-table tr:nth-child(even) td {
+    background: #f9fafb;
 }
 
-.report-table tbody td:first-child {
-    background: #e6ffe9;
-    font-weight: 500;
-    text-align: left;
-}
-
-.cell-highlight {
-    background: #d2f7c6 !important;
-    font-weight: 700;
-}
-
-.cell-warning {
-    background: #fff46a !important;
-    color: #222 !important;
-    font-weight: 600;
-}
-
-.cell-danger {
-    background: #ffe3e3 !important;
-    color: #d8000c !important;
-    font-weight: 600;
-}
-
-.report-table tr:nth-child(even) td:not(.cell-warning):not(.cell-danger):not(.cell-highlight) {
-    background: #f8fefb;
-}
-
-footer {
-    margin-top: 28px;
-    text-align: left;
-}
-
-.note {
-    font-size: 0.97em;
-    color: #666;
-    background: #e0ffe7;
-    padding: 10px 15px;
-    border-left: 4px solid #00a651;
-    border-radius: 4px;
+@media (max-width: 700px) {
+    .container {
+        padding: 14px 4px;
+    }
+    .report-table th, .report-table td {
+        padding: 10px 6px;
+        font-size: 0.96rem;
+    }
+    h2 {
+        font-size: 1.2rem;
+    }
+    .report-date {
+        font-size: 0.92rem;
+    }
 }
