@@ -377,3 +377,19 @@ body {
   font-size: 1.3em;
   vertical-align: middle;
 }
+
+/* Mini donut styling */
+.mini-donut-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+  margin-bottom: 0;
+  width: 100%;
+}
+#miniDonutSugity {
+  max-width: 52px;
+  max-height: 52px;
+  width: 52px;
+  height: 52px;
+}
