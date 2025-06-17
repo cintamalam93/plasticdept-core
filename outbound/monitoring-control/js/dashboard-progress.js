@@ -192,8 +192,7 @@ async function loadDashboardData() {
   remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
   // --- Progress Otomatis Per Team ---
-   updateTeamProgress(planSugityVal, sumAchievedSugity, planRegulerVal, sumAchievedReguler);
-   renderMiniDonutSugity(sumAchievedSugity, planSugityVal);
+  renderMiniDonutSugity(sumAchievedSugity, planSugityVal);
 
   // --- Chart Donut (Gabungan) ---
   renderDonutChart(totalAchieved, totalPlanTarget);
