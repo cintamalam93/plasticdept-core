@@ -4,6 +4,7 @@ import { db, authPromise } from "./config.js";
 import { ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 let miniDonutSugityChart;
+let miniDonutRegulerChart; 
 
 // --- DOM Elements (dashboard matrix) ---
 const outstandingJobValue = document.getElementById("outstandingJobValue");
@@ -191,8 +192,11 @@ async function loadDashboardData() {
   remainingSugity.textContent = formatNumber(sumRemainingSugity);
   remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
-  // --- Progress Otomatis Per Team ---
+  // --- Mini Donut Chart Sugity ---
   renderMiniDonutSugity(sumAchievedSugity, planSugityVal);
+
+  // --- Mini Donut Chart Reguler ---
+  renderMiniDonutReguler(sumAchievedReguler, planRegulerVal);
 
   // --- Chart Donut (Gabungan) ---
   renderDonutChart(totalAchieved, totalPlanTarget);
@@ -260,7 +264,7 @@ const centerLabelPlugin = {
   }
 };
 
-// --- Mini Donut Chart ---
+// --- Mini Donut Chart Sugity ---
 function renderMiniDonutSugity(achieved, planTarget) {
   const ctx = document.getElementById("miniDonutSugity").getContext("2d");
   if (!ctx) return;
@@ -291,6 +295,40 @@ function renderMiniDonutSugity(achieved, planTarget) {
       }
     },
     plugins: [centerLabelPlugin] // Pakai plugin custom
+  });
+}
+
+// --- Mini Donut Chart Reguler ---
+function renderMiniDonutReguler(achieved, planTarget) {
+  const ctx = document.getElementById("miniDonutReguler").getContext("2d");
+  if (!ctx) return;
+  const achievedVal = Number(achieved) || 0;
+  const planTargetVal = Number(planTarget) || 0;
+  const remaining = Math.max(0, planTargetVal - achievedVal);
+
+  if (miniDonutRegulerChart) miniDonutRegulerChart.destroy();
+
+  miniDonutRegulerChart = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Achieved", "Remaining"],
+      datasets: [{
+        data: [achievedVal, remaining],
+        backgroundColor: ["#2ecc71", "#ecf0f1"],
+        borderWidth: 2
+      }]
+    },
+    options: {
+      cutout: "70%",
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+        datalabels: {
+          display: false
+        }
+      }
+    },
+    plugins: [centerLabelPlugin]
   });
 }
 
