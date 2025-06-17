@@ -1,172 +1,109 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Laporan Produksi Harian - DAY SHIFT</title>
+    <title>Daily Report Outbound</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/report.css">
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-    <script type="module" src="js/config.js"></script>
+    <script>
+        // Set current date on load
+        document.addEventListener("DOMContentLoaded", function () {
+            const dateElem = document.getElementById("current-date");
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            dateElem.textContent = today.toLocaleDateString('en-US', options);
+        });
+    </script>
 </head>
 <body>
     <div class="container">
-        <h2>Laporan Produksi Harian - DAY SHIFT</h2>
-        <div class="report-date"></div>
-        <div class="shift-toggle" style="margin-bottom: 16px;">
-            <input type="radio" name="shiftType" id="shiftDay" value="day" checked>
-            <label for="shiftDay">Day Shift</label>
-            <input type="radio" name="shiftType" id="shiftNight" value="night">
-            <label for="shiftNight">Night Shift</label>
+        <h2>Daily Report Outbound</h2>
+        <p id="current-date" class="report-date"></p>
+        <div class="toggle-group">
+            <input type="radio" id="day-shift" name="shift" checked>
+            <label for="day-shift">Day Shift</label>
+            <input type="radio" id="night-shift" name="shift">
+            <label for="night-shift">Night Shift</label>
         </div>
-        <table class="report-table">
-            <thead>
-                <tr>
-                    <th rowspan="2" class="header-data">Data</th>
-                    <th colspan="5" class="header-date date-header"></th>
-                    <th colspan="2" class="header-shift shift-header"></th>
-                </tr>
-                <tr>
-                    <th>Standar</th>
-                    <th>Actual</th>
-                    <th>OT (2 hour)</th>
-                    <th>GAP (NWD)</th>
-                    <th></th>
-                    <th>Achiment per MP</th>
-                    <th>%</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Remaining order day H</td>
-                    <td>-</td>
-                    <td id="remH-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Additional Day H</td>
-                    <td>-</td>
-                    <td id="addH-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Order H-1</td>
-                    <td>88,200</td>
-                    <td id="orderH1-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Total Order</td>
-                    <td class="cell-highlight">88,200</td>
-                    <td class="cell-highlight" id="totalOrder-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Capacity 1 MP/hour</td>
-                    <td>2,352</td>
-                    <td>2,416</td>
-                    <td></td>
-                    <td>64</td>
-                    <td></td>
-                    <td>17,640</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Mp day shift</td>
-                    <td>3</td>
-                    <td id="mpDay-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>8,708</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Capacity day shift</td>
-                    <td>52,920</td>
-                    <td class="cell-warning" id="capDay-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-warning">-</td>
-                    <td>26,797</td>
-                    <td>8,932</td>
-                    <td class="cell-danger">-103%</td>
-                </tr>
-                <tr>
-                    <td>Mp Night shift</td>
-                    <td>2</td>
-                    <td id="mpNight-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-warning">2</td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Capacity night shift</td>
-                    <td>35,280</td>
-                    <td class="cell-warning" id="capNight-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td class="cell-warning"></td>
-                    <td>2</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Total MP</td>
-                    <td class="cell-highlight">5</td>
-                    <td id="totalMP-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td>2</td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Total Capacity</td>
-                    <td class="cell-highlight">88,200</td>
-                    <td id="totalCap-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td>62,077</td>
-                    <td></td>
-                    <td class="cell-danger">-238%</td>
-                </tr>
-                <tr>
-                    <td>Remaining order</td>
-                    <td>93,540</td>
-                    <td id="remainingOrder-actual">-</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
-        <footer>
-            <div class="note">
-                <strong>Catatan:</strong> Laporan ini berbasis web dan desain dapat dikembangkan sesuai kebutuhan.
-            </div>
-        </footer>
+        <div class="table-responsive">
+            <table class="report-table">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Standard</th>
+                        <th>Actual</th>
+                        <th>OT (2 Hour)</th>
+                        <th>GAP (NWD)</th>
+                        <th>Changeable</th>
+                        <th>Achievement per MP</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Remaining order day H</td>
+                        <td class="standard">-</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Additional Day H</td>
+                        <td class="standard">-</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Order H-1</td>
+                        <td class="standard">88200</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Total Order</td>
+                        <td class="standard">88200</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Capacity 1 MP/hour</td>
+                        <td class="standard">2352</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Mp day shift</td>
+                        <td class="standard">3</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Capacity day shift</td>
+                        <td class="standard">52920</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Mp Night shift</td>
+                        <td class="standard">2</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Capacity night shift</td>
+                        <td class="standard">35280</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Total MP</td>
+                        <td class="standard">5</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Total Capacity</td>
+                        <td class="standard">88200</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <tr>
+                        <td>Remaining order</td>
+                        <td class="standard">-</td>
+                        <td></td><td></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                    <script src="js/separator-col-standard.js"></script>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <script type="module" src="js/report-data.js"></script>
 </body>
 </html>
