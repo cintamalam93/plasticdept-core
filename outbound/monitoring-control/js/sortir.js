@@ -30,14 +30,15 @@ function showNotification(message, isError = false) {
 }
 
 function savePlanTargetToFirebase(team, target) {
+  const shiftType = (localStorage.getItem("shiftType") === "Night") ? "Night Shift" : "Day Shift";
   if (!team || isNaN(target) || target <= 0) {
     showNotification("Data target plan tidak valid.", true);
     return;
   }
-  const dbPath = "PlanTarget/" + team;
+  const dbPath = `PlanTarget/${shiftType}/${team}`;
   set(ref(db, dbPath), target)
     .then(() => {
-      showNotification(`Target plan untuk ${team} berhasil disimpan: ${target} kg.`);
+      showNotification(`Target plan untuk ${team} (${shiftType}) berhasil disimpan: ${target} kg.`);
     })
     .catch((err) => {
       showNotification("Gagal menyimpan target plan ke database.", true);
@@ -680,14 +681,15 @@ setManPowerBtn?.addEventListener("click", handleSetManPower);
 
 // --- Fungsi Set Man Power ---
 function saveManPowerToFirebase(team, manPower) {
+  const shiftType = (localStorage.getItem("shiftType") === "Night") ? "Night Shift" : "Day Shift";
   if (!team || isNaN(manPower) || manPower <= 0) {
     showNotification("Data man power tidak valid.", true);
     return;
   }
-  const dbPath = "ManPower/" + team;
+  const dbPath = `ManPower/${shiftType}/${team}`;
   set(ref(db, dbPath), manPower)
     .then(() => {
-      showNotification(`Man Power untuk ${team} berhasil disimpan: ${manPower} orang.`);
+      showNotification(`Man Power untuk ${team} (${shiftType}) berhasil disimpan: ${manPower} orang.`);
     })
     .catch((err) => {
       showNotification("Gagal menyimpan man power ke database.", true);
