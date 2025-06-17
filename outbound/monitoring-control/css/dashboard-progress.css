@@ -190,6 +190,7 @@ body {
   align-items: center;
   justify-content: center;
   height: 100%;
+  min-height: 357.66px;
   display: flex;
 }
 .team-align-left {
