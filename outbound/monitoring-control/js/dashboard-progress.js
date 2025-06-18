@@ -1,10 +1,10 @@
 // Dashboard Progress Outbound - Gabungan Team Sugity & Reguler
 
 import { db, authPromise } from "./config.js";
-import { ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { ref, get, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 let miniDonutSugityChart;
-let miniDonutRegulerChart; 
+let miniDonutRegulerChart;
 
 // --- DOM Elements (dashboard matrix) ---
 const outstandingJobValue = document.getElementById("outstandingJobValue");
@@ -34,32 +34,9 @@ const progressTextReguler = document.getElementById("progressTextReguler");
 // Outbound jobs table
 const jobsTableBody = document.querySelector("#jobsTable tbody");
 
+// Team matrix card title
 const teamTitleSugity = document.querySelector('.team-matrix-card .team-title'); // biasanya yang pertama (Sugity)
 const teamTitleReguler = document.querySelectorAll('.team-matrix-card .team-title')[1]; // yang kedua (Reguler)
-
-function applyShiftLogicPerTeam() {
-  const shiftType = localStorage.getItem("shiftType") || "Day";
-  if (shiftType === "Night") {
-    // Night shift: Sugity aktif, Reguler kosong
-    if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Night Shift)";
-    if (teamTitleReguler) {
-      teamTitleReguler.textContent = "Reguler (Night Shift)";
-      // Kosongkan data Reguler
-      document.getElementById("mpReguler").textContent = "";
-      document.getElementById("planReguler").textContent = "";
-      document.getElementById("actualReguler").textContent = "";
-      document.getElementById("achievedReguler").textContent = "";
-      document.getElementById("remainingReguler").textContent = "";
-      document.getElementById("progressReguler").style.width = "0%";
-      document.getElementById("progressTextReguler").textContent = "";
-    }
-  } else {
-    // Day shift: Tampilkan semua
-    if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Day Shift)";
-    if (teamTitleReguler) teamTitleReguler.textContent = "Reguler (Day Shift)";
-    // Data diisi seperti biasa oleh loadDashboardData
-  }
-}
 
 // Chart.js chart objects
 let donutChart, barChart;
@@ -101,25 +78,36 @@ function getStatusSortOrder(status) {
 
 // --- Main Data Loader ---
 async function loadDashboardData() {
-  // Ambil Plan Target dari Firebase
-  const [planSugitySnap, planRegulerSnap, outboundJobsSnap, manPowerSnap] = await Promise.all([
-    get(ref(db, "PlanTarget/Sugity")),
-    get(ref(db, "PlanTarget/Reguler")),
+  // Ambil shiftType dari localStorage yang diset dari halaman assignment
+  const shiftType = localStorage.getItem("shiftType") || "Day";
+  const planTargetPath = `PlanTarget/${shiftType} Shift`;
+  const manPowerPath = `ManPower/${shiftType} Shift`;
+
+  // Ambil data PlanTarget & ManPower dari path sesuai shift
+  const [planTargetSnap, outboundJobsSnap, manPowerSnap] = await Promise.all([
+    get(ref(db, planTargetPath)),
     get(ref(db, "PhxOutboundJobs")),
-    get(ref(db, "ManPower")),
+    get(ref(db, manPowerPath)),
   ]);
 
   // Plan Target
-  const planSugityVal = parseInt(planSugitySnap.exists() ? planSugitySnap.val() : 0) || 0;
-  const planRegulerVal = parseInt(planRegulerSnap.exists() ? planRegulerSnap.val() : 0) || 0;
+  let planSugityVal = 0, planRegulerVal = 0;
+  if (planTargetSnap.exists()) {
+    const planTarget = planTargetSnap.val();
+    planSugityVal = parseInt(planTarget.Sugity) || 0;
+    planRegulerVal = parseInt(planTarget.Reguler) || 0;
+  }
 
   // Outbound Jobs
   const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
 
   // Data ManPower
-  const manPowerVal = manPowerSnap.exists() ? manPowerSnap.val() : {};
-  const MP_SUGITY = parseFloat(manPowerVal.Sugity) || 0;
-  const MP_REGULER = parseFloat(manPowerVal.Reguler) || 0;
+  let MP_SUGITY = 0, MP_REGULER = 0;
+  if (manPowerSnap.exists()) {
+    const manPowerVal = manPowerSnap.val();
+    MP_SUGITY = parseFloat(manPowerVal.Sugity) || 0;
+    MP_REGULER = parseFloat(manPowerVal.Reguler) || 0;
+  }
 
   // Hitung Outstanding Job For Next Shift
   let outstandingQty = 0;
@@ -168,7 +156,6 @@ async function loadDashboardData() {
   const sumRemainingReguler = sumActualReguler - sumAchievedReguler;
 
   // Gabungan
-  const totalManPower = MP_SUGITY + MP_REGULER;
   const totalPlanTarget = planSugityVal + planRegulerVal;
   const totalActual = sumActualSugity + sumActualReguler;
   const totalAchieved = sumAchievedSugity + sumAchievedReguler;
@@ -216,12 +203,11 @@ async function loadDashboardData() {
     const orderA = getStatusSortOrder(a.status);
     const orderB = getStatusSortOrder(b.status);
     if (orderA !== orderB) return orderA - orderB;
-    // secondary sort by jobNo (optional)
     return (a.jobNo || '').localeCompare(b.jobNo || '');
   });
   renderJobsTable(allJobs);
 
-  applyShiftLogicPerTeam(); 
+  applyShiftLogicPerTeam();
 }
 
 // --- Update Progress bar per Team Otomatis ---
@@ -229,36 +215,49 @@ function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, ac
   // Sugity
   let progressSugity = planSugityVal > 0 ? (achievedSugityVal / planSugityVal * 100) : 0;
   if (progressSugityBar) progressSugityBar.style.width = progressSugity + "%";
-  
+
   // Reguler
   let progressReguler = planRegulerVal > 0 ? (achievedRegulerVal / planRegulerVal * 100) : 0;
   if (progressRegulerBar) progressRegulerBar.style.width = progressReguler + "%";
 }
 
-// Tambahkan di atas atau bawah file:
+// --- Shift Logic Title ---
+function applyShiftLogicPerTeam() {
+  const shiftType = localStorage.getItem("shiftType") || "Day";
+  if (shiftType === "Night") {
+    if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Night Shift)";
+    if (teamTitleReguler) {
+      teamTitleReguler.textContent = "Reguler (Night Shift)";
+      document.getElementById("mpReguler").textContent = "";
+      document.getElementById("planReguler").textContent = "";
+      document.getElementById("actualReguler").textContent = "";
+      document.getElementById("achievedReguler").textContent = "";
+      document.getElementById("remainingReguler").textContent = "";
+      document.getElementById("progressReguler").style.width = "0%";
+      document.getElementById("progressTextReguler").textContent = "";
+    }
+  } else {
+    if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Day Shift)";
+    if (teamTitleReguler) teamTitleReguler.textContent = "Reguler (Day Shift)";
+  }
+}
+
+// --- Chart Plugins ---
 const centerLabelPlugin = {
   id: 'centerLabelPlugin',
   afterDraw: function(chart) {
     if (chart.config.type !== 'doughnut') return;
-
-    const {ctx, chartArea: {left, right, top, bottom}, width, height} = chart;
+    const {ctx, chartArea: {left, right, top, bottom}} = chart;
     ctx.save();
-
-    // Ambil persentase dari data chart
     const achieved = chart.data.datasets[0].data[0];
     const plan = achieved + chart.data.datasets[0].data[1];
     const percent = plan > 0 ? (achieved / plan * 100) : 0;
-
-    // Styling text
     ctx.font = 'bold 18px Inter, Arial, sans-serif';
     ctx.fillStyle = '#2c3e50';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-
-    // Posisi tengah chart
     const centerX = (left + right) / 2;
     const centerY = (top + bottom) / 2;
-
     ctx.fillText(percent.toFixed(0) + '%', centerX, centerY);
     ctx.restore();
   }
@@ -289,12 +288,10 @@ function renderMiniDonutSugity(achieved, planTarget) {
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false },
-        datalabels: {
-          display: false // Matikan datalabels
-        }
+        datalabels: { display: false }
       }
     },
-    plugins: [centerLabelPlugin] // Pakai plugin custom
+    plugins: [centerLabelPlugin]
   });
 }
 
@@ -323,16 +320,14 @@ function renderMiniDonutReguler(achieved, planTarget) {
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false },
-        datalabels: {
-          display: false
-        }
+        datalabels: { display: false }
       }
     },
     plugins: [centerLabelPlugin]
   });
 }
 
-// --- Donut Chart ---
+// --- Donut Chart Gabungan ---
 function renderDonutChart(totalAchieved, totalPlanTarget) {
   const achievedVal = Number(totalAchieved) || 0;
   const planTargetVal = Number(totalPlanTarget) || 0;
@@ -363,7 +358,6 @@ function renderDonutChart(totalAchieved, totalPlanTarget) {
       }
     }
   });
-  // Update donut center text
   const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
   document.getElementById("donutCenterText").textContent = percent.toFixed(0) + "%";
 }
@@ -389,14 +383,10 @@ function renderBarChart(actualArr, planArr) {
         }
       ]
     },
-    plugins: [ChartDataLabels], // Tambahkan ini
+    plugins: [ChartDataLabels],
     options: {
       responsive: true,
-      layout: {
-      padding: {
-        top: 40 // Tambahkan padding atas agar label tidak terpotong
-      }
-    },
+      layout: { padding: { top: 40 } },
       plugins: {
         legend: { display: true, position: "bottom" },
         tooltip: {
@@ -410,9 +400,7 @@ function renderBarChart(actualArr, planArr) {
           anchor: 'end',
           align: 'top',
           color: '#111',
-          font: {
-            weight: 'bold'
-          },
+          font: { weight: 'bold' },
           formatter: function(value) {
             return formatNumber(value) + " kg";
           }
@@ -421,9 +409,7 @@ function renderBarChart(actualArr, planArr) {
       scales: {
         y: {
           beginAtZero: true,
-          title: {
-            display: true, text: "Qty (kg)"
-          }
+          title: { display: true, text: "Qty (kg)" }
         }
       }
     }
@@ -450,7 +436,27 @@ function renderJobsTable(jobs) {
   });
 }
 
-// --- Real-time update (optional, jika ingin auto-update) ---
-onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
-onValue(ref(db, "PlanTarget/Sugity"), loadDashboardData);
-onValue(ref(db, "PlanTarget/Reguler"), loadDashboardData);
+// --- Real-time update refresh when shift or data changes ---
+function setupRealtimeListeners() {
+  const shiftType = localStorage.getItem("shiftType") || "Day";
+  const planTargetPath = `PlanTarget/${shiftType} Shift`;
+  const manPowerPath = `ManPower/${shiftType} Shift`;
+
+  onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
+  onValue(ref(db, planTargetPath), loadDashboardData);
+  onValue(ref(db, manPowerPath), loadDashboardData);
+}
+
+// --- Listen localStorage shiftType changes (multi-tab support) ---
+window.addEventListener("storage", function(e) {
+  if (e.key === "shiftType") {
+    loadDashboardData();
+    setupRealtimeListeners();
+  }
+});
+
+// --- Inisialisasi Dashboard ---
+authPromise.then(() => {
+  loadDashboardData();
+  setupRealtimeListeners();
+});
