@@ -68,7 +68,6 @@ authPromise.then(async () => {
                 const qty = parseInt(job.qty, 10) || 0;
                 const deliveryDate = job.deliveryDate || "";
                 const status = (job.status || "").toLowerCase();
-                const qty = parseInt(job.qty, 10) || 0;
                 const shift = job.shift || "";
                 const team = job.team || "";
 
