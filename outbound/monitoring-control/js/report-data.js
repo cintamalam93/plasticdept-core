@@ -1,5 +1,5 @@
 import { db, authPromise } from './config.js';
-import { ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 // Helper: Format angka ribuan
 function formatNumber(num) {
@@ -9,7 +9,7 @@ function formatNumber(num) {
     return num;
 }
 
-// Helper: dapatkan tanggal esok dalam format "DD-MMM-YYYY" (harus sesuai dengan format di database)
+// Helper: dapatkan tanggal esok dalam format "DD-MMM-YYYY"
 function getTomorrowDateStr() {
     const besok = new Date();
     besok.setDate(besok.getDate() + 1);
@@ -19,22 +19,56 @@ function getTomorrowDateStr() {
     return `${day}-${month}-${year}`;
 }
 
-authPromise.then(() => {
+// Ambil data Mp shift (dari node ManPower)
+async function fetchMpShift(shiftLabel) {
+    const mpSnap = await get(ref(db, `ManPower/${shiftLabel}`));
+    let mpReguler = 0, mpSugity = 0;
+    if (mpSnap.exists()) {
+        const val = mpSnap.val();
+        mpReguler = Number(val.Reguler || 0);
+        mpSugity = Number(val.Sugity || 0);
+    }
+    return mpReguler + mpSugity;
+}
+
+// Render shift data ke tabel (toggle show/hide)
+function renderShiftData(showDay, mpDayShift, capDayShift, mpNightShift, capNightShift) {
+    // Mp day shift & Capacity day shift
+    const mpDayCell = document.getElementById('mpDayShift-actual');
+    const capDayCell = document.getElementById('capDayShift-actual');
+    mpDayCell.textContent = showDay && mpDayShift != null ? formatNumber(mpDayShift) : '';
+    capDayCell.textContent = showDay && capDayShift != null ? formatNumber(capDayShift) : '';
+    // Mp night shift & Capacity night shift
+    const mpNightCell = document.getElementById('mpNightShift-actual');
+    const capNightCell = document.getElementById('capNightShift-actual');
+    mpNightCell.textContent = !showDay && mpNightShift != null ? formatNumber(mpNightShift) : '';
+    capNightCell.textContent = !showDay && capNightShift != null ? formatNumber(capNightShift) : '';
+}
+
+authPromise.then(async () => {
+    // Fetch Mp day shift & night shift
+    const mpDayShift = await fetchMpShift('Day Shift');
+    const mpNightShift = await fetchMpShift('Night Shift');
+
+    // Listener untuk jobs (PhxOutboundJobs)
     const jobsRef = ref(db, 'PhxOutboundJobs');
     onValue(jobsRef, (snapshot) => {
         const jobs = snapshot.val();
         let totalRemaining = 0;
         let totalAdditional = 0;
         let totalOrderH1 = 0;
+        let capDayShift = 0;
+        let capNightShift = 0;
 
         const tomorrowDateStr = getTomorrowDateStr();
 
         if (jobs) {
             Object.values(jobs).forEach(job => {
-                // Pastikan ada field yang dibutuhkan
                 const jobType = job.jobType || "";
                 const qty = parseInt(job.qty, 10) || 0;
                 const deliveryDate = job.deliveryDate || "";
+                const shift = job.shift || "";
+                const team = job.team || "";
 
                 // 1. Remaining order day H
                 if (jobType === "Remaining") {
@@ -47,6 +81,20 @@ authPromise.then(() => {
                 // 3. Order H-1 (besok)
                 if (deliveryDate === tomorrowDateStr) {
                     totalOrderH1 += qty;
+                }
+                // Capacity day shift (filter shift & team)
+                if (
+                    shift === "Day Shift" &&
+                    (team === "Reguler" || team === "Sugity")
+                ) {
+                    capDayShift += qty;
+                }
+                // Capacity night shift (filter shift & team)
+                if (
+                    shift === "Night Shift" &&
+                    (team === "Reguler" || team === "Sugity")
+                ) {
+                    capNightShift += qty;
                 }
             });
         }
@@ -66,5 +114,24 @@ authPromise.then(() => {
 
         const totalOrderCell = document.getElementById('totalOrder-actual');
         if (totalOrderCell) totalOrderCell.textContent = totalOrder > 0 ? formatNumber(totalOrder) : "-";
+
+        // Handle toggle group
+        const dayToggle = document.getElementById('day-shift');
+        const nightToggle = document.getElementById('night-shift');
+        function updateShiftView() {
+            renderShiftData(
+                dayToggle && dayToggle.checked,
+                mpDayShift,
+                capDayShift,
+                mpNightShift,
+                capNightShift
+            );
+        }
+        if (dayToggle && nightToggle) {
+            dayToggle.addEventListener('change', updateShiftView);
+            nightToggle.addEventListener('change', updateShiftView);
+        }
+        // Inisialisasi awal (default tampil day shift)
+        updateShiftView();
     });
 });
