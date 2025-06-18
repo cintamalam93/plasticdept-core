@@ -101,6 +101,14 @@ authPromise.then(async () => {
 
         // 4. Total Order = Remaining + Additional + Order H-1
         const totalOrder = totalRemaining + totalAdditional + totalOrderH1;
+        // 1. Total MP = Mp day shift + Mp night shift
+        const totalMP = (mpDayShift || 0) + (mpNightShift || 0);
+
+        // 2. Total Capacity = Capacity day shift + Capacity night shift
+        const totalCap = (capDayShift || 0) + (capNightShift || 0);
+
+        // 3. Remaining order = Total Order - Total Capacity
+        const remainingOrder = (totalOrder || 0) - (totalCap || 0);
 
         // Tampilkan ke tabel
         const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
@@ -114,6 +122,15 @@ authPromise.then(async () => {
 
         const totalOrderCell = document.getElementById('totalOrder-actual');
         if (totalOrderCell) totalOrderCell.textContent = totalOrder > 0 ? formatNumber(totalOrder) : "-";
+
+        const totalMPCell = document.getElementById('totalMP-actual');
+        if (totalMPCell) totalMPCell.textContent = totalMP > 0 ? formatNumber(totalMP) : "-";
+
+        const totalCapCell = document.getElementById('totalCap-actual');
+        if (totalCapCell) totalCapCell.textContent = totalCap > 0 ? formatNumber(totalCap) : "-";
+
+        const remainingOrderCell = document.getElementById('remainingOrder-actual');
+        if (remainingOrderCell) remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
 
         // Handle toggle group
         const dayToggle = document.getElementById('day-shift');
