@@ -129,7 +129,7 @@ authPromise.then(async () => {
         const totalCapCell = document.getElementById('totalCap-actual');
         if (totalCapCell) totalCapCell.textContent = totalCap > 0 ? formatNumber(totalCap) : "-";
 
-        const remainingOrderCell = document.getElementById('remainingOrder-actual');
+        const remainingOrderCell = document.getElementById('remOrder-actual');
         if (remainingOrderCell) remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
 
         // Handle toggle group
