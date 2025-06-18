@@ -276,8 +276,9 @@ const centerLabelPlugin = {
     const {ctx, chartArea: {left, right, top, bottom}} = chart;
     ctx.save();
     const achieved = chart.data.datasets[0].data[0];
-    const plan = achieved + chart.data.datasets[0].data[1];
-    const percent = plan > 0 ? (achieved / plan * 100) : 0;
+    const remaining = chart.data.datasets[0].data[1];
+    const planTarget = achieved + remaining;
+    const percent = planTarget > 0 ? (achieved / planTarget * 100) : 0;
     ctx.font = 'bold 18px Inter, Arial, sans-serif';
     ctx.fillStyle = '#2c3e50';
     ctx.textAlign = 'center';
