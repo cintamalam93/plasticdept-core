@@ -48,14 +48,27 @@ function formatNumber(num) {
   return Number(num).toLocaleString();
 }
 
-function updateOutstandingJobLabel() {
-  const shiftType = localStorage.getItem("shiftType") || "Day";
-  if (outstandingJobLabel) {
-    if (shiftType === "Night") {
+async function updateOutstandingJobLabel() {
+  const snapshot = await get(ref(db, "ManPower"));
+  if (snapshot.exists()) {
+    const shifts = Object.keys(snapshot.val() || {});
+    if (shifts.length === 1) {
+      if (shifts[0] === "Day Shift" && outstandingJobLabel) {
+        outstandingJobLabel.textContent = "Outstanding Job For Night Shift";
+      } else if (shifts[0] === "Night Shift" && outstandingJobLabel) {
+        outstandingJobLabel.textContent = "Outstanding Job For Day Shift";
+      } else {
+        outstandingJobLabel.textContent = "Outstanding Job For Next Shift";
+      }
+    } else if (shifts.includes("Day Shift") && !shifts.includes("Night Shift")) {
+      outstandingJobLabel.textContent = "Outstanding Job For Night Shift";
+    } else if (shifts.includes("Night Shift") && !shifts.includes("Day Shift")) {
       outstandingJobLabel.textContent = "Outstanding Job For Day Shift";
     } else {
-      outstandingJobLabel.textContent = "Outstanding Job For Night Shift";
+      outstandingJobLabel.textContent = "Outstanding Job For Next Shift";
     }
+  } else {
+    outstandingJobLabel.textContent = "Outstanding Job For Next Shift";
   }
 }
 
@@ -220,7 +233,7 @@ async function loadDashboardData() {
   renderJobsTable(allJobs);
 
   applyShiftLogicPerTeam();
-  updateOutstandingJobLabel();
+  await updateOutstandingJobLabel();
 }
 
 // --- Update Progress bar per Team Otomatis ---
@@ -458,6 +471,7 @@ function setupRealtimeListeners() {
   onValue(ref(db, "PhxOutboundJobs"), loadDashboardData);
   onValue(ref(db, planTargetPath), loadDashboardData);
   onValue(ref(db, manPowerPath), loadDashboardData);
+  onValue(ref(db, "ManPower"), updateOutstandingJobLabel);
 }
 
 // --- Listen localStorage shiftType changes (multi-tab support) ---
