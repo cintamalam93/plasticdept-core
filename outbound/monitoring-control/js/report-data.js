@@ -71,7 +71,7 @@ authPromise.then(async () => {
                 const shift = job.shift || "";
                 const team = job.team || "";
 
-                // Filter: deliveryDate harus sama dengan tanggal besok DAN status = "newjob"
+                // HANYA INI untuk Order H-1
                 if (deliveryDate === tomorrowDateStr && status === "newjob") {
                     totalOrderH1 += qty;
                 }
@@ -83,8 +83,6 @@ authPromise.then(async () => {
                 // 2. Additional Day H
                 if (jobType === "Additional") {
                     totalAdditional += qty;
-                }
-                
                 }
                 // Capacity day shift (filter shift & team)
                 if (
