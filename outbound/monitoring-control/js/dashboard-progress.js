@@ -24,6 +24,7 @@ const achievedSugity = document.getElementById("achievedSugity");
 const achievedReguler = document.getElementById("achievedReguler");
 const remainingSugity = document.getElementById("remainingSugity");
 const remainingReguler = document.getElementById("remainingReguler");
+const outstandingJobLabel = document.getElementById("outstandingJobLabel");
 
 // Progress bar & label DOM
 const progressSugityBar = document.getElementById("progressSugity");
@@ -45,6 +46,17 @@ let donutChart, barChart;
 function formatNumber(num) {
   if (isNaN(num)) return "0";
   return Number(num).toLocaleString();
+}
+
+function updateOutstandingJobLabel() {
+  const shiftType = localStorage.getItem("shiftType") || "Day";
+  if (outstandingJobLabel) {
+    if (shiftType === "Night") {
+      outstandingJobLabel.textContent = "Outstanding Job For Day Shift";
+    } else {
+      outstandingJobLabel.textContent = "Outstanding Job For Night Shift";
+    }
+  }
 }
 
 // --- Status Label Utility ---
@@ -208,6 +220,7 @@ async function loadDashboardData() {
   renderJobsTable(allJobs);
 
   applyShiftLogicPerTeam();
+  updateOutstandingJobLabel();
 }
 
 // --- Update Progress bar per Team Otomatis ---
