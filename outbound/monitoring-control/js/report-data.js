@@ -67,8 +67,15 @@ authPromise.then(async () => {
                 const jobType = job.jobType || "";
                 const qty = parseInt(job.qty, 10) || 0;
                 const deliveryDate = job.deliveryDate || "";
+                const status = (job.status || "").toLowerCase();
+                const qty = parseInt(job.qty, 10) || 0;
                 const shift = job.shift || "";
                 const team = job.team || "";
+
+                // Filter: deliveryDate harus sama dengan tanggal besok DAN status = "newjob"
+                if (deliveryDate === tomorrowDateStr && status === "newjob") {
+                    totalOrderH1 += qty;
+                }
 
                 // 1. Remaining order day H
                 if (jobType === "Remaining") {
@@ -118,7 +125,7 @@ authPromise.then(async () => {
         if (addDayHCell) addDayHCell.textContent = totalAdditional > 0 ? formatNumber(totalAdditional) : "-";
 
         const orderH1Cell = document.getElementById('orderH1-actual');
-        if (orderH1Cell) orderH1Cell.textContent = totalOrderH1 > 0 ? formatNumber(totalOrderH1) : "-";
+        if (orderH1Cell) orderH1Cell.textContent = totalOrderH1 > 0 ? totalOrderH1.toLocaleString("en-US") : "-";
 
         const totalOrderCell = document.getElementById('totalOrder-actual');
         if (totalOrderCell) totalOrderCell.textContent = totalOrder > 0 ? formatNumber(totalOrder) : "-";
