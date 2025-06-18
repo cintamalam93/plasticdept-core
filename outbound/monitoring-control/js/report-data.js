@@ -84,9 +84,7 @@ authPromise.then(async () => {
                 if (jobType === "Additional") {
                     totalAdditional += qty;
                 }
-                // 3. Order H-1 (besok)
-                if (deliveryDate === tomorrowDateStr) {
-                    totalOrderH1 += qty;
+                
                 }
                 // Capacity day shift (filter shift & team)
                 if (
