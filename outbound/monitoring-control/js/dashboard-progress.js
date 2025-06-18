@@ -268,23 +268,34 @@ function applyShiftLogicPerTeam() {
   }
 }
 
-// --- Chart Plugins ---
+// --- Plugin untuk label tengah donut ---
 const centerLabelPlugin = {
   id: 'centerLabelPlugin',
   afterDraw: function(chart) {
     if (chart.config.type !== 'doughnut') return;
+
     const {ctx, chartArea: {left, right, top, bottom}} = chart;
     ctx.save();
+
+    // Ambil Achieved dan Plan Target asli (dari options/plugins)
     const achieved = chart.data.datasets[0].data[0];
-    const remaining = chart.data.datasets[0].data[1];
-    const planTarget = achieved + remaining;
+    let planTarget =
+      chart.options.plugins &&
+      chart.options.plugins.customPercentTarget &&
+      typeof chart.options.plugins.customPercentTarget.planTarget === 'number'
+        ? chart.options.plugins.customPercentTarget.planTarget
+        : achieved + chart.data.datasets[0].data[1];
+
     const percent = planTarget > 0 ? (achieved / planTarget * 100) : 0;
+
     ctx.font = 'bold 18px Inter, Arial, sans-serif';
     ctx.fillStyle = '#2c3e50';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
+
     const centerX = (left + right) / 2;
     const centerY = (top + bottom) / 2;
+
     ctx.fillText(percent.toFixed(0) + '%', centerX, centerY);
     ctx.restore();
   }
@@ -315,7 +326,10 @@ function renderMiniDonutSugity(achieved, planTarget) {
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false },
-        datalabels: { display: false }
+        datalabels: { display: false },
+        customPercentTarget: {
+          planTarget: planTargetVal // Tambahkan ini!
+        }
       }
     },
     plugins: [centerLabelPlugin]
@@ -347,7 +361,10 @@ function renderMiniDonutReguler(achieved, planTarget) {
       plugins: {
         legend: { display: false },
         tooltip: { enabled: false },
-        datalabels: { display: false }
+        datalabels: { display: false },
+        customPercentTarget: {
+          planTarget: planTargetVal // Tambahkan ini!
+        }
       }
     },
     plugins: [centerLabelPlugin]
