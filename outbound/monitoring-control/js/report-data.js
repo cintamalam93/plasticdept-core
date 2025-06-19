@@ -19,41 +19,6 @@ function getTomorrowDateStr() {
     return `${day}-${month}-${year}`;
 }
 
-// Helper: dapatkan tanggal hari ini dalam format "DD-MMM-YYYY"
-function getTodayDateStr() {
-    const today = new Date();
-    const day = String(today.getDate()).padStart(2, "0");
-    const month = today.toLocaleString("en-US", { month: "short" });
-    const year = today.getFullYear();
-    return `${day}-${month}-${year}`;
-}
-
-// Hitung nilai Remaining order day H sesuai shift
-function calculateRemOrderDayH(jobs, shiftMode) {
-    let total = 0;
-    if (!jobs) return total;
-    if (shiftMode === "day") {
-        Object.values(jobs).forEach(job => {
-            const jobType = job.jobType || "";
-            const qty = parseInt(job.qty, 10) || 0;
-            if (jobType === "Remaining") {
-                total += qty;
-            }
-        });
-    } else if (shiftMode === "night") {
-        const todayStr = getTodayDateStr();
-        Object.values(jobs).forEach(job => {
-            const status = (job.status || "").toLowerCase();
-            const deliveryDate = job.deliveryDate || "";
-            const qty = parseInt(job.qty, 10) || 0;
-            if (status === "newjob" && deliveryDate === todayStr) {
-                total += qty;
-            }
-        });
-    }
-    return total;
-}
-
 // Ambil data Mp shift (dari node ManPower)
 async function fetchMpShift(shiftLabel) {
     const mpSnap = await get(ref(db, `ManPower/${shiftLabel}`));
@@ -147,6 +112,10 @@ authPromise.then(async () => {
         // 3. Remaining order = Total Order - Total Capacity
         const remainingOrder = (totalOrder || 0) - (totalCap || 0);
 
+        // Tampilkan ke tabel
+        const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
+        if (remOrderDayHCell) remOrderDayHCell.textContent = totalRemaining > 0 ? formatNumber(totalRemaining) : "-";
+
         const addDayHCell = document.getElementById('addDayH-actual');
         if (addDayHCell) addDayHCell.textContent = totalAdditional > 0 ? formatNumber(totalAdditional) : "-";
 
@@ -168,23 +137,15 @@ authPromise.then(async () => {
         // Handle toggle group
         const dayToggle = document.getElementById('day-shift');
         const nightToggle = document.getElementById('night-shift');
-
         function updateShiftView() {
-            const shiftMode = (dayToggle && dayToggle.checked) ? "day" : "night";
-            // Update remOrderDayH-actual sesuai shift
-            const remOrderDayHVal = calculateRemOrderDayH(jobs, shiftMode);
-            const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
-            if (remOrderDayHCell) remOrderDayHCell.textContent = remOrderDayHVal > 0 ? formatNumber(remOrderDayHVal) : "-";
-
             renderShiftData(
-                shiftMode === "day",
+                dayToggle && dayToggle.checked,
                 mpDayShift,
                 capDayShift,
                 mpNightShift,
                 capNightShift
             );
         }
-
         if (dayToggle && nightToggle) {
             dayToggle.addEventListener('change', updateShiftView);
             nightToggle.addEventListener('change', updateShiftView);
