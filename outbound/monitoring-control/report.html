@@ -170,5 +170,25 @@
         </div>
     </div>
 <script type="module" src="js/report-data.js"></script>
+<!-- ... di bagian akhir sebelum </body> -->
+<script>
+function formatNumber(num) {
+    if (typeof num === "number" && !isNaN(num)) {
+        return num.toLocaleString('en-US');
+    }
+    return num;
+}
+
+// Auto-format all .standard cells to use comma separator
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('td.standard').forEach(td => {
+        // Cek jika hanya angka (bukan tanda -)
+        const val = td.textContent.trim();
+        if (/^-?\d+$/.test(val)) {
+            td.textContent = formatNumber(Number(val));
+        }
+    });
+});
+</script>
 </body>
 </html>
