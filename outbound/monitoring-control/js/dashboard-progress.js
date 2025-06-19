@@ -259,7 +259,6 @@ function applyShiftLogicPerTeam() {
       document.getElementById("actualReguler").textContent = "";
       document.getElementById("achievedReguler").textContent = "";
       document.getElementById("remainingReguler").textContent = "";
-      document.getElementById("progressReguler").textContent = "";
       document.getElementById("progressTextReguler").textContent = "";
     }
   } else {
