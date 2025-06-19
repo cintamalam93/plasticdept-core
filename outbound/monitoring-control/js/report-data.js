@@ -91,7 +91,17 @@ function renderShiftData(showDay, mpDayShift, capDayShift, mpNightShift, capNigh
 }
 
 authPromise.then(async () => {
-    // Fetch Mp day shift & night shift
+    // Ambil referensi elemen toggle dan spinner
+    const dayToggle = document.getElementById('day-shift');
+    const nightToggle = document.getElementById('night-shift');
+    const spinner = document.getElementById('spinner');
+
+    // Disable toggle & tampilkan spinner saat loading
+    if (dayToggle) dayToggle.disabled = true;
+    if (nightToggle) nightToggle.disabled = true;
+    if (spinner) spinner.style.display = '';
+
+    // Fetch data MP shift
     const mpDayShift = await fetchMpShift('Day Shift');
     const mpNightShift = await fetchMpShift('Night Shift');
 
@@ -116,7 +126,7 @@ authPromise.then(async () => {
                 const shift = job.shift || "";
                 const team = job.team || "";
 
-                // HANYA INI untuk Order H-1
+                // Order H-1
                 if (deliveryDate === tomorrowDateStr && status === "newjob") {
                     totalOrderH1 += qty;
                 }
@@ -157,7 +167,7 @@ authPromise.then(async () => {
         // 3. Remaining order = Total Order - Total Capacity
         const remainingOrder = (totalOrder || 0) - (totalCap || 0);
 
-        // Tampilkan ke tabel
+        // Tampilkan ke tabel (static, tidak tergantung toggle)
         const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
         if (remOrderDayHCell) remOrderDayHCell.textContent = totalRemaining > 0 ? formatNumber(totalRemaining) : "-";
 
@@ -179,19 +189,20 @@ authPromise.then(async () => {
         const remainingOrderCell = document.getElementById('remOrder-actual');
         if (remainingOrderCell) remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
 
-        // Handle toggle group
-        const dayToggle = document.getElementById('day-shift');
-        const nightToggle = document.getElementById('night-shift');
+        // DATA SUDAH SIAP: enable toggle & hide spinner
+        if (dayToggle) dayToggle.disabled = false;
+        if (nightToggle) nightToggle.disabled = false;
+        if (spinner) spinner.style.display = 'none';
 
+        // Fungsi update tampilan shift (hanya MP & Capacity yang dinamis)
         function updateShiftView() {
             const shiftMode = (dayToggle && dayToggle.checked) ? "day" : "night";
-            
-            // Update orderH1-actual sesuai shift
+
+            // Update orderH1-actual sesuai shift (jika ingin orderH1 dinamis)
             const orderH1Val = calculateOrderH1Actual(jobs, shiftMode);
             const orderH1Cell = document.getElementById('orderH1-actual');
             if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? orderH1Val.toLocaleString("en-US") : "-";
 
-            // Data shift lain tetap
             renderShiftData(
                 shiftMode === "day",
                 mpDayShift,
@@ -200,7 +211,12 @@ authPromise.then(async () => {
                 capNightShift
             );
         }
+
         // Inisialisasi awal (default tampil day shift)
         updateShiftView();
+
+        // Event listener toggle supaya shift responsif
+        if (dayToggle) dayToggle.addEventListener('change', updateShiftView);
+        if (nightToggle) nightToggle.addEventListener('change', updateShiftView);
     });
 });
