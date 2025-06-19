@@ -77,17 +77,43 @@ async function fetchMpShift(shiftLabel) {
 }
 
 // Render shift data ke tabel (toggle show/hide)
-function renderShiftData(showDay, mpDayShift, capDayShift, mpNightShift, capNightShift) {
+function renderShiftData(showDay, mpDayShift, capDayShift, mpNightShift, capNightShift, cap1MPHour) {
     // Mp day shift & Capacity day shift
     const mpDayCell = document.getElementById('mpDayShift-actual');
     const capDayCell = document.getElementById('capDayShift-actual');
     mpDayCell.textContent = showDay && mpDayShift != null ? formatNumber(mpDayShift) : '';
     capDayCell.textContent = showDay && capDayShift != null ? formatNumber(capDayShift) : '';
+
     // Mp night shift & Capacity night shift
     const mpNightCell = document.getElementById('mpNightShift-actual');
     const capNightCell = document.getElementById('capNightShift-actual');
     mpNightCell.textContent = !showDay && mpNightShift != null ? formatNumber(mpNightShift) : '';
     capNightCell.textContent = !showDay && capNightShift != null ? formatNumber(capNightShift) : '';
+
+    // GAP cell
+    const mpDayGapCell = document.getElementById('mpDayShift-gap');
+    const capDayGapCell = document.getElementById('capDayShift-gap');
+    const mpNightGapCell = document.getElementById('mpNightShift-gap');
+    const capNightGapCell = document.getElementById('capNightShift-gap');
+    const cap1MPHourGapCell = document.getElementById('cap1MPHour-gap');
+
+    // Standar value
+    const STD_MP_DAY = 3;
+    const STD_MP_NIGHT = 2;
+    const STD_CAP_DAY = 52920;
+    const STD_CAP_NIGHT = 35280;
+    const STD_CAP_1MP_HOUR = 2352;
+
+    // GAP Day
+    mpDayGapCell.textContent = showDay && mpDayShift != null ? formatNumber(mpDayShift - STD_MP_DAY) : '';
+    capDayGapCell.textContent = showDay && capDayShift != null ? formatNumber(capDayShift - STD_CAP_DAY) : '';
+
+    // GAP Night
+    mpNightGapCell.textContent = !showDay && mpNightShift != null ? formatNumber(mpNightShift - STD_MP_NIGHT) : '';
+    capNightGapCell.textContent = !showDay && capNightShift != null ? formatNumber(capNightShift - STD_CAP_NIGHT) : '';
+
+    // GAP Capacity 1 MP/hour (selalu tampil, tidak tergantung toggle)
+    cap1MPHourGapCell.textContent = cap1MPHour > 0 ? formatNumber(Math.round(cap1MPHour - STD_CAP_1MP_HOUR)) : "-";
 }
 
 authPromise.then(async () => {
@@ -209,8 +235,6 @@ authPromise.then(async () => {
         // Fungsi update tampilan shift (hanya MP & Capacity yang dinamis)
         function updateShiftView() {
             const shiftMode = (dayToggle && dayToggle.checked) ? "day" : "night";
-
-            // Update orderH1-actual sesuai shift (jika ingin orderH1 dinamis)
             const orderH1Val = calculateOrderH1Actual(jobs, shiftMode);
             const orderH1Cell = document.getElementById('orderH1-actual');
             if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? orderH1Val.toLocaleString("en-US") : "-";
@@ -220,7 +244,8 @@ authPromise.then(async () => {
                 mpDayShift,
                 capDayShift,
                 mpNightShift,
-                capNightShift
+                capNightShift,
+                cap1MPHour
             );
         }
 
