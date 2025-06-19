@@ -26,12 +26,6 @@ const remainingSugity = document.getElementById("remainingSugity");
 const remainingReguler = document.getElementById("remainingReguler");
 const outstandingJobLabel = document.getElementById("outstandingJobLabel");
 
-// Progress bar & label DOM
-const progressSugityBar = document.getElementById("progressSugity");
-const progressTextSugity = document.getElementById("progressTextSugity");
-const progressRegulerBar = document.getElementById("progressReguler");
-const progressTextReguler = document.getElementById("progressTextReguler");
-
 // Outbound jobs table
 const jobsTableBody = document.querySelector("#jobsTable tbody");
 
@@ -50,25 +44,27 @@ function formatNumber(num) {
 
 async function updateOutstandingJobLabel() {
   const snapshot = await get(ref(db, "ManPower"));
-  if (snapshot.exists()) {
-    const shifts = Object.keys(snapshot.val() || {});
-    if (shifts.length === 1) {
-      if (shifts[0] === "Day Shift" && outstandingJobLabel) {
+  if (outstandingJobLabel) {
+    if (snapshot.exists()) {
+      const shifts = Object.keys(snapshot.val() || {});
+      if (shifts.length === 1) {
+        if (shifts[0] === "Day Shift") {
+          outstandingJobLabel.textContent = "Outstanding Job For Night Shift";
+        } else if (shifts[0] === "Night Shift") {
+          outstandingJobLabel.textContent = "Outstanding Job For Day Shift";
+        } else {
+          outstandingJobLabel.textContent = "Outstanding Job For Next Shift";
+        }
+      } else if (shifts.includes("Day Shift") && !shifts.includes("Night Shift")) {
         outstandingJobLabel.textContent = "Outstanding Job For Night Shift";
-      } else if (shifts[0] === "Night Shift" && outstandingJobLabel) {
+      } else if (shifts.includes("Night Shift") && !shifts.includes("Day Shift")) {
         outstandingJobLabel.textContent = "Outstanding Job For Day Shift";
       } else {
         outstandingJobLabel.textContent = "Outstanding Job For Next Shift";
       }
-    } else if (shifts.includes("Day Shift") && !shifts.includes("Night Shift")) {
-      outstandingJobLabel.textContent = "Outstanding Job For Night Shift";
-    } else if (shifts.includes("Night Shift") && !shifts.includes("Day Shift")) {
-      outstandingJobLabel.textContent = "Outstanding Job For Day Shift";
     } else {
       outstandingJobLabel.textContent = "Outstanding Job For Next Shift";
     }
-  } else {
-    outstandingJobLabel.textContent = "Outstanding Job For Next Shift";
   }
 }
 
@@ -187,22 +183,22 @@ async function loadDashboardData() {
   const totalRemaining = totalActual - totalAchieved;
 
   // --- Isi Matrix Dashboard ---
-  planTargetValue.textContent = formatNumber(totalPlanTarget) + " kg";
-  actualTargetValue.textContent = formatNumber(totalActual) + " kg";
-  actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
-  actualRemainingValue.textContent = formatNumber(totalRemaining) + " kg";
+  if (planTargetValue) planTargetValue.textContent = formatNumber(totalPlanTarget) + " kg";
+  if (actualTargetValue) actualTargetValue.textContent = formatNumber(totalActual) + " kg";
+  if (actualAchievedValue) actualAchievedValue.textContent = formatNumber(totalAchieved) + " kg";
+  if (actualRemainingValue) actualRemainingValue.textContent = formatNumber(totalRemaining) + " kg";
 
   // --- Isi Matrix Team (otomatis) ---
-  mpSugity.textContent = MP_SUGITY;
-  mpReguler.textContent = MP_REGULER;
-  planSugity.textContent = formatNumber(planSugityVal);
-  planReguler.textContent = formatNumber(planRegulerVal);
-  actualSugity.textContent = formatNumber(sumActualSugity);
-  actualReguler.textContent = formatNumber(sumActualReguler);
-  achievedSugity.textContent = formatNumber(sumAchievedSugity);
-  achievedReguler.textContent = formatNumber(sumAchievedReguler);
-  remainingSugity.textContent = formatNumber(sumRemainingSugity);
-  remainingReguler.textContent = formatNumber(sumRemainingReguler);
+  if (mpSugity) mpSugity.textContent = MP_SUGITY;
+  if (mpReguler) mpReguler.textContent = MP_REGULER;
+  if (planSugity) planSugity.textContent = formatNumber(planSugityVal);
+  if (planReguler) planReguler.textContent = formatNumber(planRegulerVal);
+  if (actualSugity) actualSugity.textContent = formatNumber(sumActualSugity);
+  if (actualReguler) actualReguler.textContent = formatNumber(sumActualReguler);
+  if (achievedSugity) achievedSugity.textContent = formatNumber(sumAchievedSugity);
+  if (achievedReguler) achievedReguler.textContent = formatNumber(sumAchievedReguler);
+  if (remainingSugity) remainingSugity.textContent = formatNumber(sumRemainingSugity);
+  if (remainingReguler) remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
   // --- Mini Donut Chart Sugity ---
   renderMiniDonutSugity(sumAchievedSugity, planSugityVal);
@@ -236,31 +232,19 @@ async function loadDashboardData() {
   await updateOutstandingJobLabel();
 }
 
-// --- Update Progress bar per Team Otomatis ---
-function updateTeamProgress(planSugityVal, achievedSugityVal, planRegulerVal, achievedRegulerVal) {
-  // Sugity
-  let progressSugity = planSugityVal > 0 ? (achievedSugityVal / planSugityVal * 100) : 0;
-  if (progressSugityBar) progressSugityBar.style.width = progressSugity + "%";
-
-  // Reguler
-  let progressReguler = planRegulerVal > 0 ? (achievedRegulerVal / planRegulerVal * 100) : 0;
-  if (progressRegulerBar) progressRegulerBar.style.width = progressReguler + "%";
-}
-
 // --- Shift Logic Title ---
 function applyShiftLogicPerTeam() {
   const shiftType = localStorage.getItem("shiftType") || "Day";
   if (shiftType === "Night") {
     if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Night Shift)";
-    if (teamTitleReguler) {
-      teamTitleReguler.textContent = "Reguler (Night Shift)";
-      document.getElementById("mpReguler").textContent = "";
-      document.getElementById("planReguler").textContent = "";
-      document.getElementById("actualReguler").textContent = "";
-      document.getElementById("achievedReguler").textContent = "";
-      document.getElementById("remainingReguler").textContent = "";
-      document.getElementById("progressTextReguler").textContent = "";
-    }
+    if (teamTitleReguler) teamTitleReguler.textContent = "Reguler (Night Shift)";
+    // Kosongkan data Reguler saat shift malam
+    if (mpReguler) mpReguler.textContent = "";
+    if (planReguler) planReguler.textContent = "";
+    if (actualReguler) actualReguler.textContent = "";
+    if (achievedReguler) achievedReguler.textContent = "";
+    if (remainingReguler) remainingReguler.textContent = "";
+    // MiniDonutReguler otomatis diupdate oleh renderMiniDonutReguler (akan nol jika nilainya nol)
   } else {
     if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Day Shift)";
     if (teamTitleReguler) teamTitleReguler.textContent = "Reguler (Day Shift)";
@@ -302,7 +286,9 @@ const centerLabelPlugin = {
 
 // --- Mini Donut Chart Sugity ---
 function renderMiniDonutSugity(achieved, planTarget) {
-  const ctx = document.getElementById("miniDonutSugity").getContext("2d");
+  const canvas = document.getElementById("miniDonutSugity");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const achievedVal = Number(achieved) || 0;
   const planTargetVal = Number(planTarget) || 0;
@@ -327,7 +313,7 @@ function renderMiniDonutSugity(achieved, planTarget) {
         tooltip: { enabled: false },
         datalabels: { display: false },
         customPercentTarget: {
-          planTarget: planTargetVal // Tambahkan ini!
+          planTarget: planTargetVal
         }
       }
     },
@@ -337,7 +323,9 @@ function renderMiniDonutSugity(achieved, planTarget) {
 
 // --- Mini Donut Chart Reguler ---
 function renderMiniDonutReguler(achieved, planTarget) {
-  const ctx = document.getElementById("miniDonutReguler").getContext("2d");
+  const canvas = document.getElementById("miniDonutReguler");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const achievedVal = Number(achieved) || 0;
   const planTargetVal = Number(planTarget) || 0;
@@ -362,7 +350,7 @@ function renderMiniDonutReguler(achieved, planTarget) {
         tooltip: { enabled: false },
         datalabels: { display: false },
         customPercentTarget: {
-          planTarget: planTargetVal // Tambahkan ini!
+          planTarget: planTargetVal
         }
       }
     },
@@ -372,10 +360,14 @@ function renderMiniDonutReguler(achieved, planTarget) {
 
 // --- Donut Chart Gabungan ---
 function renderDonutChart(totalAchieved, totalPlanTarget) {
+  const canvas = document.getElementById("donutChart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
   const achievedVal = Number(totalAchieved) || 0;
   const planTargetVal = Number(totalPlanTarget) || 0;
   const remaining = Math.max(0, planTargetVal - achievedVal);
-  const ctx = document.getElementById("donutChart").getContext("2d");
+
   if (donutChart) donutChart.destroy();
   donutChart = new Chart(ctx, {
     type: "doughnut",
@@ -401,13 +393,20 @@ function renderDonutChart(totalAchieved, totalPlanTarget) {
       }
     }
   });
-  const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
-  document.getElementById("donutCenterText").textContent = percent.toFixed(0) + "%";
+
+  const donutCenterText = document.getElementById("donutCenterText");
+  if (donutCenterText) {
+    const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
+    donutCenterText.textContent = percent.toFixed(0) + "%";
+  }
 }
 
 // --- Bar Chart (Progress Per Team) ---
 function renderBarChart(actualArr, planArr) {
-  const ctx = document.getElementById("barChart").getContext("2d");
+  const canvas = document.getElementById("barChart");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
   if (barChart) barChart.destroy();
   barChart = new Chart(ctx, {
     type: "bar",
@@ -461,6 +460,7 @@ function renderBarChart(actualArr, planArr) {
 
 // --- Tabel Outbound Jobs Gabungan ---
 function renderJobsTable(jobs) {
+  if (!jobsTableBody) return;
   jobsTableBody.innerHTML = "";
   jobs.forEach(job => {
     const row = document.createElement("tr");
