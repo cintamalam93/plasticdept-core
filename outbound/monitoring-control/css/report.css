@@ -86,6 +86,8 @@ h2 {
     padding: 14px 12px;
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
+    text-align: center !important;
+    vertical-align: middle;
 }
 
 .report-table th {
