@@ -166,6 +166,17 @@ authPromise.then(async () => {
 
         // 3. Remaining order = Total Order - Total Capacity
         const remainingOrder = (totalOrder || 0) - (totalCap || 0);
+        
+        // 4. Cap 1 MP per hour
+        let cap1MPHour = 0;
+        if ((mpDayShift + mpNightShift) > 0) {
+            cap1MPHour = (capDayShift + capNightShift) / (mpDayShift + mpNightShift) / (450 / 60);
+        }
+
+        // Tampilkan ke tabel
+        const cap1MPHourCell = document.getElementById('cap1MPHour-actual');
+        if (cap1MPHourCell) {
+            cap1MPHourCell.textContent = cap1MPHour > 0 ? formatNumber(Math.round(cap1MPHour)) : "-";
 
         // Tampilkan ke tabel (static, tidak tergantung toggle)
         const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
