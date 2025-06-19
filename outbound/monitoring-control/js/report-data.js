@@ -239,6 +239,17 @@ authPromise.then(async () => {
             const orderH1Cell = document.getElementById('orderH1-actual');
             if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? orderH1Val.toLocaleString("en-US") : "-";
 
+            // Tambahkan logika berikut:
+            const remainingOrderCell = document.getElementById('remOrder-actual');
+            if (remainingOrderCell) {
+                if (shiftMode === "night") {
+                    remainingOrderCell.textContent = orderH1Val > 0 ? formatNumber(orderH1Val) : "-";
+                } else {
+                    const remainingOrder = (totalOrder || 0) - (totalCap || 0);
+                    remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
+                }
+            }
+
             renderShiftData(
                 shiftMode === "day",
                 mpDayShift,
