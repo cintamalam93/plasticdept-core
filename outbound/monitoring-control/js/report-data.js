@@ -19,6 +19,51 @@ function getTomorrowDateStr() {
     return `${day}-${month}-${year}`;
 }
 
+function calculateOrderH1Actual(jobs, shiftMode) {
+    let total = 0;
+    if (!jobs) return total;
+
+    const tomorrowDateStr = getTomorrowDateStr();
+
+    if (shiftMode === "day") {
+        // Logika existing: besok & status newjob
+        Object.values(jobs).forEach(job => {
+            const deliveryDate = job.deliveryDate || "";
+            const status = (job.status || "").toLowerCase();
+            const qty = parseInt(job.qty, 10) || 0;
+            if (deliveryDate === tomorrowDateStr && status === "newjob") {
+                total += qty;
+            }
+        });
+    } else if (shiftMode === "night") {
+        // Cek apakah ada job dengan tanggal besok & status newjob
+        let foundNextDate = false;
+        Object.values(jobs).forEach(job => {
+            const deliveryDate = job.deliveryDate || "";
+            const status = (job.status || "").toLowerCase();
+            if (deliveryDate === tomorrowDateStr && status === "newjob") {
+                foundNextDate = true;
+            }
+        });
+
+        Object.values(jobs).forEach(job => {
+            const deliveryDate = job.deliveryDate || "";
+            const status = (job.status || "").toLowerCase();
+            const qty = parseInt(job.qty, 10) || 0;
+            if (foundNextDate) {
+                if (deliveryDate === tomorrowDateStr && status === "newjob") {
+                    total += qty;
+                }
+            } else {
+                if (status === "newjob") {
+                    total += qty;
+                }
+            }
+        });
+    }
+    return total;
+}
+
 // Ambil data Mp shift (dari node ManPower)
 async function fetchMpShift(shiftLabel) {
     const mpSnap = await get(ref(db, `ManPower/${shiftLabel}`));
@@ -137,18 +182,23 @@ authPromise.then(async () => {
         // Handle toggle group
         const dayToggle = document.getElementById('day-shift');
         const nightToggle = document.getElementById('night-shift');
+
         function updateShiftView() {
+            const shiftMode = (dayToggle && dayToggle.checked) ? "day" : "night";
+            
+            // Update orderH1-actual sesuai shift
+            const orderH1Val = calculateOrderH1Actual(jobs, shiftMode);
+            const orderH1Cell = document.getElementById('orderH1-actual');
+            if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? orderH1Val.toLocaleString("en-US") : "-";
+
+            // Data shift lain tetap
             renderShiftData(
-                dayToggle && dayToggle.checked,
+                shiftMode === "day",
                 mpDayShift,
                 capDayShift,
                 mpNightShift,
                 capNightShift
             );
-        }
-        if (dayToggle && nightToggle) {
-            dayToggle.addEventListener('change', updateShiftView);
-            nightToggle.addEventListener('change', updateShiftView);
         }
         // Inisialisasi awal (default tampil day shift)
         updateShiftView();
