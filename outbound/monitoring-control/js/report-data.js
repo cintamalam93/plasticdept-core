@@ -126,7 +126,7 @@ authPromise.then(async () => {
                 const shift = job.shift || "";
                 const team = job.team || "";
 
-                // Order H-1
+                // HANYA INI untuk Order H-1
                 if (deliveryDate === tomorrowDateStr && status === "newjob") {
                     totalOrderH1 += qty;
                 }
@@ -166,7 +166,7 @@ authPromise.then(async () => {
 
         // 3. Remaining order = Total Order - Total Capacity
         const remainingOrder = (totalOrder || 0) - (totalCap || 0);
-        
+
         // 4. Cap 1 MP per hour
         let cap1MPHour = 0;
         if ((mpDayShift + mpNightShift) > 0) {
@@ -174,11 +174,6 @@ authPromise.then(async () => {
         }
 
         // Tampilkan ke tabel
-        const cap1MPHourCell = document.getElementById('cap1MPHour-actual');
-        if (cap1MPHourCell) {
-            cap1MPHourCell.textContent = cap1MPHour > 0 ? formatNumber(Math.round(cap1MPHour)) : "-";
-
-        // Tampilkan ke tabel (static, tidak tergantung toggle)
         const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
         if (remOrderDayHCell) remOrderDayHCell.textContent = totalRemaining > 0 ? formatNumber(totalRemaining) : "-";
 
@@ -199,6 +194,12 @@ authPromise.then(async () => {
 
         const remainingOrderCell = document.getElementById('remOrder-actual');
         if (remainingOrderCell) remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
+
+        // Tampilkan cap1MPHour ke tabel
+        const cap1MPHourCell = document.getElementById('cap1MPHour-actual');
+        if (cap1MPHourCell) {
+            cap1MPHourCell.textContent = cap1MPHour > 0 ? formatNumber(Math.round(cap1MPHour)) : "-";
+        }
 
         // DATA SUDAH SIAP: enable toggle & hide spinner
         if (dayToggle) dayToggle.disabled = false;
