@@ -870,6 +870,29 @@ teamOptions.addEventListener("change", () => {
 // Listener tombol clear database
 document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
 
+function exportToExcelPython(data) {
+  fetch("http://localhost:5000/export", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  })
+    .then(r => {
+      if (!r.ok) throw new Error("Gagal export Excel, server error");
+      return r.blob();
+    })
+    .then(b => {
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(b);
+      a.download = "target-job-assigned.xlsx";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    })
+    .catch(err => {
+      showNotification("Export via Python gagal: " + err.message, true);
+    });
+}
+
 // ========== EXPORT EXCEL (Sugity & Reguler) ==========
 document.getElementById("exportExcelBtn").addEventListener("click", () => {
   get(ref(db, "PhxOutboundJobs")).then(snapshot => {
@@ -886,108 +909,8 @@ document.getElementById("exportExcelBtn").addEventListener("click", () => {
       return;
     }
 
-    // 1. Date Stamp (row 1)
-    const now = new Date();
-    const dateStr = now.toLocaleString("en-GB", {
-      year: "numeric", month: "2-digit", day: "2-digit",
-      hour: "2-digit", minute: "2-digit", second: "2-digit"
-    }).replace(",", "");
-    const datestampRow = ["Exported: " + dateStr];
-
-    // 2. Qty Target (row 2, jumlah total qty)
-    const totalQty = filtered.reduce((sum, j) => sum + (j.qty !== undefined && j.qty !== null && !isNaN(Number(j.qty)) ? Number(j.qty) : 0), 0);
-    const totalQtyFormatted = totalQty.toLocaleString("en-US") + " kg";
-    const qtyTotalRow = ["Qty Target: " + totalQtyFormatted];
-
-    // 3. Header
-    const header = [
-      "Job No", "Delivery Date", "Delivery Note",
-      "Remark", "Status", "Qty", "Type Job", "Team"
-    ];
-
-    // 4. Data rows, qty as number, type job
-    const rows = filtered.map(j => [
-      j.jobNo || "",
-      j.deliveryDate || "",
-      j.deliveryNote || "",
-      j.remark || "",
-      j.status || "",
-      j.qty !== undefined && j.qty !== null && !isNaN(Number(j.qty)) ? Number(j.qty) : 0,
-      j.jobType || "",
-      j.team || ""
-    ]);
-    // 5. Gabungkan semua data
-    const ws_data = [datestampRow, qtyTotalRow, header, ...rows];
-
-    // 6. Buat worksheet
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-    // 7. Styling
-    const headerRow = 2; // baris ke-3 (0-based)
-    const totalCols = header.length;
-    const totalRows = ws_data.length;
-    const borderStyle = {
-      top:    { style: "thin", color: { rgb: "000000" } },
-      bottom: { style: "thin", color: { rgb: "000000" } },
-      left:   { style: "thin", color: { rgb: "000000" } },
-      right:  { style: "thin", color: { rgb: "000000" } }
-    };
-
-    // Style header: kuning, bold, border
-    for (let c = 0; c < totalCols; c++) {
-      const cellAddr = XLSX.utils.encode_cell({ r: headerRow, c });
-      if (!ws[cellAddr]) continue;
-      ws[cellAddr].s = {
-        font: { bold: true },
-        fill: { fgColor: { rgb: "FFF59D" } }, // kuning terang
-        border: borderStyle,
-        alignment: { horizontal: "center", vertical: "center" }
-      };
-    }
-    // Style border all data (data rows)
-    for (let r = headerRow + 1; r < totalRows; r++) {
-      for (let c = 0; c < totalCols; c++) {
-        const cellAddr = XLSX.utils.encode_cell({ r, c });
-        if (!ws[cellAddr]) continue;
-        ws[cellAddr].s = ws[cellAddr].s || {};
-        ws[cellAddr].s.border = borderStyle;
-        if (c === 5) { // Qty kolom
-          ws[cellAddr].z = "#,##0";
-        }
-      }
-    }
-    // Style border for datestamp & qtyTotal row (baris 0 dan 1)
-    for (let c = 0; c < totalCols; c++) {
-      // Date stamp
-      const cellAddr0 = XLSX.utils.encode_cell({ r: 0, c });
-      if (!ws[cellAddr0]) ws[cellAddr0] = { t: "s", v: "" };
-      ws[cellAddr0].s = ws[cellAddr0].s || {};
-      ws[cellAddr0].s.border = borderStyle;
-
-      // Qty Total
-      const cellAddr1 = XLSX.utils.encode_cell({ r: 1, c });
-      if (!ws[cellAddr1]) ws[cellAddr1] = { t: "s", v: "" };
-      ws[cellAddr1].s = ws[cellAddr1].s || {};
-      ws[cellAddr1].s.border = borderStyle;
-    }
-    // Merge date stamp row & qty total row
-    ws["!merges"] = ws["!merges"] || [];
-    ws["!merges"].push({
-      s: { r: 0, c: 0 },
-      e: { r: 0, c: totalCols - 1 }
-    });
-    ws["!merges"].push({
-      s: { r: 1, c: 0 },
-      e: { r: 1, c: totalCols - 1 }
-    });
-
-    // Optional: Autosize columns
-    ws["!cols"] = header.map(h => ({ wch: Math.max(10, h.length + 4) }));
-
-    // 8. Workbook & Download
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "TargetJob");
-    XLSX.writeFile(wb, "target-job-assigned.xlsx");
+    // Langsung export ke Python API
+    exportToExcelPython(filtered);
   });
 });
 
