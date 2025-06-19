@@ -871,7 +871,7 @@ teamOptions.addEventListener("change", () => {
 document.getElementById("clearDatabaseBtn").addEventListener("click", clearAllJobs);
 
 function exportToExcelPython(data) {
-  fetch("https://159.89.199.46:5000/export", {
+  fetch("http://127.0.0.1:5000/export", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(data)
