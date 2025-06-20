@@ -161,19 +161,15 @@ authPromise.then(async () => {
                 const shift = job.shift || "";
                 const team = job.team || "";
 
-                // HANYA INI untuk Order H-1
-                if (deliveryDate === tomorrowDateStr && status === "newjob") {
+                // PATCH: Setiap job hanya masuk ke satu kategori saja (prioritas: Remaining > Additional > Order H-1)
+                if (jobType === "Remaining") {
+                    totalRemaining += qty;
+                } else if (jobType === "Additional") {
+                    totalAdditional += qty;
+                } else if (deliveryDate === tomorrowDateStr && status === "newjob") {
                     totalOrderH1 += qty;
                 }
 
-                // 1. Remaining order day H
-                if (jobType === "Remaining") {
-                    totalRemaining += qty;
-                }
-                // 2. Additional Day H
-                if (jobType === "Additional") {
-                    totalAdditional += qty;
-                }
                 // Capacity day shift (filter shift & team)
                 if (
                     shift === "Day Shift" &&
@@ -276,4 +272,5 @@ authPromise.then(async () => {
         if (dayToggle) dayToggle.addEventListener('change', updateShiftView);
         if (nightToggle) nightToggle.addEventListener('change', updateShiftView);
     });
+
 });
