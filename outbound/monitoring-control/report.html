@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Daily Report Outbound</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Professional modern CSS -->
     <link rel="stylesheet" href="css/report.css">
     <script>
         // Set current date on load
@@ -17,19 +18,47 @@
 </head>
 <body>
     <div class="container">
-        <h2>Daily Report Outbound</h2>
-        <p id="current-date" class="report-date"></p>
-        <div class="toggle-group">
-            <input type="radio" id="day-shift" name="shift" checked>
-            <label for="day-shift">Day Shift</label>
-            <input type="radio" id="night-shift" name="shift">
-            <label for="night-shift">Night Shift</label>
-            <!-- Spinner/Loader di sini -->
-            <div id="spinner" style="display: none; margin-left: 24px; height: 24px; align-items: center;">
-              <span class="loader"></span>
-              <span style="margin-left: 8px; font-size: 14px; color: #555;">Loading data...</span>
+        <h2 class="dashboard-title">Daily Report Outbound</h2>
+        <div class="dashboard-date-toggle">
+            <div class="toggle-group">
+                <input type="radio" id="day-shift" name="shift" checked>
+                <label for="day-shift">Day Shift</label>
+                <input type="radio" id="night-shift" name="shift">
+                <label for="night-shift">Night Shift</label>
+                <!-- Spinner/Loader di sini -->
+                <div id="spinner" style="display: none; margin-left: 24px; height: 24px; align-items: center;">
+                  <span class="loader"></span>
+                  <span style="margin-left: 8px; font-size: 14px; color: #555;">Loading data...</span>
+                </div>
+            </div>
+            <div class="report-date" id="current-date"></div>
+        </div>
+
+        <!-- Summary Cards Section -->
+        <div class="dashboard-cards">
+            <div class="dashboard-card">
+                <div class="card-label">Total Order</div>
+                <div class="card-value" id="totalOrder-summary">-</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-label">Total Capacity</div>
+                <div class="card-value" id="totalCap-summary">-</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-label">Remaining Order</div>
+                <div class="card-value warning" id="remOrder-summary">-</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-label">GAP (NWD)</div>
+                <div class="card-value danger" id="gapNWD-summary">-</div>
+            </div>
+            <div class="dashboard-card">
+                <div class="card-label">Achievement</div>
+                <div class="card-value success" id="achievement-summary">-</div>
             </div>
         </div>
+
+        <!-- Table Section -->
         <div class="table-responsive">
             <table class="report-table">
                 <thead>
@@ -170,7 +199,6 @@
         </div>
     </div>
 <script type="module" src="js/report-data.js"></script>
-<!-- ... di bagian akhir sebelum </body> -->
 <script>
 function formatNumber(num) {
     if (typeof num === "number" && !isNaN(num)) {
