@@ -23,43 +23,52 @@ function calculateOrderH1Actual(jobs, shiftMode) {
     let total = 0;
     if (!jobs) return total;
 
-    const tomorrowDateStr = getTomorrowDateStr();
+    // Ambil hari ini dan kemarin dalam format yang sama dengan job.deliveryDate
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = date.toLocaleString("en-US", { month: "short" });
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    }
+
+    const todayStr = formatDate(today);
+    const yesterdayStr = formatDate(yesterday);
+
+    // Ambil semua job newjob yang tanggal != hari ini && tanggal != kemarin
+    const filtered = Object.values(jobs).filter(job => {
+        const deliveryDate = job.deliveryDate || "";
+        const status = (job.status || "").toLowerCase();
+        return (
+            status === "newjob" &&
+            deliveryDate !== todayStr &&
+            deliveryDate !== yesterdayStr
+        );
+    });
 
     if (shiftMode === "day") {
-        // Logika existing: besok & status newjob
-        Object.values(jobs).forEach(job => {
-            const deliveryDate = job.deliveryDate || "";
-            const status = (job.status || "").toLowerCase();
-            const qty = parseInt(job.qty, 10) || 0;
-            if (deliveryDate === tomorrowDateStr && status === "newjob") {
-                total += qty;
-            }
+        // Day shift: jumlahkan semua job newjob selain hari ini dan kemarin
+        filtered.forEach(job => {
+            total += parseInt(job.qty, 10) || 0;
         });
     } else if (shiftMode === "night") {
-        // Cek apakah ada job dengan tanggal besok & status newjob
-        let foundNextDate = false;
-        Object.values(jobs).forEach(job => {
-            const deliveryDate = job.deliveryDate || "";
-            const status = (job.status || "").toLowerCase();
-            if (deliveryDate === tomorrowDateStr && status === "newjob") {
-                foundNextDate = true;
-            }
-        });
-
-        Object.values(jobs).forEach(job => {
-            const deliveryDate = job.deliveryDate || "";
-            const status = (job.status || "").toLowerCase();
-            const qty = parseInt(job.qty, 10) || 0;
-            if (foundNextDate) {
-                if (deliveryDate === tomorrowDateStr && status === "newjob") {
-                    total += qty;
-                }
-            } else {
+        if (filtered.length > 0) {
+            // Jika ada: jumlahkan hanya yang tanggal selain hari ini dan kemarin
+            filtered.forEach(job => {
+                total += parseInt(job.qty, 10) || 0;
+            });
+        } else {
+            // Jika tidak ada: jumlahkan semua job newjob tanpa filter tanggal
+            Object.values(jobs).forEach(job => {
+                const status = (job.status || "").toLowerCase();
                 if (status === "newjob") {
-                    total += qty;
+                    total += parseInt(job.qty, 10) || 0;
                 }
-            }
-        });
+            });
+        }
     }
     return total;
 }
