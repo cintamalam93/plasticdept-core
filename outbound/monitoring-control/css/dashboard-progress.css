@@ -9,7 +9,9 @@
   --accent: #e0e7ef;
   --border: #e3e3e3;
   --shadow: 0 2px 12px 0 rgba(33,33,33,0.04);
-  --shadow-hover: 0 8px 32px 0 rgba(23, 78, 166, 0.10);
+  --shadow-hover: 0 6px 24px 0 rgba(23, 78, 166, 0.13); /* seragam dgn report.css */
+  --hover-border: #174ea6; /* seragam dgn report.css */
+  --hover-bg: #e9f2fc;     /* seragam dgn report.css */
   --red: #e53935;
 }
 
@@ -65,14 +67,18 @@ body {
   align-items: center;
   gap: 12px;
   min-height: 156px;
-  transition: box-shadow .18s, transform .18s;
+  transition: box-shadow .18s, transform .18s, border-color .18s, background .18s;
   border-left: 5px solid var(--accent);
   cursor: pointer;
   justify-content: center;
+  border: 2px solid transparent;
 }
 .matrix-card:hover {
-  box-shadow: 0 6px 32px 0 rgba(50,50,93,0.13);
-  transform: translateY(-2px) scale(1.025);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px) scale(1.025);
+  border-color: var(--hover-border);
+  background: var(--hover-bg);
+  z-index: 2;
 }
 .matrix-card .matrix-icon {
   font-size: 2.1em;
@@ -135,8 +141,9 @@ body {
   margin-bottom: 12px;
   background: none;
   box-shadow: none;
-  transition: box-shadow .18s, transform .18s;
+  transition: box-shadow .18s, transform .18s, border-color .18s, background .18s;
   cursor: pointer;
+  border: 2px solid transparent;
 }
 #donutChart {
   width: 205px !important;
@@ -146,6 +153,8 @@ body {
 .donut-container:hover {
   box-shadow: var(--shadow-hover);
   transform: translateY(-3px) scale(1.03);
+  border-color: var(--hover-border);
+  background: var(--hover-bg);
   z-index: 2;
 }
 
@@ -207,15 +216,18 @@ body {
   justify-content: flex-start;
   box-sizing: border-box;
   margin-bottom: 14px;
-  transition: box-shadow .18s, transform .18s;
+  transition: box-shadow .18s, transform .18s, border-color .18s, background .18s;
   cursor: pointer;
+  border: 2px solid transparent;
 }
 
 /* ====== HOVER EFFECTS FOR TEAM MATRIX & BAR CHART ====== */
 .team-matrix-card:hover,
 .team-bar-chartbox:hover {
   box-shadow: var(--shadow-hover);
-  transform: translateY(-3px) scale(1.02);
+  transform: translateY(-3px) scale(1.025);
+  border-color: var(--hover-border);
+  background: var(--hover-bg);
   z-index: 2;
 }
 
@@ -232,7 +244,6 @@ body {
   padding: 28px 18px 24px 18px !important;
   flex-direction: column;
 }
-
 .bar-chart-title {
   font-size: 1.08rem;
   color: #174ea6;
@@ -240,7 +251,6 @@ body {
   margin-bottom: 6px;
   text-align: center;
 }
-
 #barChart {
   width: 100% !important;
   height: 300px !important;
@@ -408,8 +418,13 @@ body {
 #jobsTable tbody tr:nth-child(even) {
   background: #f8fafc;
 }
+#jobsTable tbody tr {
+  transition: background 0.18s, color 0.18s;
+  cursor: pointer;
+}
 #jobsTable tbody tr:hover {
-  background: #e3f2fd;
+  background: #e3f2fd !important;
+  color: #174ea6;
 }
 
 /* ====== STATUS LABELS ====== */
