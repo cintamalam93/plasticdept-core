@@ -73,6 +73,17 @@ function calculateOrderH1Actual(jobs, shiftMode) {
     return total;
 }
 
+// Misal proses perhitungan totalOrder-actual
+function calculateTotalOrderActual(orders) {
+    let total = 0;
+    orders.forEach((order, idx) => {
+        console.log(`[LOG] Menambahkan order ke-${idx + 1}: ${order.amount}`); // Log setiap penambahan
+        total += order.amount;
+    });
+    console.log(`[LOG] Nilai totalOrder-actual akhir: ${total}`); // Log hasil akhir
+    return total;
+}
+
 // Ambil data Mp shift (dari node ManPower)
 async function fetchMpShift(shiftLabel) {
     const mpSnap = await get(ref(db, `ManPower/${shiftLabel}`));
