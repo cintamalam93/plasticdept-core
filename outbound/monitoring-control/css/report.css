@@ -1,4 +1,4 @@
-/* Reset some default styles */
+/* ====== RESET & BASE ====== */
 html, body {
     margin: 0;
     padding: 0;
@@ -8,36 +8,48 @@ html, body {
     min-height: 100vh;
 }
 
+/* ====== CONTAINER ====== */
 .container {
     max-width: 1100px;
     margin: 40px auto;
     background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 4px 24px rgba(50, 50, 93, 0.08);
-    padding: 36px 32px 28px 32px;
+    border-radius: 18px;
+    box-shadow: 0 4px 32px rgba(50, 50, 93, 0.10);
+    padding: 38px 34px 32px 34px;
 }
 
-h2 {
-    font-size: 2rem;
-    letter-spacing: 1px;
+/* ====== HEADER & TOGGLE ====== */
+.dashboard-title {
+    font-size: 2.2rem;
     color: #174ea6;
-    margin-bottom: 8px;
-    font-weight: 600;
+    font-weight: bold;
     text-align: center;
+    margin-bottom: 5px;
+    letter-spacing: 0.5px;
+}
+
+.dashboard-date-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
 }
 
 .report-date {
-    font-size: 1.1rem;
+    font-size: 1.13rem;
     color: #5f6368;
-    margin-bottom: 18px;
-    text-align: center;
+    margin-top: 10px;
+    margin-left: auto;
+    margin-right: 0;
+    text-align: right;
+    min-width: 120px;
 }
 
 .toggle-group {
-    margin-bottom: 20px;
     display: flex;
+    gap: 10px;
     align-items: center;
-    gap: 16px;
 }
 
 .toggle-group input[type="radio"] {
@@ -46,26 +58,76 @@ h2 {
 
 .toggle-group label {
     cursor: pointer;
-    padding: 6px 18px;
+    padding: 7px 22px;
     border-radius: 20px;
     border: 1.5px solid #cbd5e1;
     font-size: 1rem;
     background: #f3f6fa;
     color: #174ea6;
     font-weight: 500;
-    transition: background 0.2s, color 0.2s, border 0.2s;
+    transition: background 0.2s, color 0.2s, border 0.2s, box-shadow 0.2s;
+    opacity: 0.75;
 }
 
-.toggle-group input[type="radio"]:checked + label {
+.toggle-group input[type="radio"]:checked + label,
+.toggle-group label:active {
     background: #174ea6;
     color: #fff;
     border: 1.5px solid #174ea6;
+    box-shadow: 0 2px 10px rgba(23, 78, 166, 0.11);
+    opacity: 1;
 }
 
-.toggle-group label + input[type="radio"]:checked + label {
-    margin-left: -2px;
+/* ====== SUMMARY CARDS ====== */
+.dashboard-cards {
+    display: flex;
+    gap: 22px;
+    margin-bottom: 30px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+.dashboard-card {
+    flex: 1 1 170px;
+    background: #f3f6fa;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(23, 78, 166, 0.06);
+    padding: 18px 12px 13px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 120px;
+    transition: box-shadow .18s, transform .18s;
+    cursor: pointer;
+    border: 2px solid transparent;
+}
+.dashboard-card .card-label {
+    font-size: 1rem;
+    color: #6273a4;
+    margin-bottom: 5px;
+}
+.dashboard-card .card-value {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #174ea6;
+}
+.dashboard-card .card-value.success {
+    color: #0c9b4b;
+}
+.dashboard-card .card-value.danger {
+    color: #dc2626;
+}
+.dashboard-card .card-value.warning {
+    color: #e98b00;
+}
+.dashboard-card:hover {
+    box-shadow: 0 6px 24px 0 rgba(23, 78, 166, 0.13);
+    transform: translateY(-3px) scale(1.025);
+    border-color: #174ea6;
+    background: #e9f2fc;
+    z-index: 2;
 }
 
+/* ====== TABLE ====== */
 .table-responsive {
     margin-top: 10px;
     overflow-x: auto;
@@ -75,30 +137,30 @@ h2 {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
-    background: #c71515;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+    background: #fff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.04);
     border-radius: 10px;
     overflow: hidden;
-    font: bold 1rem 'Segoe UI', Arial, sans-serif;
 }
 
 .report-table th, .report-table td {
-    padding: 14px 12px;
+    padding: 13px 12px;
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
-    text-align: center !important;
     vertical-align: middle;
+    text-align: center;
+    font-size: 1rem;
+    transition: background 0.18s, color 0.18s;
 }
 
 .report-table th {
-    background: #f3f6fa;
-    color: #1a237e;
+    background: #e6effc;
+    color: #193986;
     font-size: 1.08rem;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    border-top: 1px solid #e5e7eb;
+    letter-spacing: 0.3px;
     text-align: center;
-    font: bold 1.08rem 'Segoe UI', Arial, sans-serif;
+    border-top: 1px solid #e5e7eb;
 }
 
 .report-table tbody tr:last-child td {
@@ -106,7 +168,6 @@ h2 {
 }
 
 .report-table td {
-    font-size: 1rem;
     color: #222;
     background: #fff;
 }
@@ -115,29 +176,65 @@ h2 {
     background: #f9fafb;
 }
 
-/* Kolom pertama (Data) rata kiri */
+/* Hover effect on table row */
+.report-table tbody tr {
+    transition: background 0.18s;
+    cursor: pointer;
+}
+
+.report-table tbody tr:hover td {
+    background: #e3f2fd !important;
+    color: #174ea6;
+}
+
+/* Data column left-aligned */
 .report-table th:first-child,
 .report-table td:first-child {
     text-align: left !important;
 }
 
-@media (max-width: 700px) {
+/* Highlight class for specific cells */
+.report-table td.danger {
+    color: #dc2626;
+    font-weight: bold;
+}
+.report-table td.success {
+    color: #0c9b4b;
+    font-weight: bold;
+}
+.report-table td.warning {
+    color: #e98b00;
+    font-weight: bold;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 1200px) {
+    .dashboard-cards {
+        flex-direction: column;
+        gap: 12px;
+    }
     .container {
         padding: 14px 4px;
     }
-    .report-table th, .report-table td {
-        padding: 10px 6px;
-        font-size: 0.96rem;
+}
+@media (max-width: 700px) {
+    .dashboard-title, h2 {
+        font-size: 1.3rem;
     }
-    h2 {
-        font-size: 1.2rem;
+    .dashboard-cards .dashboard-card {
+        min-width: 100px;
+        padding: 14px 8px 10px 10px;
+    }
+    .report-table th, .report-table td {
+        font-size: 0.92rem;
+        padding: 8px 6px;
     }
     .report-date {
         font-size: 0.92rem;
     }
 }
 
-/* Spinner CSS */
+/* ====== SPINNER ====== */
 .loader {
   display: inline-block;
   width: 24px;
