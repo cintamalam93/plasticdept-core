@@ -164,7 +164,6 @@ authPromise.then(async () => {
         const tomorrowDateStr = getTomorrowDateStr();
 
         if (jobs) {
-            
             Object.values(jobs).forEach(job => {
                 const jobType = job.jobType || "";
                 const qty = parseInt(job.qty, 10) || 0;
@@ -200,13 +199,14 @@ authPromise.then(async () => {
         }
 
         // 4. Total Order = Remaining + Additional + Order H-1
+        const totalOrder = totalRemaining + totalAdditional + totalOrderH1;
+
+        // Tambahkan log detail sumber nilai totalOrder-actual
         console.log(`[TRACE] totalRemaining: ${totalRemaining} (jobType: "Remaining")`);
         console.log(`[TRACE] totalAdditional: ${totalAdditional} (jobType: "Additional")`);
         console.log(`[TRACE] totalOrderH1: ${totalOrderH1} (Order H-1, deliveryDate: ${tomorrowDateStr}, status: "newjob")`);
         console.log(`[TRACE] totalOrder-actual = totalRemaining + totalAdditional + totalOrderH1`);
         console.log(`[TRACE] totalOrder-actual = ${totalRemaining} + ${totalAdditional} + ${totalOrderH1} = ${totalOrder}`);
-
-        const totalOrder = totalRemaining + totalAdditional + totalOrderH1;
 
         // 1. Total MP = Mp day shift + Mp night shift
         const totalMP = (mpDayShift || 0) + (mpNightShift || 0);
