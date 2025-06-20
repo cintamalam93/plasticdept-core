@@ -416,21 +416,25 @@ function renderBarChart(actualArr, planArr) {
         {
           label: "Actual Target",
           data: actualArr,
-          backgroundColor: "#3498db"
+          backgroundColor: 'rgba(23, 78, 166, 0.85)',      // Biru tebal
+          borderRadius: 7,                                  // Rounded corner
+          barPercentage: 0.5,
+          categoryPercentage: 0.5
         },
         {
           label: "Plan Target",
           data: planArr,
-          backgroundColor: "#f39c12"
+          backgroundColor: 'rgba(14, 189, 154, 0.65)',      // Toska hijau
+          borderRadius: 7,
+          barPercentage: 0.5,
+          categoryPercentage: 0.5
         }
       ]
     },
-    plugins: [ChartDataLabels],
     options: {
       responsive: true,
-      layout: { padding: { top: 40 } },
       plugins: {
-        legend: { display: true, position: "bottom" },
+        legend: { display: true, position: "top" },         // Legend di atas
         tooltip: {
           callbacks: {
             label: function(ctx) {
@@ -441,20 +445,28 @@ function renderBarChart(actualArr, planArr) {
         datalabels: {
           anchor: 'end',
           align: 'top',
-          color: '#111',
+          color: '#174ea6',
           font: { weight: 'bold' },
           formatter: function(value) {
             return formatNumber(value) + " kg";
           }
         }
       },
+      layout: { padding: { top: 12 } },
       scales: {
         y: {
           beginAtZero: true,
-          title: { display: true, text: "Qty (kg)" }
+          title: { display: true, text: "Qty (kg)", color: "#174ea6", font: { size: 14, weight: "bold" } },
+          ticks: { color: "#174ea6", font: { size: 13 } },
+          grid: { color: "#e5e7eb" }
+        },
+        x: {
+          ticks: { color: "#174ea6", font: { size: 13 } },
+          grid: { display: false }
         }
       }
-    }
+    },
+    plugins: [ChartDataLabels]
   });
 }
 
