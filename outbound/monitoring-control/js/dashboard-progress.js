@@ -418,23 +418,23 @@ function renderBarChart(actualArr, planArr) {
           data: actualArr,
           backgroundColor: 'rgba(23, 78, 166, 0.85)',      // Biru tebal
           borderRadius: 7,                                  // Rounded corner
-          barPercentage: 0.5,
-          categoryPercentage: 0.5
+          barPercentage: 0.85,
+          categoryPercentage: 0.7
         },
         {
           label: "Plan Target",
           data: planArr,
           backgroundColor: 'rgba(14, 189, 154, 0.65)',      // Toska hijau
           borderRadius: 7,
-          barPercentage: 0.5,
-          categoryPercentage: 0.5
+          barPercentage: 0.85,
+          categoryPercentage: 0.7
         }
       ]
     },
     options: {
       responsive: true,
       plugins: {
-        legend: { display: true, position: "top" },         // Legend di atas
+        legend: { display: true, position: "bottom" },         // Legend di atas
         tooltip: {
           callbacks: {
             label: function(ctx) {
