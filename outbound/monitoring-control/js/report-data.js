@@ -200,7 +200,14 @@ authPromise.then(async () => {
         }
 
         // 4. Total Order = Remaining + Additional + Order H-1
+        console.log(`[TRACE] totalRemaining: ${totalRemaining} (jobType: "Remaining")`);
+        console.log(`[TRACE] totalAdditional: ${totalAdditional} (jobType: "Additional")`);
+        console.log(`[TRACE] totalOrderH1: ${totalOrderH1} (Order H-1, deliveryDate: ${tomorrowDateStr}, status: "newjob")`);
+        console.log(`[TRACE] totalOrder-actual = totalRemaining + totalAdditional + totalOrderH1`);
+        console.log(`[TRACE] totalOrder-actual = ${totalRemaining} + ${totalAdditional} + ${totalOrderH1} = ${totalOrder}`);
+
         const totalOrder = totalRemaining + totalAdditional + totalOrderH1;
+
         // 1. Total MP = Mp day shift + Mp night shift
         const totalMP = (mpDayShift || 0) + (mpNightShift || 0);
 
@@ -227,7 +234,10 @@ authPromise.then(async () => {
         if (orderH1Cell) orderH1Cell.textContent = totalOrderH1 > 0 ? totalOrderH1.toLocaleString("en-US") : "-";
 
         const totalOrderCell = document.getElementById('totalOrder-actual');
-        if (totalOrderCell) totalOrderCell.textContent = totalOrder > 0 ? formatNumber(totalOrder) : "-";
+        if (totalOrderCell) {
+            console.log(`[DISPLAY] totalOrder-actual yang akan ditampilkan ke tabel: ${totalOrder > 0 ? formatNumber(totalOrder) : "-"}`);
+            totalOrderCell.textContent = totalOrder > 0 ? formatNumber(totalOrder) : "-";
+        }
 
         const totalMPCell = document.getElementById('totalMP-actual');
         if (totalMPCell) totalMPCell.textContent = totalMP > 0 ? formatNumber(totalMP) : "-";
