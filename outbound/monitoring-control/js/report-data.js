@@ -157,9 +157,11 @@ authPromise.then(async () => {
         const jobs = snapshot.val();
         let totalRemaining = 0;
         let totalAdditional = 0;
-        let totalOrderH1 = 0;
         let capDayShift = 0;
         let capNightShift = 0;
+
+        // ---------- PATCH: HAPUS let totalOrderH1 = 0; (tidak hitung manual lagi!) ----------
+        // let totalOrderH1 = 0; // HAPUS ini
 
         const tomorrowDateStr = getTomorrowDateStr();
 
@@ -177,9 +179,11 @@ authPromise.then(async () => {
                     totalRemaining += qty;
                 } else if (jobType === "Additional") {
                     totalAdditional += qty;
-                } else if (deliveryDate === tomorrowDateStr && status === "newjob") {
-                    totalOrderH1 += qty;
                 }
+                // PATCH: HAPUS blok ini: 
+                // else if (deliveryDate === tomorrowDateStr && status === "newjob") {
+                //     totalOrderH1 += qty;
+                // }
 
                 // Capacity day shift (filter shift & team)
                 if (
@@ -198,13 +202,16 @@ authPromise.then(async () => {
             });
         }
 
+        // PATCH: Gunakan logika konsisten untuk totalOrderH1 (Order H-1)
+        const totalOrderH1 = calculateOrderH1Actual(jobs, "day");
+
         // 4. Total Order = Remaining + Additional + Order H-1
         const totalOrder = totalRemaining + totalAdditional + totalOrderH1;
 
         // Tambahkan log detail sumber nilai totalOrder-actual
         console.log(`[TRACE] totalRemaining: ${totalRemaining} (jobType: "Remaining")`);
         console.log(`[TRACE] totalAdditional: ${totalAdditional} (jobType: "Additional")`);
-        console.log(`[TRACE] totalOrderH1: ${totalOrderH1} (Order H-1, deliveryDate: ${tomorrowDateStr}, status: "newjob")`);
+        console.log(`[TRACE] totalOrderH1: ${totalOrderH1} (Order H-1, dari calculateOrderH1Actual(jobs, "day"))`);
         console.log(`[TRACE] totalOrder-actual = totalRemaining + totalAdditional + totalOrderH1`);
         console.log(`[TRACE] totalOrder-actual = ${totalRemaining} + ${totalAdditional} + ${totalOrderH1} = ${totalOrder}`);
 
