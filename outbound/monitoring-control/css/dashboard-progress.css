@@ -11,12 +11,15 @@
   --shadow: 0 2px 12px 0 rgba(33,33,33,0.04);
   --red: #e53935;
 }
+
+/* ====== BASE & TYPOGRAPHY ====== */
 body {
   background: var(--bg);
   font-family: 'Inter', Arial, sans-serif;
   margin: 0;
   color: var(--text);
 }
+
 .dashboard-header {
   text-align: center;
   margin: 20px 0 18px 0;
@@ -32,6 +35,8 @@ body {
   font-size: 1.07em;
   margin-top: 5px;
 }
+
+/* ====== DASHBOARD MAIN CONTAINER ====== */
 .dashboard-main,
 .dashboard-section,
 .jobs-table-container {
@@ -39,6 +44,8 @@ body {
   margin: 0 auto 38px auto;
   padding: 0 18px;
 }
+
+/* ====== DASHBOARD SUMMARY MATRIX ====== */
 .grid-matrix {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -83,10 +90,10 @@ body {
   display: block;
   margin: 0 auto;
 }
-.accent-blue { border-left-color: var(--blue);}
-.accent-orange { border-left-color: var(--orange);}
-.accent-green { border-left-color: var(--green);}
-.accent-gray { border-left-color: var(--gray);}
+.accent-blue    { border-left-color: var(--blue);}
+.accent-orange  { border-left-color: var(--orange);}
+.accent-green   { border-left-color: var(--green);}
+.accent-gray    { border-left-color: var(--gray);}
 .matrix-label {
   color: #232323;
   font-size: 1.18em;
@@ -105,7 +112,8 @@ body {
   color: var(--text);
   letter-spacing: .01em;
 }
-/* Donut chart tanpa box */
+
+/* ====== DONUT CHART (SUMMARY) ====== */
 .donut-flex-no-box {
   display: flex;
   flex-direction: column;
@@ -162,8 +170,10 @@ body {
   display: inline-block;
   margin-right: 8px;
 }
-.donut-label.achieved span { background: var(--green);}
+.donut-label.achieved span  { background: var(--green);}
 .donut-label.remaining span { background: var(--gray);}
+
+/* ====== TEAM PROGRESS SECTION ====== */
 .team-matrix-flex {
   display: flex;
   align-items: stretch;
@@ -171,6 +181,8 @@ body {
   flex-wrap: nowrap;
   justify-content: space-between;
 }
+
+/* Team Card & Bar Chart Card */
 .team-matrix-card,
 .team-bar-chartbox {
   flex: 0 0 32%;
@@ -186,24 +198,26 @@ body {
   box-sizing: border-box;
   margin-bottom: 14px;
 }
+
+/* ====== BAR CHART (TEAM) ====== */
 .team-bar-chartbox {
   align-items: center;
   justify-content: center;
   height: 100%;
   min-height: 357.66px;
   display: flex;
+  background: #f7fafc !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(50, 50, 93, 0.06);
+  padding: 28px 18px 24px 18px !important;
+  flex-direction: column;
 }
-.team-align-left {
-  align-items: flex-start;
-  text-align: left;
-}
-.team-align-center {
-  align-items: center;
+.bar-chart-title {
+  font-size: 1.08rem;
+  color: #174ea6;
+  font-weight: 600;
+  margin-bottom: 6px;
   text-align: center;
-}
-.team-align-right {
-  align-items: flex-end;
-  text-align: right;
 }
 #barChart {
   width: 100% !important;
@@ -211,7 +225,18 @@ body {
   min-width: 100px;
   max-width: 100%;
   display: block;
+  background: transparent !important;
+  border-radius: 10px;
+  box-shadow: none;
+  padding: 0;
+  margin: 0 auto !important;
 }
+
+/* ====== TEAM CARD ALIGN & TABLE ====== */
+.team-align-left   { align-items: flex-start;  text-align: left;}
+.team-align-center { align-items: center;      text-align: center;}
+.team-align-right  { align-items: flex-end;    text-align: right;}
+
 .team-icon {
   width: 18px;
   height: 18px;
@@ -274,6 +299,30 @@ body {
   font-weight: 700;
   letter-spacing: 0.01em;
 }
+
+/* ====== MINI DONUT CHART (PER TEAM) ====== */
+.mini-donut-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 12px;
+  margin-bottom: 0;
+  width: 100%;
+}
+#miniDonutSugity {
+  max-width: 90px;
+  max-height: 90px;
+  width: 90px;
+  height: 90px;
+}
+#miniDonutReguler {
+  max-width: 90px;
+  max-height: 90px;
+  width: 90px;
+  height: 90px;
+}
+
+/* ====== PROGRESS BAR (OPTIONAL) ====== */
 .progress-bar {
   width: 100%;
   height: 7px;
@@ -303,6 +352,8 @@ body {
 .progress-text.accent-orange {
   color: var(--orange);
 }
+
+/* ====== JOBS TABLE SECTION ====== */
 .jobs-table-container {
   background: var(--white);
   border-radius: 12px;
@@ -338,6 +389,8 @@ body {
 #jobsTable tbody tr:hover {
   background: #e3f2fd;
 }
+
+/* ====== STATUS LABELS ====== */
 .status-label {
   display: inline-block;
   min-width: 74px;
@@ -352,6 +405,8 @@ body {
 .status-downloaded, .status-picked, .status-partialpicked { background: #ff9800; color: #fff;}
 .status-packed, .status-loaded { background: #43a047; color: #fff;}
 .status-other { background: #bdbdbd; color: #fff;}
+
+/* ====== RESPONSIVE ====== */
 @media (max-width: 1700px) {
   .dashboard-main, .dashboard-section, .jobs-table-container, .grid-matrix {
     max-width: 98vw;
@@ -371,6 +426,8 @@ body {
   .team-bar-chartbox { min-width: 120px;}
   #barChart { width: 150px !important; height: 120px !important;}
 }
+
+/* ====== ICON FONT ====== */
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined', sans-serif !important;
   font-style: normal;
@@ -378,27 +435,4 @@ body {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 40;
   font-size: 1.3em;
   vertical-align: middle;
-}
-
-/* Mini donut styling */
-.mini-donut-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 12px;
-  margin-bottom: 0;
-  width: 100%;
-}
-#miniDonutSugity {
-  max-width: 90px;
-  max-height: 90px;
-  width: 90px;
-  height: 90px;
-}
-
-#miniDonutReguler {
-  max-width: 90px;
-  max-height: 90px;
-  width: 90px;
-  height: 90px;
 }
