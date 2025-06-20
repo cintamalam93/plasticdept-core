@@ -164,12 +164,6 @@ authPromise.then(async () => {
         const tomorrowDateStr = getTomorrowDateStr();
 
         if (jobs) {
-            // DEBUG: Log seluruh isi data jobs ke console
-            console.log("======= DEBUG: Data jobs dari Firebase =======");
-            Object.values(jobs).forEach((job, idx) => {
-                console.log(`Job #${idx + 1}:`, job);
-            });
-            console.log("=============================================");
             
             Object.values(jobs).forEach(job => {
                 const jobType = job.jobType || "";
