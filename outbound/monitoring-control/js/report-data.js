@@ -313,7 +313,7 @@ authPromise.then(async () => {
             const orderH1Cell = document.getElementById('orderH1-actual');
             if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? orderH1Val.toLocaleString("en-US") : "-";
 
-            // Tambahkan logika berikut:
+            // Sisa order
             const remainingOrderCell = document.getElementById('remOrder-actual');
             if (remainingOrderCell) {
                 if (shiftMode === "night") {
@@ -324,6 +324,19 @@ authPromise.then(async () => {
                 }
             }
 
+            // --- Perhitungan capNightShiftActual ---
+            // capNightShift sudah didapat dari proses sebelumnya (global di listener onValue)
+            // capNightShiftOt adalah jumlah qty jobType OT shift Night Shift
+            const capNightShiftOt = calculateCapShiftOT(jobs, "Night Shift");
+            // Cek apakah ada node ManPowerOvertime/Night Shift
+            const hasManPowerOvertime = await fetchMpOvertimeQty("Night Shift");
+            // Hitung capNightShiftActual
+            let capNightShiftActual = capNightShift;
+            if (hasManPowerOvertime) {
+                capNightShiftActual = capNightShift - capNightShiftOt;
+            }
+
+            // --- Render data utama ke table ---
             renderShiftData(
                 shiftMode === "day",
                 mpDayShift,
@@ -333,24 +346,14 @@ authPromise.then(async () => {
                 cap1MPHour
             );
 
+            // --- Update tampilan nilai MP Overtime pada tabel ---
             await updateMpOvertimeView(shiftMode);
 
-            // Tambahkan update nilai capNightShift-ot dan capDayShift-ot
+            // --- Update nilai capNightShift-ot dan capDayShift-ot pada tabel ---
             const capNightShiftOtCell = document.getElementById('capNightShift-ot');
             const capDayShiftOtCell = document.getElementById('capDayShift-ot');
-
-            // Cek apakah ada node ManPowerOvertime/Night Shift
-            const hasManPowerOvertime = await fetchMpOvertimeQty("Night Shift");
-
-            // Jika ada node ManPowerOvertime, kurangi capNightShift-ot dari capNightShift
-            let capNightShiftActual = capNightShift;
-            if (hasManPowerOvertime) {
-                capNightShiftActual = capNightShift - capNightShiftOt;
-            }    
-            
             if (shiftMode === "night") {
-                const capNightOT = calculateCapShiftOT(jobs, "Night Shift");
-                if (capNightShiftOtCell) capNightShiftOtCell.textContent = capNightOT > 0 ? formatNumber(capNightOT) : "-";
+                if (capNightShiftOtCell) capNightShiftOtCell.textContent = capNightShiftOt > 0 ? formatNumber(capNightShiftOt) : "-";
                 if (capDayShiftOtCell) capDayShiftOtCell.textContent = "";
             } else {
                 const capDayOT = calculateCapShiftOT(jobs, "Day Shift");
