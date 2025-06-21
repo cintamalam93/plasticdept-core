@@ -84,6 +84,22 @@ function calculateTotalOrderActual(orders) {
     return total;
 }
 
+// Hitung total qty OT pada shift tertentu dari node PhxOutboundJobs
+function calculateCapShiftOT(jobs, shiftLabel) {
+    let total = 0;
+    if (!jobs) return total;
+
+    Object.values(jobs).forEach(job => {
+        const jobType = (job.jobType || "").toUpperCase();
+        const shift = (job.shift || "");
+        const qty = parseInt(job.qty, 10) || 0;
+        if (jobType === "OT" && shift === shiftLabel) {
+            total += qty;
+        }
+    });
+    return total;
+}
+
 // Ambil data Mp shift (dari node ManPower)
 async function fetchMpShift(shiftLabel) {
     const mpSnap = await get(ref(db, `ManPower/${shiftLabel}`));
@@ -312,6 +328,20 @@ authPromise.then(async () => {
             );
 
             await updateMpOvertimeView(shiftMode);
+
+            // Tambahkan update nilai capNightShift-ot dan capDayShift-ot
+            const capNightShiftOtCell = document.getElementById('capNightShift-ot');
+            const capDayShiftOtCell = document.getElementById('capDayShift-ot');
+
+            if (shiftMode === "night") {
+                const capNightOT = calculateCapShiftOT(jobs, "Night Shift");
+                if (capNightShiftOtCell) capNightShiftOtCell.textContent = capNightOT > 0 ? formatNumber(capNightOT) : "-";
+                if (capDayShiftOtCell) capDayShiftOtCell.textContent = "";
+            } else {
+                const capDayOT = calculateCapShiftOT(jobs, "Day Shift");
+                if (capDayShiftOtCell) capDayShiftOtCell.textContent = capDayOT > 0 ? formatNumber(capDayOT) : "-";
+                if (capNightShiftOtCell) capNightShiftOtCell.textContent = "";
+            }
         }
 
         // Inisialisasi awal (default tampil day shift)
