@@ -346,7 +346,8 @@ authPromise.then(async () => {
             let capNightShiftActual = capNightShift;
             if (hasManPowerOvertime) {
                 capNightShiftActual = capNightShift - capNightShiftOt;
-
+            }    
+            
             if (shiftMode === "night") {
                 const capNightOT = calculateCapShiftOT(jobs, "Night Shift");
                 if (capNightShiftOtCell) capNightShiftOtCell.textContent = capNightOT > 0 ? formatNumber(capNightOT) : "-";
