@@ -112,6 +112,12 @@ async function fetchMpShift(shiftLabel) {
     return mpReguler + mpSugity;
 }
 
+// Ambil ManPowerOvertime/Night Shift (cek apakah ada node)
+async function fetchMpOvertimeQty(shiftLabel) {
+    const mpOtSnap = await get(ref(db, `ManPowerOvertime/${shiftLabel}`));
+    return mpOtSnap.exists();
+}
+
 // Ambil data MP Overtime shift (dari node ManPowerOvertime)
 async function fetchMpOvertime(shiftLabel) {
     const mpOtSnap = await get(ref(db, `ManPowerOvertime/${shiftLabel}`));
@@ -323,7 +329,7 @@ authPromise.then(async () => {
                 mpDayShift,
                 capDayShift,
                 mpNightShift,
-                capNightShift,
+                capNightShiftActual,
                 cap1MPHour
             );
 
@@ -332,6 +338,14 @@ authPromise.then(async () => {
             // Tambahkan update nilai capNightShift-ot dan capDayShift-ot
             const capNightShiftOtCell = document.getElementById('capNightShift-ot');
             const capDayShiftOtCell = document.getElementById('capDayShift-ot');
+
+            // Cek apakah ada node ManPowerOvertime/Night Shift
+            const hasManPowerOvertime = await fetchMpOvertimeQty("Night Shift");
+
+            // Jika ada node ManPowerOvertime, kurangi capNightShift-ot dari capNightShift
+            let capNightShiftActual = capNightShift;
+            if (hasManPowerOvertime) {
+                capNightShiftActual = capNightShift - capNightShiftOt;
 
             if (shiftMode === "night") {
                 const capNightOT = calculateCapShiftOT(jobs, "Night Shift");
