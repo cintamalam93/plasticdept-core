@@ -96,6 +96,15 @@ async function fetchMpShift(shiftLabel) {
     return mpReguler + mpSugity;
 }
 
+// Ambil data MP Overtime shift (dari node ManPowerOvertime)
+async function fetchMpOvertime(shiftLabel) {
+    const mpOtSnap = await get(ref(db, `ManPowerOvertime/${shiftLabel}`));
+    if (mpOtSnap.exists()) {
+        return Number(mpOtSnap.val()) || 0;
+    }
+    return 0;
+}
+
 // Render shift data ke tabel (toggle show/hide)
 function renderShiftData(showDay, mpDayShift, capDayShift, mpNightShift, capNightShift, cap1MPHour) {
     // Mp day shift & Capacity day shift
@@ -134,6 +143,15 @@ function renderShiftData(showDay, mpDayShift, capDayShift, mpNightShift, capNigh
 
     // GAP Capacity 1 MP/hour (selalu tampil, tidak tergantung toggle)
     cap1MPHourGapCell.textContent = cap1MPHour > 0 ? formatNumber(Math.round(cap1MPHour - STD_CAP_1MP_HOUR)) : "-";
+}
+
+// Update tampilan nilai mpNightShift-ot atau mpDayShift-ot sesuai shift
+async function updateMpOvertimeView(shiftMode) {
+    // shiftMode: 'day' atau 'night'
+    const shiftLabel = shiftMode === "day" ? "Day Shift" : "Night Shift";
+    const mpOt = await fetchMpOvertime(shiftLabel);
+    const otCell = document.getElementById('mpNightShift-ot'); // Pastikan id sesuai di HTML
+    if (otCell) otCell.textContent = mpOt > 0 ? formatNumber(mpOt) : "-";
 }
 
 authPromise.then(async () => {
@@ -267,7 +285,7 @@ authPromise.then(async () => {
         if (spinner) spinner.style.display = 'none';
 
         // Fungsi update tampilan shift (hanya MP & Capacity yang dinamis)
-        function updateShiftView() {
+        async function updateShiftView() {
             const shiftMode = (dayToggle && dayToggle.checked) ? "day" : "night";
             const orderH1Val = calculateOrderH1Actual(jobs, shiftMode);
             const orderH1Cell = document.getElementById('orderH1-actual');
@@ -292,14 +310,16 @@ authPromise.then(async () => {
                 capNightShift,
                 cap1MPHour
             );
+
+            await updateMpOvertimeView(shiftMode);
         }
 
         // Inisialisasi awal (default tampil day shift)
         updateShiftView();
 
         // Event listener toggle supaya shift responsif
-        if (dayToggle) dayToggle.addEventListener('change', updateShiftView);
-        if (nightToggle) nightToggle.addEventListener('change', updateShiftView);
+        if (dayToggle) dayToggle.addEventListener('change', () => updateShiftView());
+        if (nightToggle) nightToggle.addEventListener('change', () => updateShiftView());
     });
 
 });
