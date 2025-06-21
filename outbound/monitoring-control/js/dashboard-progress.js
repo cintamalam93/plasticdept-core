@@ -299,9 +299,9 @@ function renderMiniDonutSugity(achieved, planTarget) {
   miniDonutSugityChart = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Achieved", "Remaining"],
+      labels: ["Achievement"],
       datasets: [{
-        data: [achievedVal, remaining],
+        data: [achievedVal],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
         borderWidth: 2
       }]
