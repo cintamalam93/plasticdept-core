@@ -152,9 +152,9 @@ function renderChart(achievedQty, totalQty) {
   window.progressChartInstance = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Achieved", "Remaining"],
+      labels: ["Achievement"],
       datasets: [{
-        data: [achievedQty, remainingQty],
+        data: [achievedQty],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
         hoverOffset: 12, // efek slice lebih besar saat hover
         borderWidth: 2
@@ -188,7 +188,7 @@ function renderChart(achievedQty, totalQty) {
           titleFont: { weight: 'bold' },
           bodyFont: { weight: 'normal' }
         },
-        legend: { display: false },
+        legend: { display: true },
         centerText: {
           text: `${percentage}%`
         }
