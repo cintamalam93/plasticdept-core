@@ -1,20 +1,23 @@
-// team-reguler.js
+// team-sugity.js
 import { db, authPromise } from "./config.js";
 import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Reguler";
 
-// PATCH: renderPicMetric tampilkan icon sebelum nama, dan nama rata kiri
+/**
+ * Render PIC metric (array nama PIC dengan icon) ke dalam metric box.
+ * @param {string[]|string} picNames
+ */
 function renderPicMetric(picNames) {
   // Hapus metric PIC lama jika sudah ada
   const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
   if (oldMetric) oldMetric.remove();
 
-  // Icon path (relative dari HTML team-reguler)
+  // Icon path (relative dari HTML team-sugity/reguler)
   const iconPath = "img/team_mp.png";
 
-  // Gabungkan nama jadi beberapa baris, tiap baris ada icon
+  // Gabungkan nama jadi beberapa baris dengan icon
   const namesHTML = Array.isArray(picNames)
     ? picNames.map(name =>
         `<div class="pic-row"><img src="${iconPath}" class="pic-icon" alt="MP" />${name}</div>`
@@ -31,7 +34,9 @@ function renderPicMetric(picNames) {
   document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
 }
 
-// Ambil semua PIC team Reguler dari node MPPIC, render nama-namanya
+/**
+ * Ambil semua PIC dengan team "Sugity" dari node MPPIC dan render ke metric box.
+ */
 function setPicMetricFromDb() {
   onValue(ref(db, `MPPIC`), (snapshot) => {
     const allPicData = snapshot.val();
@@ -39,9 +44,9 @@ function setPicMetricFromDb() {
       renderPicMetric("-");
       return;
     }
-    // Filter hanya team Reguler lalu ambil nama-nama
+    // Filter hanya team Sugity lalu ambil nama-nama
     const picNames = Object.values(allPicData)
-      .filter(pic => (pic.team || "").toLowerCase() === "reguler")
+      .filter(pic => (pic.team || "").toLowerCase() === "Reguler")
       .map(pic => pic.name || "-");
 
     if (picNames.length === 0) picNames.push("-");
@@ -49,6 +54,11 @@ function setPicMetricFromDb() {
   });
 }
 
+/**
+ * Helper: Buat status label dengan warna sesuai status.
+ * @param {string} status
+ * @returns {HTMLSpanElement}
+ */
 function createStatusLabel(status) {
   const span = document.createElement("span");
   span.textContent = status;
@@ -74,7 +84,6 @@ function createStatusLabel(status) {
     case "loading":
       span.style.backgroundColor = "#2ecc71"; // Hijau
       break;
-
     // ZLogix
     case "newjob":
       span.style.backgroundColor = "#e74c3c"; // Merah
@@ -86,7 +95,6 @@ function createStatusLabel(status) {
     case "loaded":
       span.style.backgroundColor = "#2ecc71";
       break;
-
     default:
       span.style.backgroundColor = "#bdc3c7"; // Abu-abu
   }
@@ -98,52 +106,20 @@ function createStatusLabel(status) {
   return span;
 }
 
-let currentPercent = 0;
-let animationFrame;
-
-const centerTextPlugin = {
-  id: 'centerText',
-  beforeDraw(chart) {
-    const { width, height, ctx } = chart;
-    ctx.restore();
-    const fontSize = (height / 100).toFixed(2);
-    ctx.font = `${fontSize}em sans-serif`;
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#2c3e50";
-
-    const text = `${Math.round(currentPercent)}%`;
-    const textX = Math.round((width - ctx.measureText(text).width) / 2);
-    const textY = height / 2;
-
-    ctx.clearRect(width / 4, height / 2 - 10, width / 2, 20);
-    ctx.fillText(text, textX, textY);
-    ctx.save();
-  }
-};
-
-Chart.register(centerTextPlugin);
-
-function animatePercentage(target) {
-  currentPercent = 0;
-  function step() {
-    if (currentPercent < target) {
-      currentPercent += 1;
-      window.progressChartInstance.update();
-      animationFrame = requestAnimationFrame(step);
-    } else {
-      currentPercent = target;
-      window.progressChartInstance.update();
-      cancelAnimationFrame(animationFrame);
-    }
-  }
-  step();
-}
-
+/**
+ * Render donut chart progress untuk team Sugity.
+ * Center label persentase hanya menggunakan HTML, tidak memakai plugin Chart.js.
+ * Legend Chart.js dimatikan, legend manual via HTML.
+ * @param {number} achievedQty - Jumlah progress yang tercapai
+ * @param {number} totalQty - Plan Target (boleh diabaikan, gunakan PLAN_TARGET_QTY untuk konsistensi)
+ */
 function renderChart(achievedQty, totalQty) {
   const ctx = document.getElementById("progressChart").getContext("2d");
-  const percentage = PLAN_TARGET_QTY === 0 ? 0 : Math.round((achievedQty / PLAN_TARGET_QTY) * 100);
-  const remainingQty = Math.max(0, PLAN_TARGET_QTY - achievedQty);
+  const planTarget = typeof PLAN_TARGET_QTY !== "undefined" ? PLAN_TARGET_QTY : totalQty;
+  const percentage = planTarget === 0 ? 0 : Math.round((achievedQty / planTarget) * 100);
+  const remainingQty = Math.max(0, planTarget - achievedQty);
 
+  // Destroy previous chart if exists
   if (window.progressChartInstance) window.progressChartInstance.destroy();
 
   window.progressChartInstance = new Chart(ctx, {
@@ -153,7 +129,6 @@ function renderChart(achievedQty, totalQty) {
       datasets: [{
         data: [achievedQty, remainingQty],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
-        hoverOffset: 12, // efek slice lebih besar saat hover
         borderWidth: 2
       }]
     },
@@ -161,15 +136,9 @@ function renderChart(achievedQty, totalQty) {
       cutout: "70%",
       responsive: true,
       maintainAspectRatio: false,
-      animation: {
-        animateRotate: true,
-        animateScale: true,
-        duration: 1000,
-        easing: "easeOutQuart"
-      },
       plugins: {
+        legend: { display: false }, // Legend manual via HTML
         tooltip: {
-          enabled: true,
           callbacks: {
             label: function(context) {
               const label = context.label || '';
@@ -184,18 +153,21 @@ function renderChart(achievedQty, totalQty) {
           borderWidth: 1,
           titleFont: { weight: 'bold' },
           bodyFont: { weight: 'normal' }
-        },
-        legend: { display: false },
-        centerText: {
-          text: `${percentage}%`
         }
       }
     }
   });
 
-  animatePercentage(percentage);
+  // Update center label di HTML (hanya satu, tidak dobel)
+  const donutCenterText = document.getElementById("donutCenterTextTeam");
+  if (donutCenterText) {
+    donutCenterText.textContent = percentage + "%";
+  }
 }
 
+/**
+ * Load data outbound jobs untuk team Sugity, isi tabel dan update chart & metrics.
+ */
 function loadTeamJobs() {
   onValue(ref(db, "PhxOutboundJobs"), snapshot => {
     const data = snapshot.val();
@@ -250,9 +222,12 @@ function loadTeamJobs() {
   });
 }
 
+// Default Plan Target per team
 let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
 
-// --- Setup tombol Logout/Back berdasarkan role user di database, BUKAN localStorage ---
+/**
+ * Setup tombol Logout/Back berdasarkan role user di database (bukan localStorage).
+ */
 async function setupRoleButtons() {
   await authPromise;
   const userId = sessionStorage.getItem("userId");
@@ -292,9 +267,9 @@ async function setupRoleButtons() {
   }
 }
 
-// Pastikan semua akses database dilakukan setelah login anonymous sukses
+// Inisialisasi setelah login anonymous sukses
 authPromise.then(() => {
-  setPicMetricFromDb(); // panggil tanpa argumen!
+  setPicMetricFromDb("TeamSugity");
   setupRoleButtons();
   onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
     if (snapshot.exists()) {
