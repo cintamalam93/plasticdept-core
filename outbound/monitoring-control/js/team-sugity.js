@@ -112,7 +112,7 @@ const centerTextPlugin = {
     // Angka persen lebih besar & tebal, simbol % lebih kecil
     const percent = Math.round(currentPercent);
     // Ukuran font angka dan simbol, silakan adjust sesuai selera
-    const fontSizeNumber = Math.round(height / 2.5); // angka besar
+    const fontSizeNumber = Math.round(height / 4.5); // angka besar
     const fontSizePercent = Math.round(height / 4.5); // % kecil
 
     // Angka tebal
