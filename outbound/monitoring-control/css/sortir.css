@@ -901,3 +901,9 @@ button.success:hover {
   transition: background 0.18s;
   box-shadow: 0 1px 2px rgba(33,118,174,0.06);
 }
+
+input[type="checkbox"] {
+  width: 22px;   /* atau ukuran sesuai kebutuhan */
+  height: 22px;
+  accent-color: #2176ae; /* opsional, untuk warna */
+}
