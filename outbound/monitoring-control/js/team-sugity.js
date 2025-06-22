@@ -108,19 +108,15 @@ const centerTextPlugin = {
   id: 'centerText',
   beforeDraw(chart) {
     const { width, height, ctx } = chart;
-    ctx.restore();
-    const fontSize = (height / 100).toFixed(2);
-    ctx.font = `${fontSize}em sans-serif`;
+    ctx.save();
+    ctx.font = `${(height / 4)}px Inter, Arial, sans-serif`;
+    ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillStyle = "#2c3e50";
-
     const text = `${Math.round(currentPercent)}%`;
-    const textX = Math.round((width - ctx.measureText(text).width) / 2);
-    const textY = height / 2;
-
-    ctx.clearRect(width / 4, height / 2 - 10, width / 2, 20);
-    ctx.fillText(text, textX, textY);
-    ctx.save();
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillText(text, width / 2, height / 2);
+    ctx.restore();
   }
 };
 
@@ -188,7 +184,7 @@ function renderChart(achievedQty, totalQty) {
           titleFont: { weight: 'bold' },
           bodyFont: { weight: 'normal' }
         },
-        legend: { display: true },
+        legend: { display: true, position: "bottom" },
         centerText: {
           text: `${percentage}%`
         }
