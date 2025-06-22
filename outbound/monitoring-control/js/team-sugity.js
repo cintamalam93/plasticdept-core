@@ -5,8 +5,10 @@ import { ref, onValue, get } from "https://www.gstatic.com/firebasejs/9.6.1/fire
 const teamTable = document.getElementById("teamTable").getElementsByTagName("tbody")[0];
 const currentTeam = "Sugity";
 
-// --- Ambil PIC dari Firebase, bukan localStorage ---
-// Ubah: menerima array nama PIC, render per baris, tambahkan icon sebelum nama
+/**
+ * Render PIC metric (array nama PIC dengan icon) ke dalam metric box.
+ * @param {string[]|string} picNames
+ */
 function renderPicMetric(picNames) {
   // Hapus metric PIC lama jika sudah ada
   const oldMetric = document.querySelector(".metrics .metric-box[data-pic-metric]");
@@ -32,7 +34,9 @@ function renderPicMetric(picNames) {
   document.querySelector(".metrics")?.insertAdjacentHTML("afterbegin", picMetricHTML);
 }
 
-// Ambil semua PIC dengan team "Sugity" dari node MPPIC
+/**
+ * Ambil semua PIC dengan team "Sugity" dari node MPPIC dan render ke metric box.
+ */
 function setPicMetricFromDb() {
   onValue(ref(db, `MPPIC`), (snapshot) => {
     const allPicData = snapshot.val();
@@ -50,7 +54,11 @@ function setPicMetricFromDb() {
   });
 }
 
-// ...
+/**
+ * Helper: Buat status label dengan warna sesuai status.
+ * @param {string} status
+ * @returns {HTMLSpanElement}
+ */
 function createStatusLabel(status) {
   const span = document.createElement("span");
   span.textContent = status;
@@ -76,7 +84,6 @@ function createStatusLabel(status) {
     case "loading":
       span.style.backgroundColor = "#2ecc71"; // Hijau
       break;
-
     // ZLogix
     case "newjob":
       span.style.backgroundColor = "#e74c3c"; // Merah
@@ -88,7 +95,6 @@ function createStatusLabel(status) {
     case "loaded":
       span.style.backgroundColor = "#2ecc71";
       break;
-
     default:
       span.style.backgroundColor = "#bdc3c7"; // Abu-abu
   }
@@ -99,88 +105,30 @@ function createStatusLabel(status) {
   if (normalized !== "completed") span.style.color = "white";
   return span;
 }
-// ...
 
-let currentPercent = 0;
-let animationFrame;
-
-const centerTextPlugin = {
-  id: 'centerText',
-  beforeDraw(chart) {
-    const { width, height, ctx } = chart;
-    ctx.save();
-
-    // Nilai persentase (misal: 77)
-    const percent = Math.round(currentPercent);
-
-    // Ukuran font, proporsional dengan donut/canvas
-    // Angka utama: sekitar 36% dari tinggi chart
-    const fontSize = Math.round(height * 0.18);
-    ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
-    ctx.fillStyle = "#174ea6";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-
-    // Teks utama (angka persen)
-    const text = percent.toString();
-    // Simbol persen " % " lebih kecil, di sebelah kanan angka
-    const percentFontSize = Math.round(height * 0.18);
-    ctx.save();
-    // Hitung total lebar angka dan simbol
-    const textWidth = ctx.measureText(text).width;
-    ctx.font = `normal ${percentFontSize}px Inter, Arial, sans-serif`;
-    const percentWidth = ctx.measureText('%').width;
-    ctx.restore();
-
-    // X dan Y Center
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // Tampilkan angka
-    ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
-    ctx.fillText(text, centerX - percentWidth / 2, centerY);
-
-    // Tampilkan simbol persen, tepat di sebelah angka (sedikit naik supaya proporsional)
-    ctx.font = `normal ${percentFontSize}px Inter, Arial, sans-serif`;
-    ctx.fillText('%', centerX + textWidth / 2 + percentWidth / 4, centerY - fontSize * 0.12);
-
-    ctx.restore();
-  }
-};
-
-Chart.register(centerTextPlugin);
-
-function animatePercentage(target) {
-  currentPercent = 0;
-  function step() {
-    if (currentPercent < target) {
-      currentPercent += 1;
-      window.progressChartInstance.update();
-      animationFrame = requestAnimationFrame(step);
-    } else {
-      currentPercent = target;
-      window.progressChartInstance.update();
-      cancelAnimationFrame(animationFrame);
-    }
-  }
-  step();
-}
-
+/**
+ * Render donut chart progress untuk team Sugity.
+ * Center label persentase hanya menggunakan HTML, tidak memakai plugin Chart.js.
+ * Legend Chart.js dimatikan, legend manual via HTML.
+ * @param {number} achievedQty - Jumlah progress yang tercapai
+ * @param {number} totalQty - Plan Target (boleh diabaikan, gunakan PLAN_TARGET_QTY untuk konsistensi)
+ */
 function renderChart(achievedQty, totalQty) {
   const ctx = document.getElementById("progressChart").getContext("2d");
-  const percentage = PLAN_TARGET_QTY === 0 ? 0 : Math.round((achievedQty / PLAN_TARGET_QTY) * 100);
-  const remainingQty = Math.max(0, PLAN_TARGET_QTY - achievedQty);
+  const planTarget = typeof PLAN_TARGET_QTY !== "undefined" ? PLAN_TARGET_QTY : totalQty;
+  const percentage = planTarget === 0 ? 0 : Math.round((achievedQty / planTarget) * 100);
+  const remainingQty = Math.max(0, planTarget - achievedQty);
 
+  // Destroy previous chart if exists
   if (window.progressChartInstance) window.progressChartInstance.destroy();
 
   window.progressChartInstance = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Achievement", "Remaining"], // dua label, agar legend tidak undefined
+      labels: ["Achieved", "Remaining"],
       datasets: [{
         data: [achievedQty, remainingQty],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
-        hoverOffset: 12,
         borderWidth: 2
       }]
     },
@@ -188,15 +136,9 @@ function renderChart(achievedQty, totalQty) {
       cutout: "70%",
       responsive: true,
       maintainAspectRatio: false,
-      animation: {
-        animateRotate: true,
-        animateScale: true,
-        duration: 1000,
-        easing: "easeOutQuart"
-      },
       plugins: {
+        legend: { display: false }, // Legend manual via HTML
         tooltip: {
-          enabled: true,
           callbacks: {
             label: function(context) {
               const label = context.label || '';
@@ -211,34 +153,21 @@ function renderChart(achievedQty, totalQty) {
           borderWidth: 1,
           titleFont: { weight: 'bold' },
           bodyFont: { weight: 'normal' }
-        },
-        legend: {
-          display: true,
-          position: "bottom",
-          labels: {
-            generateLabels: function(chart) {
-              // Custom legend: hanya tampilkan Achievement saja
-              const original = Chart.defaults.plugins.legend.labels.generateLabels;
-              const labels = original(chart);
-              if (labels.length > 0) {
-                labels[0].text = "Achievement";
-                return [labels[0]];
-              }
-              return [];
-            }
-          }
-        },
-        centerText: {
-          text: `${percentage}%`
         }
       }
-    },
-    plugins: [centerTextPlugin]
+    }
   });
 
-  animatePercentage(percentage);
+  // Update center label di HTML (hanya satu, tidak dobel)
+  const donutCenterText = document.getElementById("donutCenterTextTeam");
+  if (donutCenterText) {
+    donutCenterText.textContent = percentage + "%";
+  }
 }
 
+/**
+ * Load data outbound jobs untuk team Sugity, isi tabel dan update chart & metrics.
+ */
 function loadTeamJobs() {
   onValue(ref(db, "PhxOutboundJobs"), snapshot => {
     const data = snapshot.val();
@@ -293,9 +222,12 @@ function loadTeamJobs() {
   });
 }
 
+// Default Plan Target per team
 let PLAN_TARGET_QTY = currentTeam.toLowerCase() === "reguler" ? 17640 : 35280;
 
-// --- Setup tombol Logout/Back berdasarkan role user di database, BUKAN localStorage ---
+/**
+ * Setup tombol Logout/Back berdasarkan role user di database (bukan localStorage).
+ */
 async function setupRoleButtons() {
   await authPromise;
   const userId = sessionStorage.getItem("userId");
@@ -335,7 +267,7 @@ async function setupRoleButtons() {
   }
 }
 
-// Pastikan semua akses database dilakukan setelah login anonymous sukses
+// Inisialisasi setelah login anonymous sukses
 authPromise.then(() => {
   setPicMetricFromDb("TeamSugity");
   setupRoleButtons();
