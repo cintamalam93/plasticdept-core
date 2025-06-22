@@ -73,17 +73,6 @@ function calculateOrderH1Actual(jobs, shiftMode) {
     return total;
 }
 
-// Misal proses perhitungan totalOrder-actual
-function calculateTotalOrderActual(orders) {
-    let total = 0;
-    orders.forEach((order, idx) => {
-        console.log(`[LOG] Menambahkan order ke-${idx + 1}: ${order.amount}`); // Log setiap penambahan
-        total += order.amount;
-    });
-    console.log(`[LOG] Nilai totalOrder-actual akhir: ${total}`); // Log hasil akhir
-    return total;
-}
-
 // Hitung total qty OT pada shift tertentu dari node PhxOutboundJobs
 function calculateCapShiftOT(jobs, shiftLabel) {
     let total = 0;
@@ -200,9 +189,6 @@ authPromise.then(async () => {
         let capDayShift = 0;
         let capNightShift = 0;
 
-        // ---------- PATCH: HAPUS let totalOrderH1 = 0; (tidak hitung manual lagi!) ----------
-        // let totalOrderH1 = 0; // HAPUS ini
-
         const tomorrowDateStr = getTomorrowDateStr();
 
         if (jobs) {
@@ -220,10 +206,6 @@ authPromise.then(async () => {
                 } else if (jobType === "Additional") {
                     totalAdditional += qty;
                 }
-                // PATCH: HAPUS blok ini: 
-                // else if (deliveryDate === tomorrowDateStr && status === "newjob") {
-                //     totalOrderH1 += qty;
-                // }
 
                 // Capacity day shift (filter shift & team)
                 if (
@@ -362,69 +344,68 @@ authPromise.then(async () => {
             }
 
             // ===================== ACHIEVEMENT LOGIC =====================
-            // Helper untuk safe division
-            function safeDivide(a, b) {
-                a = Number(a);
-                b = Number(b);
-                if (isNaN(a) || isNaN(b) || b === 0) return 0;
-                return a / b;
-            }
-            // Get all relevant values in number (hilangkan koma dan fallback ke 0 jika kosong)
+            // Ambil nilai actual
             const mpDayShiftActual = Number((document.getElementById("mpDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const capDayShiftActual = Number((document.getElementById("capDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
 
-            const mpNightShiftActual = Number((document.getElementById("mpNightShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
-            const capNightShiftActualVal = Number((document.getElementById("capNightShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
-
-            // Variable to store last capDayShift-achievement for night shift calc
-            let lastCapDayShiftAchievement = 0;
-
             if (shiftMode === "day") {
-                // mpDayShift-achievement = capDayShift-actual / mpDayShift-actual
-                let mpDayAchv = safeDivide(capDayShiftActual, mpDayShiftActual);
+                let mpDayAchv = (mpDayShiftActual !== 0) ? capDayShiftActual / mpDayShiftActual : 0;
                 document.getElementById("mpDayShift-achievement").textContent =
                     (mpDayShiftActual > 0 && capDayShiftActual > 0)
                         ? Math.round(mpDayAchv).toLocaleString('en-US')
                         : "-";
 
-                // capDayShift-achievement = mpDayShift-achievement - cap1MPHour-achievement
                 let capDayAchv = mpDayAchv - cap1MPHourAchievement;
                 document.getElementById("capDayShift-achievement").textContent =
                     (mpDayShiftActual > 0 && capDayShiftActual > 0 && cap1MPHourAchievement > 0)
                         ? Math.round(capDayAchv).toLocaleString('en-US')
                         : "-";
-                // Simpan untuk night shift
-                lastCapDayShiftAchievement = capDayAchv;
-
-                // Clear night shift achievement cells
-                document.getElementById("mpNightShift-achievement").textContent = "";
-                document.getElementById("capNightShift-achievement").textContent = "";
             } else {
-                // mpNightShift-achievement = capNightShift-actual / mpNightShift-actual
-                let mpNightAchv = safeDivide(capNightShiftActualVal, mpNightShiftActual);
-                document.getElementById("mpNightShift-achievement").textContent =
-                    (mpNightShiftActual > 0 && capNightShiftActualVal > 0)
-                        ? Math.round(mpNightAchv).toLocaleString('en-US')
-                        : "-";
-
-                // capNightShift-achievement = capDayShift-achievement (dari shift day) - mpNightShift-achievement
-                // Ambil dari cell capDayShift-achievement (yang sebelumnya sudah diisi di mode day)
-                let capDayAchvPrev = Number((document.getElementById("capDayShift-achievement")?.textContent || "").replace(/,/g, ""));
-                    // jika cell kosong atau bukan angka valid, hasilkan null
-                    if (isNaN(capDayAchvPrev) || capDayAchvPrev === 0) {
-                        document.getElementById("capNightShift-achievement").textContent = "-";
-                    } else {
-                        let capNightAchv = mpNightAchv - capDayAchvPrev;
-                        document.getElementById("capNightShift-achievement").textContent =
-                            (mpNightShiftActual > 0)
-                                ? Math.round(capNightAchv).toLocaleString('en-US')
-                                : "-";
-                    }
-                // Clear day shift achievement cells
                 document.getElementById("mpDayShift-achievement").textContent = "";
                 document.getElementById("capDayShift-achievement").textContent = "";
             }
+            // ============================================================
+
+            // ===================== PERCENTAGE LOGIC =====================
+            // Helper: Persentase, dibulatkan ke integer
+            function percentRound(val) {
+                return Math.round(val * 100);
+            }
+
+            // cap1MPHour-percentage harus dihitung dari cap1MPHour-achievement/mpDayShift-achievement (atau mpNightShift-achievement)
+            let cap1MPHourPercentage = 0;
+            if (shiftMode === "day") {
+                // cap1MPHour-percentage = cap1MPHour-achievement / mpDayShift-achievement
+                const mpDayShiftAchievement = Number((document.getElementById("mpDayShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
+                if (mpDayShiftAchievement !== 0) {
+                    cap1MPHourPercentage = cap1MPHourAchievement / mpDayShiftAchievement;
+                }
+            } else {
+                // cap1MPHour-percentage = cap1MPHour-achievement / mpNightShift-achievement
+                const mpNightShiftAchievement = Number((document.getElementById("mpNightShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
+                if (mpNightShiftAchievement !== 0) {
+                    cap1MPHourPercentage = cap1MPHourAchievement / mpNightShiftAchievement;
+                }
+            }
+
+            // capDayShift-percentage
+            let capDayShiftPercent = 1 - cap1MPHourPercentage;
+            document.getElementById("capDayShift-percentage").textContent = percentRound(capDayShiftPercent) + "%";
+
+            // capNightShift-percentage: clear jika tidak dipakai
+            if (shiftMode === "day") {
+                document.getElementById("capNightShift-percentage").textContent = "";
+            } else {
+                document.getElementById("capNightShift-percentage").textContent = "";
+            }
+
+            // totalCap-percentage
+            const totalCapActual = Number((document.getElementById("totalCap-actual")?.textContent || "").replace(/,/g, "")) || 0;
+            let totalCapPercent = (totalCapActual !== 0)
+                ? 1 - (88200 / totalCapActual)
+                : 0;
+            document.getElementById("totalCap-percentage").textContent = percentRound(totalCapPercent) + "%";
             // ============================================================
         }
 
