@@ -115,7 +115,7 @@ const centerTextPlugin = {
 
     // Ukuran font, proporsional dengan donut/canvas
     // Angka utama: sekitar 36% dari tinggi chart
-    const fontSize = Math.round(height * 0.36);
+    const fontSize = Math.round(height * 0.18);
     ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
     ctx.fillStyle = "#174ea6";
     ctx.textAlign = "center";
