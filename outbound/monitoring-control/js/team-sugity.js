@@ -109,26 +109,40 @@ const centerTextPlugin = {
   beforeDraw(chart) {
     const { width, height, ctx } = chart;
     ctx.save();
+
+    // Nilai persentase (misal: 77)
     const percent = Math.round(currentPercent);
-    const fontSizeNumber = Math.round(height / 4);
-    const fontSizePercent = Math.round(height / 7);
 
-    const centerX = width / 2;
-    const centerY = height / 2 - height / 4; // offset ke atas
-
-    ctx.font = `bold ${fontSizeNumber}px Inter, Arial, sans-serif`;
+    // Ukuran font, proporsional dengan donut/canvas
+    // Angka utama: sekitar 36% dari tinggi chart
+    const fontSize = Math.round(height * 0.36);
+    ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
+    ctx.fillStyle = "#174ea6";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "#174ea6";
-    const numberText = percent.toString();
-    const percentText = "%";
-    const numberWidth = ctx.measureText(numberText).width;
 
-    ctx.fillText(numberText, centerX - fontSizePercent / 2.5, centerY);
+    // Teks utama (angka persen)
+    const text = percent.toString();
+    // Simbol persen " % " lebih kecil, di sebelah kanan angka
+    const percentFontSize = Math.round(height * 0.18);
+    ctx.save();
+    // Hitung total lebar angka dan simbol
+    const textWidth = ctx.measureText(text).width;
+    ctx.font = `normal ${percentFontSize}px Inter, Arial, sans-serif`;
+    const percentWidth = ctx.measureText('%').width;
+    ctx.restore();
 
-    ctx.font = `normal ${fontSizePercent}px Inter, Arial, sans-serif`;
-    ctx.textAlign = "left";
-    ctx.fillText(percentText, centerX + numberWidth / 2 - fontSizePercent / 2.5, centerY - fontSizeNumber / 7);
+    // X dan Y Center
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Tampilkan angka
+    ctx.font = `bold ${fontSize}px Inter, Arial, sans-serif`;
+    ctx.fillText(text, centerX - percentWidth / 2, centerY);
+
+    // Tampilkan simbol persen, tepat di sebelah angka (sedikit naik supaya proporsional)
+    ctx.font = `normal ${percentFontSize}px Inter, Arial, sans-serif`;
+    ctx.fillText('%', centerX + textWidth / 2 + percentWidth / 4, centerY - fontSize * 0.12);
 
     ctx.restore();
   }
