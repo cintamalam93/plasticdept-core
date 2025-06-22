@@ -109,13 +109,36 @@ const centerTextPlugin = {
   beforeDraw(chart) {
     const { width, height, ctx } = chart;
     ctx.save();
-    ctx.font = `${(height / 4)}px Inter, Arial, sans-serif`;
+    // Angka persen lebih besar & tebal, simbol % lebih kecil
+    const percent = Math.round(currentPercent);
+    // Ukuran font angka dan simbol, silakan adjust sesuai selera
+    const fontSizeNumber = Math.round(height / 2.5); // angka besar
+    const fontSizePercent = Math.round(height / 4.5); // % kecil
+
+    // Angka tebal
+    ctx.font = `bold ${fontSizeNumber}px Inter, Arial, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "#2c3e50";
-    const text = `${Math.round(currentPercent)}%`;
-    ctx.clearRect(0, 0, width, height);
-    ctx.fillText(text, width / 2, height / 2);
+    ctx.fillStyle = "#174ea6"; // warna biru gelap, sesuai dashboard
+
+    // X dan Y center
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // Lebar angka diukur untuk posisi %
+    const numberText = percent.toString();
+    const percentText = "%";
+    const numberWidth = ctx.measureText(numberText).width;
+
+    // Angka (besar)
+    ctx.fillText(numberText, centerX - fontSizePercent / 2.5, centerY);
+
+    // Simbol persen (lebih kecil, di sebelah kanan angka, sedikit naik)
+    ctx.font = `normal ${fontSizePercent}px Inter, Arial, sans-serif`;
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText(percentText, centerX + numberWidth / 2 - fontSizePercent / 2.5, centerY - fontSizeNumber / 7);
+
     ctx.restore();
   }
 };
@@ -148,11 +171,11 @@ function renderChart(achievedQty, totalQty) {
   window.progressChartInstance = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Achievement"],
+      labels: ["Achievement", "Remaining"], // Tetap dua label
       datasets: [{
-        data: [achievedQty],
+        data: [achievedQty, remainingQty],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
-        hoverOffset: 12, // efek slice lebih besar saat hover
+        hoverOffset: 12,
         borderWidth: 2
       }]
     },
@@ -184,12 +207,23 @@ function renderChart(achievedQty, totalQty) {
           titleFont: { weight: 'bold' },
           bodyFont: { weight: 'normal' }
         },
-        legend: { display: true, position: "bottom" },
+        legend: {
+          display: true,
+          position: "bottom",
+          labels: {
+            generateLabels: function(chart) {
+              const original = Chart.defaults.plugins.legend.labels.generateLabels;
+              const labels = original(chart);
+              return labels.slice(0, 1); // Hanya Achievement yang tampil di legend
+            }
+          }
+        },
         centerText: {
           text: `${percentage}%`
         }
       }
-    }
+    },
+    plugins: [centerTextPlugin]
   });
 
   animatePercentage(percentage);
