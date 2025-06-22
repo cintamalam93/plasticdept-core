@@ -109,34 +109,25 @@ const centerTextPlugin = {
   beforeDraw(chart) {
     const { width, height, ctx } = chart;
     ctx.save();
-    // Angka persen lebih besar & tebal, simbol % lebih kecil
     const percent = Math.round(currentPercent);
-    // Ukuran font angka dan simbol, silakan adjust sesuai selera
-    const fontSizeNumber = Math.round(height / 4.5); // angka besar
-    const fontSizePercent = Math.round(height / 4.5); // % kecil
+    const fontSizeNumber = Math.round(height / 4);
+    const fontSizePercent = Math.round(height / 7);
 
-    // Angka tebal
+    const centerX = width / 2;
+    const centerY = height / 2 - height / 4; // offset ke atas
+
     ctx.font = `bold ${fontSizeNumber}px Inter, Arial, sans-serif`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillStyle = "#174ea6"; // warna biru gelap, sesuai dashboard
-
-    // X dan Y center
-    const centerX = width / 2;
-    const centerY = height / 2;
-
-    // Lebar angka diukur untuk posisi %
+    ctx.fillStyle = "#174ea6";
     const numberText = percent.toString();
     const percentText = "%";
     const numberWidth = ctx.measureText(numberText).width;
 
-    // Angka (besar)
     ctx.fillText(numberText, centerX - fontSizePercent / 2.5, centerY);
 
-    // Simbol persen (lebih kecil, di sebelah kanan angka, sedikit naik)
     ctx.font = `normal ${fontSizePercent}px Inter, Arial, sans-serif`;
     ctx.textAlign = "left";
-    ctx.textBaseline = "middle";
     ctx.fillText(percentText, centerX + numberWidth / 2 - fontSizePercent / 2.5, centerY - fontSizeNumber / 7);
 
     ctx.restore();
@@ -171,7 +162,7 @@ function renderChart(achievedQty, totalQty) {
   window.progressChartInstance = new Chart(ctx, {
     type: "doughnut",
     data: {
-      labels: ["Achievement", "Remaining"], // Tetap dua label
+      labels: ["Achievement", "Remaining"], // dua label, agar legend tidak undefined
       datasets: [{
         data: [achievedQty, remainingQty],
         backgroundColor: ["#2ecc71", "#ecf0f1"],
@@ -212,9 +203,14 @@ function renderChart(achievedQty, totalQty) {
           position: "bottom",
           labels: {
             generateLabels: function(chart) {
+              // Custom legend: hanya tampilkan Achievement saja
               const original = Chart.defaults.plugins.legend.labels.generateLabels;
               const labels = original(chart);
-              return labels.slice(0, 1); // Hanya Achievement yang tampil di legend
+              if (labels.length > 0) {
+                labels[0].text = "Achievement";
+                return [labels[0]];
+              }
+              return [];
             }
           }
         },
