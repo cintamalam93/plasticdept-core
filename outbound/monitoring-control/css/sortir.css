@@ -907,3 +907,24 @@ input[type="checkbox"] {
   height: 22px;
   accent-color: #2176ae; /* opsional, untuk warna */
 }
+
+.toolbar .team-buttons .toolbar-link {
+  display: inline-block;
+  background: #46cddb;
+  color: #000;
+  border: 1.3px solid #46cddb;
+  border-radius: 7px;
+  margin-right: 5px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 1rem;
+  box-shadow: 0 1px 7px rgba(33,118,174,0.09);
+  transition: background 0.18s, color 0.18s;
+  text-decoration: none;
+  text-align: center;
+  cursor: pointer;
+}
+.toolbar .team-buttons .toolbar-link:hover {
+  background: #2176ae;
+  color: #fff;
+}
