@@ -406,10 +406,45 @@ authPromise.then(async () => {
                 ? 1 - (88200 / totalCapActual)
                 : 0;
             document.getElementById("totalCap-percentage").textContent = percentRound(totalCapPercent) + "%";
-            // ============================================================
+
+            updateSummaryCards(shiftMode);
         }
 
-        // Inisialisasi awal (default tampil day shift)
+        function updateSummaryCards(shiftMode) {
+            const totalOrderSummary = document.getElementById('totalOrder-summary');
+            const totalCapSummary = document.getElementById('totalCap-summary');
+            const remOrderSummary = document.getElementById('remOrder-summary');
+            const gapNWDSummary = document.getElementById('gapNWD-summary');
+            const achievementSummary = document.getElementById('achievement-summary');
+
+            const totalOrderActual = document.getElementById('totalOrder-actual')?.textContent || "-";
+            const remOrderActual = document.getElementById('remOrder-actual')?.textContent || "-";
+
+            let capActual = "-";
+            let gapNWD = "-";
+            let achv = "-";
+
+            if (shiftMode === "day") {
+                capActual = document.getElementById('capDayShift-actual')?.textContent || "-";
+                gapNWD = document.getElementById('capDayShift-gap')?.textContent || "-";
+                const capDayShiftActualVal = Number((document.getElementById('capDayShift-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+                const capDayShiftOtVal = Number((document.getElementById('capDayShift-ot')?.textContent || "0").replace(/,/g, "")) || 0;
+                achv = (capDayShiftActualVal + capDayShiftOtVal) > 0 ? formatNumber(capDayShiftActualVal + capDayShiftOtVal) : "-";
+            } else {
+                capActual = document.getElementById('capNightShift-actual')?.textContent || "-";
+                gapNWD = document.getElementById('capNightShift-gap')?.textContent || "-";
+                const capNightShiftActualVal = Number((document.getElementById('capNightShift-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+                const capNightShiftOtVal = Number((document.getElementById('capNightShift-ot')?.textContent || "0").replace(/,/g, "")) || 0;
+                achv = (capNightShiftActualVal + capNightShiftOtVal) > 0 ? formatNumber(capNightShiftActualVal + capNightShiftOtVal) : "-";
+            }
+
+            if (totalOrderSummary) totalOrderSummary.textContent = totalOrderActual;
+            if (totalCapSummary) totalCapSummary.textContent = capActual;
+            if (remOrderSummary) remOrderSummary.textContent = remOrderActual;
+            if (gapNWDSummary) gapNWDSummary.textContent = gapNWD;
+            if (achievementSummary) achievementSummary.textContent = achv;
+        }
+
         updateShiftView();
 
         // Event listener toggle supaya shift responsif
