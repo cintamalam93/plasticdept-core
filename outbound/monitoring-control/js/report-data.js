@@ -185,21 +185,11 @@ authPromise.then(async () => {
             });
         }
 
-        // PATCH: Gunakan logika konsisten untuk totalOrderH1 (Order H-1)
-        // Tidak digunakan langsung, updateShiftView yang update orderH1-actual
-
-        // 4. Total Order = Remaining + Additional + Order H-1
-        // (totalOrderH1 untuk day shift diambil di updateShiftView)
-        const totalOrder = totalRemaining + totalAdditional;
-
         // 1. Total MP = Mp day shift + Mp night shift
         const totalMP = (mpDayShift || 0) + (mpNightShift || 0);
 
         // 2. Total Capacity = Capacity day shift + Capacity night shift
         const totalCap = (capDayShift || 0) + (capNightShift || 0);
-
-        // 3. Remaining order = Total Order - Total Capacity
-        const remainingOrder = (totalOrder || 0) - (totalCap || 0);
 
         // 4. Cap 1 MP per hour
         let cap1MPHour = 0;
@@ -214,10 +204,7 @@ authPromise.then(async () => {
         const addDayHCell = document.getElementById('addDayH-actual');
         if (addDayHCell) addDayHCell.textContent = totalAdditional > 0 ? formatNumber(totalAdditional) : "-";
 
-        const totalOrderCell = document.getElementById('totalOrder-actual');
-        if (totalOrderCell) {
-            totalOrderCell.textContent = totalOrder > 0 ? formatNumber(totalOrder) : "-";
-        }
+        // Jangan update orderH1-actual dan totalOrder-actual di sini, nanti oleh updateShiftView
 
         const totalMPCell = document.getElementById('totalMP-actual');
         if (totalMPCell) totalMPCell.textContent = totalMP > 0 ? formatNumber(totalMP) : "-";
@@ -281,7 +268,8 @@ authPromise.then(async () => {
                 }, 0);
 
                 // remOrder-actual: totalOrder - totalCap
-                remOrderVal = (totalOrder || 0) - (totalCap || 0);
+                // Akan di-update setelah totalOrder dihitung
+                remOrderVal = null;
 
             } else {
                 // remOrder-actual: jumlah qty semua status newjob (tanpa filter tanggal)
@@ -295,12 +283,35 @@ authPromise.then(async () => {
                 orderH1Val = remOrderVal + (capNightShiftActual || 0);
             }
 
-            /// --- Tampilkan ke tabel ---
+            // --- Tampilkan ke tabel ---
+            // orderH1-actual
             const orderH1Cell = document.getElementById('orderH1-actual');
             if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? formatNumber(orderH1Val) : "-";
 
+            // remOrder-actual
             const remainingOrderCell = document.getElementById('remOrder-actual');
-            if (remainingOrderCell) remainingOrderCell.textContent = remOrderVal > 0 ? formatNumber(remOrderVal) : "-";
+            if (shiftMode === "day") {
+                // Ambil nilai remOrderDayH-actual dan addDayH-actual dari HTML
+                const remOrderDayHVal = Number((document.getElementById('remOrderDayH-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+                const addDayHVal = Number((document.getElementById('addDayH-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+                // remOrder-actual: (remOrderDayH-actual + addDayH-actual + orderH1-actual) - totalCap
+                const totalOrderVal = remOrderDayHVal + addDayHVal + orderH1Val;
+                const totalCapVal = Number((document.getElementById('totalCap-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+                remOrderVal = totalOrderVal - totalCapVal;
+                if (remainingOrderCell) remainingOrderCell.textContent = !isNaN(remOrderVal) ? formatNumber(remOrderVal) : "-";
+            } else {
+                if (remainingOrderCell) remainingOrderCell.textContent = remOrderVal > 0 ? formatNumber(remOrderVal) : "-";
+            }
+
+            // --- totalOrder-actual: remOrderDayH-actual + addDayH-actual + orderH1-actual ---
+            const remOrderDayHValForTotal = Number((document.getElementById('remOrderDayH-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+            const addDayHValForTotal = Number((document.getElementById('addDayH-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+            const orderH1ValDisplay = Number((document.getElementById('orderH1-actual')?.textContent || "0").replace(/,/g, "")) || 0;
+            const totalOrderVal = remOrderDayHValForTotal + addDayHValForTotal + orderH1ValDisplay;
+            const totalOrderCell = document.getElementById('totalOrder-actual');
+            if (totalOrderCell) {
+                totalOrderCell.textContent = totalOrderVal > 0 ? formatNumber(totalOrderVal) : "-";
+            }
 
             // --- Render data utama ke table ---
             renderShiftData(
