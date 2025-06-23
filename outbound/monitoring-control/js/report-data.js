@@ -61,53 +61,6 @@ async function fetchMpOvertime(shiftLabel) {
     return 0;
 }
 
-// Helper: Hitung total Order H-1 actual sesuai shiftMode
-function calculateOrderH1Actual(jobs, shiftMode) {
-    let total = 0;
-    if (!jobs) return total;
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-    function formatDate(date) {
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = date.toLocaleString("en-US", { month: "short" });
-        const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
-    }
-    const todayStr = formatDate(today);
-    const yesterdayStr = formatDate(yesterday);
-
-    const filtered = Object.values(jobs).filter(job => {
-        const deliveryDate = job.deliveryDate || "";
-        const status = (job.status || "").toLowerCase();
-        return (
-            status === "newjob" &&
-            deliveryDate !== todayStr &&
-            deliveryDate !== yesterdayStr
-        );
-    });
-
-    if (shiftMode === "day") {
-        filtered.forEach(job => {
-            total += parseInt(job.qty, 10) || 0;
-        });
-    } else if (shiftMode === "night") {
-        if (filtered.length > 0) {
-            filtered.forEach(job => {
-                total += parseInt(job.qty, 10) || 0;
-            });
-        } else {
-            Object.values(jobs).forEach(job => {
-                const status = (job.status || "").toLowerCase();
-                if (status === "newjob") {
-                    total += parseInt(job.qty, 10) || 0;
-                }
-            });
-        }
-    }
-    return total;
-}
-
 // Render shift data ke tabel (toggle show/hide)
 function renderShiftData(showDay, mpDayShift, capDayShift, mpNightShift, capNightShift, cap1MPHour) {
     // Mp day shift & Capacity day shift
@@ -201,14 +154,10 @@ authPromise.then(async () => {
         let capDayShift = 0;
         let capNightShift = 0;
 
-        const tomorrowDateStr = getTomorrowDateStr();
-
         if (jobs) {
             Object.values(jobs).forEach(job => {
                 const jobType = job.jobType || "";
                 const qty = parseInt(job.qty, 10) || 0;
-                const deliveryDate = job.deliveryDate || "";
-                const status = (job.status || "").toLowerCase();
                 const shift = job.shift || "";
                 const team = job.team || "";
 
@@ -237,10 +186,11 @@ authPromise.then(async () => {
         }
 
         // PATCH: Gunakan logika konsisten untuk totalOrderH1 (Order H-1)
-        const totalOrderH1 = calculateOrderH1Actual(jobs, "day");
+        // Tidak digunakan langsung, updateShiftView yang update orderH1-actual
 
         // 4. Total Order = Remaining + Additional + Order H-1
-        const totalOrder = totalRemaining + totalAdditional + totalOrderH1;
+        // (totalOrderH1 untuk day shift diambil di updateShiftView)
+        const totalOrder = totalRemaining + totalAdditional;
 
         // 1. Total MP = Mp day shift + Mp night shift
         const totalMP = (mpDayShift || 0) + (mpNightShift || 0);
@@ -257,15 +207,12 @@ authPromise.then(async () => {
             cap1MPHour = (capDayShift + capNightShift) / (mpDayShift + mpNightShift) / (450 / 60);
         }
 
-        // Tampilkan ke tabel
+        // Tampilkan ke tabel (non-shifted, biar tidak error shiftMode)
         const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
         if (remOrderDayHCell) remOrderDayHCell.textContent = totalRemaining > 0 ? formatNumber(totalRemaining) : "-";
 
         const addDayHCell = document.getElementById('addDayH-actual');
         if (addDayHCell) addDayHCell.textContent = totalAdditional > 0 ? formatNumber(totalAdditional) : "-";
-
-        const orderH1Cell = document.getElementById('orderH1-actual');
-        if (orderH1Cell) orderH1Cell.textContent = totalOrderH1 > 0 ? totalOrderH1.toLocaleString("en-US") : "-";
 
         const totalOrderCell = document.getElementById('totalOrder-actual');
         if (totalOrderCell) {
@@ -277,25 +224,6 @@ authPromise.then(async () => {
 
         const totalCapCell = document.getElementById('totalCap-actual');
         if (totalCapCell) totalCapCell.textContent = totalCap > 0 ? formatNumber(totalCap) : "-";
-
-        const remainingOrderCell = document.getElementById('remOrder-actual');
-        if (remainingOrderCell) {
-            if (shiftMode === "night") {
-                // LOGIKA BARU: total outbound dengan status newjob
-                let totalNewJob = 0;
-                Object.values(jobs || {}).forEach(job => {
-                    const status = (job.status || "").toLowerCase();
-                    if (status === "newjob") {
-                        totalNewJob += parseInt(job.qty, 10) || 0;
-                    }
-                });
-                remainingOrderCell.textContent = totalNewJob > 0 ? formatNumber(totalNewJob) : "-";
-            } else {
-                // LOGIKA DAY SHIFT: totalOrder - totalCap
-                const remainingOrder = (totalOrder || 0) - (totalCap || 0);
-                remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
-            }
-        }
 
         // Tampilkan cap1MPHour ke tabel
         const cap1MPHourCell = document.getElementById('cap1MPHour-actual');
