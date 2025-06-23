@@ -279,7 +279,23 @@ authPromise.then(async () => {
         if (totalCapCell) totalCapCell.textContent = totalCap > 0 ? formatNumber(totalCap) : "-";
 
         const remainingOrderCell = document.getElementById('remOrder-actual');
-        if (remainingOrderCell) remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
+        if (remainingOrderCell) {
+            if (shiftMode === "night") {
+                // LOGIKA BARU: total outbound dengan status newjob
+                let totalNewJob = 0;
+                Object.values(jobs || {}).forEach(job => {
+                    const status = (job.status || "").toLowerCase();
+                    if (status === "newjob") {
+                        totalNewJob += parseInt(job.qty, 10) || 0;
+                    }
+                });
+                remainingOrderCell.textContent = totalNewJob > 0 ? formatNumber(totalNewJob) : "-";
+            } else {
+                // LOGIKA DAY SHIFT: totalOrder - totalCap
+                const remainingOrder = (totalOrder || 0) - (totalCap || 0);
+                remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
+            }
+        }
 
         // Tampilkan cap1MPHour ke tabel
         const cap1MPHourCell = document.getElementById('cap1MPHour-actual');
@@ -316,7 +332,7 @@ authPromise.then(async () => {
             let remOrderVal = 0;
 
             if (shiftMode === "day") {
-                // orderH1-actual: filter delivery date selain hari ini dan kemarin, jumlahkan qty-nya
+                // orderH1-actual: semua job dengan deliveryDate bukan hari ini dan bukan kemarin
                 const today = new Date();
                 const yesterday = new Date(today);
                 yesterday.setDate(today.getDate() - 1);
@@ -328,6 +344,7 @@ authPromise.then(async () => {
                 }
                 const todayStr = formatDate(today);
                 const yesterdayStr = formatDate(yesterday);
+
                 orderH1Val = Object.values(jobs || {}).reduce((sum, job) => {
                     const deliveryDate = job.deliveryDate || "";
                     return (deliveryDate !== todayStr && deliveryDate !== yesterdayStr)
@@ -350,7 +367,7 @@ authPromise.then(async () => {
                 orderH1Val = remOrderVal + (capNightShiftActual || 0);
             }
 
-            // --- Tampilkan ke tabel ---
+            /// --- Tampilkan ke tabel ---
             const orderH1Cell = document.getElementById('orderH1-actual');
             if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? formatNumber(orderH1Val) : "-";
 
