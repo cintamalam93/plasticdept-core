@@ -1,9 +1,8 @@
 import { db, authPromise } from "./config.js";
 import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// FIELD MAP: mapping nama header di file ke field yang dipakai
 const FIELD_MAP = {
-  "Product Code": ["Product Code", "ProductCode"],
+  "Product Code": ["Product Code 1", "Product Code1", "Product Code"],
   "Location": ["Location", "Lokasi"],
   "Inbound Date": ["Inbound Date", "Inbound Da", "InboundDate"],
   "BU": ["BU"],
@@ -13,7 +12,6 @@ const FIELD_MAP = {
   "Qty": ["Qty"],
   "PID": ["PID"],
 };
-
 const TABLE_COLUMNS = [
   "Location",
   "Product Code",
@@ -25,7 +23,6 @@ const TABLE_COLUMNS = [
   "Qty",
   "PID"
 ];
-
 const BATCH_SIZE = 150;
 
 // --- UTILS: Cari index kolom dari header file
@@ -42,6 +39,34 @@ function getHeaderIndexes(headerRow) {
     map[field] = idx;
   }
   return map;
+}
+
+// --- Format Inbound Date jadi DD-MMM-YYYY
+function formatDateDMY(dateStr) {
+  if (!dateStr) return "";
+  // Try to parse with Date (handle Excel date, ISO, etc)
+  let d = new Date(dateStr);
+  if (isNaN(d)) {
+    // Try parse as DD/MM/YYYY or MM/DD/YYYY
+    const parts = dateStr.split(/[\/\-]/);
+    if (parts.length === 3) {
+      // Guess: if first > 12, treat as DD/MM/YYYY
+      let yyyy, mm, dd;
+      if (parts[2].length === 4) {
+        if (+parts[0] > 12) {
+          dd = parts[0]; mm = parts[1]; yyyy = parts[2];
+        } else {
+          mm = parts[0]; dd = parts[1]; yyyy = parts[2];
+        }
+        d = new Date(`${yyyy}-${mm}-${dd}`);
+      }
+    }
+  }
+  if (isNaN(d)) return dateStr;
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mmm = d.toLocaleString('en-US', { month: 'short' });
+  const yyyy = d.getFullYear();
+  return `${dd}-${mmm}-${yyyy}`;
 }
 
 // --- PARSE EXCEL/CSV: return array of object sesuai FIELD_MAP
@@ -73,27 +98,21 @@ function parseFileToObjects(file, callback) {
   reader.readAsArrayBuffer(file);
 }
 
-// --- PIVOT DAN RENDER
-function pivotAndRender(dataArr) {
-  const pivot = {};
-  dataArr.forEach((row) => {
-    const location = row["Location"];
-    if (!location) return;
-    if (!pivot[location]) pivot[location] = {};
+// --- PIVOT & GROUP: Product Code + Location
+function pivotData(dataArr) {
+  // { [ProductCode]: { Location, Inbound Date, BU, ... } }
+  const result = {};
+  dataArr.forEach(row => {
+    const productCode = row["Product Code"] || "";
+    const location = row["Location"] || "";
+    if (!productCode || !location) return;
 
-    const key = [
-      row["Product Code"],
-      row["Inbound Date"],
-      row["BU"],
-      row["Invoice No"],
-      row["LOT No"],
-      row["Status"],
-    ].join("|");
-
-    if (!pivot[location][key]) {
-      pivot[location][key] = {
-        "Product Code": row["Product Code"] || "",
-        "Inbound Date": row["Inbound Date"] || "",
+    const key = `${productCode}|${location}`;
+    if (!result[key]) {
+      result[key] = {
+        "Product Code": productCode,
+        "Location": location,
+        "Inbound Date": formatDateDMY(row["Inbound Date"]),
         "BU": row["BU"] || "",
         "Invoice No": row["Invoice No"] || "",
         "LOT No": row["LOT No"] || "",
@@ -103,17 +122,29 @@ function pivotAndRender(dataArr) {
       };
     }
     let qty = parseFloat((row["Qty"] || "0").replace(/,/g, "")) || 0;
-    pivot[location][key]["Qty"] += qty;
-    if (row["PID"]) pivot[location][key]["PIDSet"].add(row["PID"]);
+    result[key]["Qty"] += qty;
+    if (row["PID"]) result[key]["PIDSet"].add(row["PID"]);
   });
+  // Convert to object per Product Code (nested)
+  const nested = {};
+  Object.values(result).forEach(item => {
+    const prod = item["Product Code"];
+    if (!nested[prod]) nested[prod] = [];
+    nested[prod].push(item);
+  });
+  return nested;
+}
 
+// --- RENDER TABEL (pivoted)
+function pivotAndRender(dataArr) {
+  const nested = pivotData(dataArr);
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = "";
-  Object.keys(pivot).forEach((location) => {
-    Object.values(pivot[location]).forEach((item) => {
+  Object.values(nested).forEach(arr => {
+    arr.forEach(item => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${location}</td>
+        <td>${item["Location"]}</td>
         <td>${item["Product Code"]}</td>
         <td>${item["Inbound Date"]}</td>
         <td>${item["BU"]}</td>
@@ -155,12 +186,27 @@ function applyFilters() {
   });
 }
 
-// --- FETCH DARI DATABASE DAN RENDER ---
+// --- FETCH DARI DATABASE & RENDER ---
 async function fetchAndRenderSummary() {
   await authPromise;
+  // Fetch node per Product Code
   const snapshot = await get(ref(db, "/stock-material"));
-  const dataArr = snapshot.exists() ? Object.values(snapshot.val()).filter(Boolean) : [];
-  pivotAndRender(dataArr);
+  const dataObj = snapshot.exists() ? snapshot.val() : {};
+  // Flatten for render (array of item)
+  const arr = [];
+  Object.keys(dataObj).forEach(prodCode => {
+    const locations = dataObj[prodCode];
+    Object.keys(locations).forEach(location => {
+      const item = locations[location];
+      arr.push({
+        ...item,
+        "Product Code": prodCode,
+        "Location": location,
+        "PIDSet": { size: item.PID } // for display
+      });
+    });
+  });
+  pivotAndRender(arr);
 }
 
 // --- SPINNER UTILS ---
@@ -178,11 +224,9 @@ function setProgress(text, percent = 0) {
   setBar(percent);
 }
 function setBar(percent = 0) {
-  // Bar di bawah tombol
   document.getElementById('upload-bar').style.width = percent + '%';
 }
 function setLoaderBar(percent = 0) {
-  // Bar di loader overlay
   let loaderBar = document.querySelector('#loader-overlay #upload-bar');
   if (loaderBar) loaderBar.style.width = percent + '%';
 }
@@ -233,23 +277,70 @@ document.getElementById("upload-btn").addEventListener("click", async function (
   setBar(0);
   showLoader("Uploading...", 0);
 
-  // Clear old data before upload (jika ingin replace, hapus baris ini jika ingin append)
+  await authPromise; // Make sure signed in!
+  // --- PIVOT DATA SESUAI STRUKTUR YANG DIINGINKAN ---
+  // nested: { [Product Code]: { [Location]: { ... } } }
+  const nested = {};
+  parsedResult.forEach(row => {
+    const productCode = row["Product Code"] || "";
+    const location = row["Location"] || "";
+    if (!productCode || !location) return;
+
+    if (!nested[productCode]) nested[productCode] = {};
+    if (!nested[productCode][location]) {
+      nested[productCode][location] = {
+        "Product Code": productCode,
+        "Location": location,
+        "Inbound Date": formatDateDMY(row["Inbound Date"]),
+        "BU": row["BU"] || "",
+        "Invoice No": row["Invoice No"] || "",
+        "LOT No": row["LOT No"] || "",
+        "Status": row["Status"] || "",
+        "Qty": 0,
+        "PIDSet": new Set()
+      };
+    }
+    let qty = parseFloat((row["Qty"] || "0").replace(/,/g, "")) || 0;
+    nested[productCode][location]["Qty"] += qty;
+    if (row["PID"]) nested[productCode][location]["PIDSet"].add(row["PID"]);
+  });
+  // Convert Set to count, and remove PIDSet (replace with count)
+  Object.keys(nested).forEach(prodCode => {
+    Object.keys(nested[prodCode]).forEach(location => {
+      const item = nested[prodCode][location];
+      item.PID = item.PIDSet.size;
+      delete item.PIDSet;
+    });
+  });
+
+  // Batch upload per 150 ProductCode-Location pair (max)
+  const allPairs = [];
+  Object.keys(nested).forEach(prodCode => {
+    Object.keys(nested[prodCode]).forEach(location => {
+      allPairs.push({
+        prodCode,
+        location,
+        data: nested[prodCode][location]
+      });
+    });
+  });
+
+  // Clear old data before upload (replace all)
   await set(ref(db, "/stock-material"), {});
 
-  let total = parsedResult.length;
+  let total = allPairs.length;
   let success = 0, fail = 0;
   for (let i = 0; i < total; i += BATCH_SIZE) {
-    let batch = parsedResult.slice(i, i + BATCH_SIZE);
+    let batchPairs = allPairs.slice(i, i + BATCH_SIZE);
     let updates = {};
-    batch.forEach((row, idx) => {
-      const rowKey = `row_${Date.now()}_${i + idx}`;
-      updates[`/stock-material/${rowKey}`] = row;
+    batchPairs.forEach(({ prodCode, location, data }) => {
+      updates[`/stock-material/${prodCode}/${location}`] = data;
     });
     try {
       await update(ref(db), updates);
-      success += batch.length;
+      success += batchPairs.length;
     } catch (err) {
-      fail += batch.length;
+      fail += batchPairs.length;
       alert("Upload error (batch " + (i / BATCH_SIZE + 1) + "): " + err.message);
     }
     let percent = Math.round(Math.min(i + BATCH_SIZE, total) / total * 100);
