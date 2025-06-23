@@ -29,6 +29,11 @@ function showNotification(message, isError = false) {
   }, 4000);
 }
 
+function showExportLoading(isShow = true) {
+  const overlay = document.getElementById("exportLoadingOverlay");
+  if (overlay) overlay.style.display = isShow ? "flex" : "none";
+}
+
 async function getTeamNameForCurrentUser() {
   // Ambil nama user yang sedang login dari elemen userFullName atau localStorage
   const userName = document.getElementById("userFullName")?.textContent?.trim() ||
@@ -1014,8 +1019,58 @@ function checkPythonAPIAvailable() {
     .catch(() => false);
 }
 
+async function saveOutJobAchievement() {
+  // 1. Ambil semua job dari node PhxOutboundJobs
+  const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
+  if (!jobsSnap.exists()) return;
+
+  const jobs = Object.values(jobsSnap.val());
+
+  // 2. Kelompokkan & akumulasi qty per teamName dan shift
+  // Hanya "Blue Team" dan "Green Team" yang diambil
+  const teamAchievement = {};
+  for (const job of jobs) {
+    const teamName = (job.teamName || "").trim();
+    if (!["Blue Team", "Green Team"].includes(teamName)) continue;
+    const shift = job.shift || "";
+    const qty = Number(job.qty) || 0;
+
+    // Gunakan key gabungan teamName + shift agar shift per team tidak tertukar
+    const key = teamName;
+    if (!teamAchievement[key]) {
+      teamAchievement[key] = { achievement: 0, shift };
+    }
+    teamAchievement[key].achievement += qty;
+    teamAchievement[key].shift = shift; // update shift (pakai shift terakhir yang ditemukan)
+  }
+
+  // 3. Siapkan struktur node berdasarkan tanggal sekarang
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const yearShort = year.toString().slice(-2);
+  const nodeYear = `year${year}`;
+  const nodeMonth = `${month}_${yearShort}`;
+  const nodeDay = String(now.getDate()).padStart(2, '0');
+
+  // 4. Simpan ke database per teamName
+  for (const teamName of Object.keys(teamAchievement)) {
+    const { achievement, shift } = teamAchievement[teamName];
+    const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${teamName.replace(" ", "_")}`;
+    await set(ref(db, dbPath), {
+      shift,
+      achievement
+    });
+  }
+}
+
 // ========== EXPORT EXCEL (Sugity & Reguler) ==========
-document.getElementById("exportExcelBtn").addEventListener("click", () => {
+document.getElementById("exportExcelBtn").addEventListener("click", async () => {
+  showExportLoading(true); // Tampilkan spinner
+  // 1. Simpan achievement dulu ke database
+  await saveOutJobAchievement();
+
+  // 2. Lanjutkan proses export Excel seperti biasa
   get(ref(db, "PhxOutboundJobs")).then(snapshot => {
     if (!snapshot.exists()) {
       showNotification("Tidak ada data untuk di-export.", true);
@@ -1030,7 +1085,6 @@ document.getElementById("exportExcelBtn").addEventListener("click", () => {
       return;
     }
 
-    // Check backend Python, fallback ke SheetJS jika tidak tersedia
     checkPythonAPIAvailable().then(isAvailable => {
       if (isAvailable) {
         exportToExcelPython(filtered);
@@ -1038,6 +1092,7 @@ document.getElementById("exportExcelBtn").addEventListener("click", () => {
         showNotification("Backend Python tidak tersedia, export memakai SheetJS.", false);
         exportWithSheetJS(filtered);
       }
+      showExportLoading(false); // Sembunyikan spinner setelah export selesai
     });
   });
 });
