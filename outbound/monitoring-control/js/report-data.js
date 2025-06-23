@@ -376,7 +376,7 @@ authPromise.then(async () => {
                 let capDayShiftPercent = 1 - cap1MPHourPercentage;
                 document.getElementById("capDayShift-percentage").textContent = percentRound(capDayShiftPercent) + "%";
                 document.getElementById("capNightShift-percentage").textContent = "";
-            } else {
+            } else
                 let cap1MPHourPercentage = 0;
                 const mpNightShiftAchievement = Number((document.getElementById("mpNightShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
                 const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
