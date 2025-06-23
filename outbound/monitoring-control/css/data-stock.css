@@ -39,7 +39,14 @@ header h1 {
   gap: 18px;
 }
 
-.upload-box .custom-file-upload {
+.upload-box-flex {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.upload-box .custom-file-upload,
+.custom-file-upload {
   display: inline-block;
   padding: 11px 22px;
   background: #6185ff;
@@ -51,12 +58,83 @@ header h1 {
   transition: background 0.15s;
   border: none;
   letter-spacing: 0.02em;
+  margin-right: 0;
 }
-.upload-box .custom-file-upload:hover {
+.upload-box .custom-file-upload:hover,
+.custom-file-upload:hover {
   background: #4666c7;
 }
-.upload-box input[type="file"] {
+.upload-box input[type="file"], input[type="file"] {
   display: none;
+}
+
+#upload-btn {
+  padding: 11px 22px;
+  background: #2b3a4b;
+  color: #fff;
+  border-radius: 7px;
+  font-weight: 500;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+#upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+#upload-btn:not(:disabled):hover {
+  background: #4666c7;
+}
+
+.upload-progress {
+  font-size: 0.95em;
+  color: #4666c7;
+  margin-left: 8px;
+  min-width: 120px;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#upload-bar-container {
+  width: 230px;
+  height: 13px;
+  background: #e6ecfc;
+  border-radius: 7px;
+  margin-left: 12px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+  box-shadow: 0 1px 3px rgba(44,62,80,0.07);
+}
+#upload-bar {
+  height: 100%;
+  background: linear-gradient(90deg,#6185ff,#4666c7 85%);
+  width: 0%;
+  border-radius: 7px;
+  transition: width 0.25s;
+}
+
+.loader-overlay {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(255,255,255,0.5);
+  justify-content: center;
+  align-items: center;
+}
+.loader {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #6185ff;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg);}
+  100% { transform: rotate(360deg);}
 }
 
 .table-wrapper {
@@ -134,5 +212,8 @@ tr:hover {
   table {
     font-size: 0.95rem;
     min-width: 650px;
+  }
+  #upload-bar-container {
+    width: 120px;
   }
 }
