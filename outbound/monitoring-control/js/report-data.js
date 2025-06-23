@@ -384,7 +384,7 @@ authPromise.then(async () => {
                 if (capNightShiftOtCell) capNightShiftOtCell.textContent = "";
             }
 
-            // ===================== ACHIEVEMENT LOGIC =====================
+            // ===================== ACHIEVEMENT LOGIC =========================
             const mpDayShiftActual = Number((document.getElementById("mpDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const capDayShiftActualVal = Number((document.getElementById("capDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
