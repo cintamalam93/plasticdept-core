@@ -360,32 +360,34 @@ authPromise.then(async () => {
             } else {
                 document.getElementById("mpDayShift-achievement").textContent = "";
                 document.getElementById("capDayShift-achievement").textContent = "";
-            }
-            // ============================================================
 
             // ===================== PERCENTAGE LOGIC =====================
             function percentRound(val) {
                 return Math.round(val * 100);
             }
-            let cap1MPHourPercentage = 0;
+
             if (shiftMode === "day") {
+                let cap1MPHourPercentage = 0;
                 const mpDayShiftAchievement = Number((document.getElementById("mpDayShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
+                const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
                 if (mpDayShiftAchievement !== 0) {
                     cap1MPHourPercentage = cap1MPHourAchievement / mpDayShiftAchievement;
                 }
+                let capDayShiftPercent = 1 - cap1MPHourPercentage;
+                document.getElementById("capDayShift-percentage").textContent = percentRound(capDayShiftPercent) + "%";
+                document.getElementById("capNightShift-percentage").textContent = "";
             } else {
+                let cap1MPHourPercentage = 0;
                 const mpNightShiftAchievement = Number((document.getElementById("mpNightShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
+                const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
                 if (mpNightShiftAchievement !== 0) {
                     cap1MPHourPercentage = cap1MPHourAchievement / mpNightShiftAchievement;
                 }
+                let capNightShiftPercent = 1 - cap1MPHourPercentage;
+                document.getElementById("capNightShift-percentage").textContent = percentRound(capNightShiftPercent) + "%";
+                document.getElementById("capDayShift-percentage").textContent = "";
             }
-            let capDayShiftPercent = 1 - cap1MPHourPercentage;
-            document.getElementById("capDayShift-percentage").textContent = percentRound(capDayShiftPercent) + "%";
-            if (shiftMode === "day") {
-                document.getElementById("capNightShift-percentage").textContent = "";
-            } else {
-                document.getElementById("capNightShift-percentage").textContent = "";
-            }
+
             const totalCapActual = Number((document.getElementById("totalCap-actual")?.textContent || "").replace(/,/g, "")) || 0;
             let totalCapPercent = (totalCapActual !== 0)
                 ? 1 - (88200 / totalCapActual)
