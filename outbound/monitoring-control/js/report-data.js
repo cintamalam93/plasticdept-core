@@ -159,17 +159,22 @@ async function updateMpOvertimeView(shiftMode) {
 
 // Update tampilan nilai mpDayShift-ot & mpNightShift-ot sesuai shift aktif
 async function updateMpDayNightOtView(shiftMode) {
-    let shiftLabel, otCellId;
+    let shiftLabel, otCellId, otherOtCellId;
     if (shiftMode === "day") {
         shiftLabel = "Day Shift";
         otCellId = 'mpDayShift-ot';
+        otherOtCellId = 'mpNightShift-ot';
     } else {
         shiftLabel = "Night Shift";
         otCellId = 'mpNightShift-ot';
+        otherOtCellId = 'mpDayShift-ot';
     }
     const mpOt = await fetchMpOvertime(shiftLabel);
     const otCell = document.getElementById(otCellId);
     if (otCell) otCell.textContent = mpOt > 0 ? formatNumber(mpOt) : "-";
+
+    const otherOtCell = document.getElementById(otherOtCellId);
+    if (otherOtCell) otherOtCell.textContent = ""; // Pastikan dikosongkan
 }
 
 authPromise.then(async () => {
@@ -417,16 +422,16 @@ authPromise.then(async () => {
             let achv = "-";
 
             if (shiftMode === "day") {
-                capActual = document.getElementById('capDayShift-actual')?.textContent || "-";
-                gapNWD = document.getElementById('capDayShift-gap')?.textContent || "-";
                 const capDayShiftActualVal = Number((document.getElementById('capDayShift-actual')?.textContent || "0").replace(/,/g, "")) || 0;
                 const capDayShiftOtVal = Number((document.getElementById('capDayShift-ot')?.textContent || "0").replace(/,/g, "")) || 0;
+                capActual = (capDayShiftActualVal + capDayShiftOtVal) > 0 ? formatNumber(capDayShiftActualVal + capDayShiftOtVal) : "-";
+                gapNWD = document.getElementById('capDayShift-gap')?.textContent || "-";
                 achv = (capDayShiftActualVal + capDayShiftOtVal) > 0 ? formatNumber(capDayShiftActualVal + capDayShiftOtVal) : "-";
             } else {
-                capActual = document.getElementById('capNightShift-actual')?.textContent || "-";
-                gapNWD = document.getElementById('capNightShift-gap')?.textContent || "-";
                 const capNightShiftActualVal = Number((document.getElementById('capNightShift-actual')?.textContent || "0").replace(/,/g, "")) || 0;
                 const capNightShiftOtVal = Number((document.getElementById('capNightShift-ot')?.textContent || "0").replace(/,/g, "")) || 0;
+                capActual = (capNightShiftActualVal + capNightShiftOtVal) > 0 ? formatNumber(capNightShiftActualVal + capNightShiftOtVal) : "-";
+                gapNWD = document.getElementById('capNightShift-gap')?.textContent || "-";
                 achv = (capNightShiftActualVal + capNightShiftOtVal) > 0 ? formatNumber(capNightShiftActualVal + capNightShiftOtVal) : "-";
             }
 
