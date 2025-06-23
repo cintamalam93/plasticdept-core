@@ -10,16 +10,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Loader Overlay -->
+  <div class="loader-overlay" id="loader-overlay">
+    <div>
+      <div class="loader"></div>
+      <div style="margin-top:18px;font-weight:500;" id="loader-text">Uploading...</div>
+      <div id="upload-bar-container" style="margin-top:22px;">
+        <div id="upload-bar"></div>
+      </div>
+    </div>
+  </div>
   <div class="container">
     <header>
       <h1>Stock Material Management</h1>
       <div class="actions-bar">
         <div></div>
-        <div class="upload-box">
+        <div class="upload-box-flex">
           <label for="file-upload" class="custom-file-upload">
-            Upload Excel/CSV
+            Choose File
             <input id="file-upload" type="file" accept=".csv,.xls,.xlsx"/>
           </label>
+          <button id="upload-btn" disabled>Upload</button>
+          <span class="upload-progress" id="upload-progress"></span>
+          <div id="upload-bar-container" style="display:inline-block;">
+            <div id="upload-bar"></div>
+          </div>
         </div>
       </div>
     </header>
