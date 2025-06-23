@@ -1,6 +1,7 @@
 import { db, authPromise } from "./config.js";
 import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
+// FIELD MAP: mapping nama header di file ke field yang dipakai
 const FIELD_MAP = {
   "Product Code": ["Product Code 1", "Product Code1", "Product Code"],
   "Location": ["Location", "Lokasi"],
@@ -12,6 +13,7 @@ const FIELD_MAP = {
   "Qty": ["Qty"],
   "PID": ["PID"],
 };
+
 const TABLE_COLUMNS = [
   "Location",
   "Product Code",
@@ -23,40 +25,24 @@ const TABLE_COLUMNS = [
   "Qty",
   "PID"
 ];
+
 const BATCH_SIZE = 150;
 
-// --- UTILS: Cari index kolom dari header file
-function getHeaderIndexes(headerRow) {
-  const map = {};
-  for (const field in FIELD_MAP) {
-    let idx = -1;
-    for (const alias of FIELD_MAP[field]) {
-      idx = headerRow.findIndex(
-        h => h && h.trim().replace(/[\.]/g, "").toLowerCase() === alias.replace(/[\.]/g, "").toLowerCase()
-      );
-      if (idx !== -1) break;
-    }
-    map[field] = idx;
-  }
-  return map;
-}
-
-// Fungsi untuk mengubah string jadi key yang valid di Firebase
+// Sanitize string for use as Firebase key
 function sanitizeKey(str) {
-  // Ganti karakter dilarang dengan '_'
   return String(str)
     .replace(/[.#$/\[\]]/g, '_')
-    .replace(/\s+/g, '_'); // Ganti spasi juga jadi underscore supaya aman
+    .replace(/\s+/g, '_');
 }
 
-// --- Format Inbound Date jadi DD-MMM-YYYY
+// Format Inbound Date jadi DD-MMM-YYYY
 function formatDateDMY(dateStr) {
   if (!dateStr) return "";
   // Try to parse with Date (handle Excel date, ISO, etc)
   let d = new Date(dateStr);
   if (isNaN(d)) {
     // Try parse as DD/MM/YYYY or MM/DD/YYYY
-    const parts = dateStr.split(/[\/\-]/);
+    const parts = String(dateStr).split(/[\/\-]/);
     if (parts.length === 3) {
       // Guess: if first > 12, treat as DD/MM/YYYY
       let yyyy, mm, dd;
@@ -96,7 +82,7 @@ function parseFileToObjects(file, callback) {
       let valid = false;
       for (const field in FIELD_MAP) {
         const idx = headerMap[field];
-        obj[field] = idx !== -1 && row[idx] !== undefined ? row[idx].toString().trim() : "";
+        obj[field] = idx !== -1 && row[idx] !== undefined ? String(row[idx]).trim() : "";
         if (obj[field]) valid = true;
       }
       if (valid) result.push(obj);
@@ -104,6 +90,22 @@ function parseFileToObjects(file, callback) {
     callback(result);
   };
   reader.readAsArrayBuffer(file);
+}
+
+// --- UTILS: Cari index kolom dari header file
+function getHeaderIndexes(headerRow) {
+  const map = {};
+  for (const field in FIELD_MAP) {
+    let idx = -1;
+    for (const alias of FIELD_MAP[field]) {
+      idx = headerRow.findIndex(
+        h => h && h.trim().replace(/[\.]/g, "").toLowerCase() === alias.replace(/[\.]/g, "").toLowerCase()
+      );
+      if (idx !== -1) break;
+    }
+    map[field] = idx;
+  }
+  return map;
 }
 
 // --- PIVOT & GROUP: Product Code + Location
@@ -129,7 +131,12 @@ function pivotData(dataArr) {
         "PIDSet": new Set(),
       };
     }
-    let qty = parseFloat((row["Qty"] || "0").replace(/,/g, "")) || 0;
+    // Fix: always treat qty as string before replace
+    let qtyRaw = row["Qty"];
+    let qty = 0;
+    if (qtyRaw !== undefined && qtyRaw !== null && qtyRaw !== "") {
+      qty = parseFloat(String(qtyRaw).replace(/,/g, "")) || 0;
+    }
     result[key]["Qty"] += qty;
     if (row["PID"]) result[key]["PIDSet"].add(row["PID"]);
   });
@@ -160,7 +167,7 @@ function pivotAndRender(dataArr) {
         <td>${item["LOT No"]}</td>
         <td>${item["Status"]}</td>
         <td>${item["Qty"]}</td>
-        <td>${item["PIDSet"].size}</td>
+        <td>${typeof item["PIDSet"] === "object" ? item["PIDSet"].size : item["PID"] || 0}</td>
       `;
       tbody.appendChild(tr);
     });
@@ -210,7 +217,7 @@ async function fetchAndRenderSummary() {
         ...item,
         "Product Code": prodCode,
         "Location": location,
-        "PIDSet": { size: item.PID } // for display
+        "PIDSet": { size: typeof item.PID === "number" ? item.PID : 0 }
       });
     });
   });
@@ -294,9 +301,12 @@ document.getElementById("upload-btn").addEventListener("click", async function (
     const location = row["Location"] || "";
     if (!productCode || !location) return;
 
-    if (!nested[productCode]) nested[productCode] = {};
-    if (!nested[productCode][location]) {
-      nested[productCode][location] = {
+    const safeProdCode = sanitizeKey(productCode);
+    const safeLocation = sanitizeKey(location);
+
+    if (!nested[safeProdCode]) nested[safeProdCode] = {};
+    if (!nested[safeProdCode][safeLocation]) {
+      nested[safeProdCode][safeLocation] = {
         "Product Code": productCode,
         "Location": location,
         "Inbound Date": formatDateDMY(row["Inbound Date"]),
@@ -308,9 +318,14 @@ document.getElementById("upload-btn").addEventListener("click", async function (
         "PIDSet": new Set()
       };
     }
-    let qty = parseFloat((row["Qty"] || "0").replace(/,/g, "")) || 0;
-    nested[productCode][location]["Qty"] += qty;
-    if (row["PID"]) nested[productCode][location]["PIDSet"].add(row["PID"]);
+    // Fix: always treat qty as string before replace
+    let qtyRaw = row["Qty"];
+    let qty = 0;
+    if (qtyRaw !== undefined && qtyRaw !== null && qtyRaw !== "") {
+      qty = parseFloat(String(qtyRaw).replace(/,/g, "")) || 0;
+    }
+    nested[safeProdCode][safeLocation]["Qty"] += qty;
+    if (row["PID"]) nested[safeProdCode][safeLocation]["PIDSet"].add(row["PID"]);
   });
   // Convert Set to count, and remove PIDSet (replace with count)
   Object.keys(nested).forEach(prodCode => {
@@ -342,11 +357,9 @@ document.getElementById("upload-btn").addEventListener("click", async function (
     let batchPairs = allPairs.slice(i, i + BATCH_SIZE);
     let updates = {};
     batchPairs.forEach(({ prodCode, location, data }) => {
-      const safeProdCode = sanitizeKey(prodCode);
-      const safeLocation = sanitizeKey(location);
-        updates[`/stock-material/${safeProdCode}/${safeLocation}`] = data;
+      // Use sanitized keys for structure
+      updates[`/stock-material/${prodCode}/${location}`] = data;
     });
-
     try {
       await update(ref(db), updates);
       success += batchPairs.length;
