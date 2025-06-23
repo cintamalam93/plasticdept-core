@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Stock Material App</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Google Fonts for better look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Stock Material Management</h1>
+      <div class="actions-bar">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Search Product Code, Invoice No, Location...">
+        </div>
+        <div class="upload-box">
+          <label for="file-upload" class="custom-file-upload">
+            Upload Excel
+            <input id="file-upload" type="file" accept=".xlsx,.xls"/>
+          </label>
+        </div>
+      </div>
+    </header>
+    <main>
+      <div class="table-wrapper">
+        <table id="material-table">
+          <thead>
+            <tr>
+              <th>Product Code</th>
+              <th>Inbound Date</th>
+              <th>BU</th>
+              <th>Invoice No</th>
+              <th>LOT No</th>
+              <th>Location</th>
+              <th>Status</th>
+              <th>Qty</th>
+              <th>PID</th>
+            </tr>
+          </thead>
+          <tbody id="table-body">
+            <!-- Dummy data rows -->
+            <tr>
+              <td>PC-001</td>
+              <td>2025-06-21</td>
+              <td>BU-01</td>
+              <td>INV-10021</td>
+              <td>LOT-123A</td>
+              <td>Warehouse A</td>
+              <td>Available</td>
+              <td>150</td>
+              <td>PID-9001</td>
+            </tr>
+            <tr>
+              <td>PC-002</td>
+              <td>2025-06-20</td>
+              <td>BU-02</td>
+              <td>INV-10022</td>
+              <td>LOT-124B</td>
+              <td>Warehouse B</td>
+              <td>Used</td>
+              <td>90</td>
+              <td>PID-9002</td>
+            </tr>
+            <tr>
+              <td>PC-003</td>
+              <td>2025-06-19</td>
+              <td>BU-03</td>
+              <td>INV-10023</td>
+              <td>LOT-125C</td>
+              <td>Warehouse C</td>
+              <td>Available</td>
+              <td>200</td>
+              <td>PID-9003</td>
+            </tr>
+            <tr>
+              <td>PC-004</td>
+              <td>2025-06-18</td>
+              <td>BU-01</td>
+              <td>INV-10024</td>
+              <td>LOT-126D</td>
+              <td>Warehouse A</td>
+              <td>Available</td>
+              <td>50</td>
+              <td>PID-9004</td>
+            </tr>
+            <tr>
+              <td>PC-005</td>
+              <td>2025-06-17</td>
+              <td>BU-02</td>
+              <td>INV-10025</td>
+              <td>LOT-127E</td>
+              <td>Warehouse B</td>
+              <td>Inbound</td>
+              <td>130</td>
+              <td>PID-9005</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+  <!-- Real-time filter as you type -->
+  <script>
+    document.getElementById('search-input').addEventListener('input', function() {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#table-body tr');
+      rows.forEach(row => {
+        const rowText = Array.from(row.children).map(td => td.textContent.toLowerCase()).join(' ');
+        row.style.display = rowText.includes(filter) ? '' : 'none';
+      });
+    });
+    // File upload dummy handler (no backend yet)
+    document.getElementById('file-upload').addEventListener('change', function(e) {
+      alert('Excel file uploaded: ' + e.target.files[0].name + '\n(Fitur upload belum terhubung backend)');
+    });
+  </script>
+</body>
+</html>
