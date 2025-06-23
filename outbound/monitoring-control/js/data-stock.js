@@ -1,7 +1,6 @@
 import { db, authPromise } from "./config.js";
 import { ref, set, get, update } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-// FIELD MAP: mapping nama header di file ke field yang dipakai
 const FIELD_MAP = {
   "Product Code": ["Product Code 1", "Product Code1", "Product Code"],
   "Location": ["Location", "Lokasi"],
@@ -14,46 +13,33 @@ const FIELD_MAP = {
   "PID": ["PID"],
 };
 
-const TABLE_COLUMNS = [
-  "Location",
-  "Product Code",
-  "Inbound Date",
-  "BU",
-  "Invoice No",
-  "LOT No",
-  "Status",
-  "Qty",
-  "PID"
-];
+const BATCH_SIZE = 100; // Kecil agar pasti masuk limit Firebase, batch besar bisa gagal diam-diam
 
-const BATCH_SIZE = 150;
+const STATUS_ALLOW = ["Putaway", "Allocated"];
+const STATUS_COLOR = {
+  Putaway: "#4caf50",
+  Allocated: "#ff9800"
+};
 
-// Sanitize string for use as Firebase key
 function sanitizeKey(str) {
   return String(str)
-    .replace(/[.#$/\[\]]/g, '_')
-    .replace(/\s+/g, '_');
+    .replace(/[.#$/\[\]]/g, "_")
+    .replace(/\s+/g, "_");
 }
 
-// Format Inbound Date jadi DD-MMM-YYYY
 function formatDateDMY(dateStr) {
   if (!dateStr) return "";
-  // Try to parse with Date (handle Excel date, ISO, etc)
   let d = new Date(dateStr);
   if (isNaN(d)) {
-    // Try parse as DD/MM/YYYY or MM/DD/YYYY
     const parts = String(dateStr).split(/[\/\-]/);
-    if (parts.length === 3) {
-      // Guess: if first > 12, treat as DD/MM/YYYY
+    if (parts.length === 3 && parts[2].length === 4) {
       let yyyy, mm, dd;
-      if (parts[2].length === 4) {
-        if (+parts[0] > 12) {
-          dd = parts[0]; mm = parts[1]; yyyy = parts[2];
-        } else {
-          mm = parts[0]; dd = parts[1]; yyyy = parts[2];
-        }
-        d = new Date(`${yyyy}-${mm}-${dd}`);
+      if (+parts[0] > 12) {
+        dd = parts[0]; mm = parts[1]; yyyy = parts[2];
+      } else {
+        mm = parts[0]; dd = parts[1]; yyyy = parts[2];
       }
+      d = new Date(`${yyyy}-${mm}-${dd}`);
     }
   }
   if (isNaN(d)) return dateStr;
@@ -63,7 +49,6 @@ function formatDateDMY(dateStr) {
   return `${dd}-${mmm}-${yyyy}`;
 }
 
-// --- PARSE EXCEL/CSV: return array of object sesuai FIELD_MAP
 function parseFileToObjects(file, callback) {
   const reader = new FileReader();
   reader.onload = function (e) {
@@ -92,7 +77,6 @@ function parseFileToObjects(file, callback) {
   reader.readAsArrayBuffer(file);
 }
 
-// --- UTILS: Cari index kolom dari header file
 function getHeaderIndexes(headerRow) {
   const map = {};
   for (const field in FIELD_MAP) {
@@ -108,15 +92,15 @@ function getHeaderIndexes(headerRow) {
   return map;
 }
 
-// --- PIVOT & GROUP: Product Code + Location
+// --- PIVOT & GROUP: Product Code + Location + filter status allowed
 function pivotData(dataArr) {
-  // { [ProductCode]: { Location, Inbound Date, BU, ... } }
   const result = {};
   dataArr.forEach(row => {
+    const status = (row["Status"] || "").trim();
+    if (!STATUS_ALLOW.includes(status)) return;
     const productCode = row["Product Code"] || "";
     const location = row["Location"] || "";
     if (!productCode || !location) return;
-
     const key = `${productCode}|${location}`;
     if (!result[key]) {
       result[key] = {
@@ -126,18 +110,20 @@ function pivotData(dataArr) {
         "BU": row["BU"] || "",
         "Invoice No": row["Invoice No"] || "",
         "LOT No": row["LOT No"] || "",
-        "Status": row["Status"] || "",
+        "Status": status,
         "Qty": 0,
         "PIDSet": new Set(),
+        "_raw_inbound": row["Inbound Date"] // for sorting
       };
     }
-    // Fix: always treat qty as string before replace
+    // Qty
     let qtyRaw = row["Qty"];
     let qty = 0;
     if (qtyRaw !== undefined && qtyRaw !== null && qtyRaw !== "") {
       qty = parseFloat(String(qtyRaw).replace(/,/g, "")) || 0;
     }
     result[key]["Qty"] += qty;
+    // PID count (unique)
     if (row["PID"]) result[key]["PIDSet"].add(row["PID"]);
   });
   // Convert to object per Product Code (nested)
@@ -150,27 +136,43 @@ function pivotData(dataArr) {
   return nested;
 }
 
-// --- RENDER TABEL (pivoted)
+// --- RENDER TABEL (pivoted, sorted by Inbound Date ascending)
 function pivotAndRender(dataArr) {
   const nested = pivotData(dataArr);
+  let rowsAll = [];
+  Object.values(nested).forEach(arr => rowsAll = rowsAll.concat(arr));
+  // Sort by Inbound Date ascending (tua ke muda)
+  rowsAll.sort((a, b) => {
+    let da = parseDate(a["_raw_inbound"]);
+    let db = parseDate(b["_raw_inbound"]);
+    return da - db;
+  });
+  renderTableRows(rowsAll);
+}
+
+function renderTableRows(rowsAll) {
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = "";
-  Object.values(nested).forEach(arr => {
-    arr.forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+  rowsAll.forEach(item => {
+    const status = item["Status"];
+    let statusLabel = status;
+    let style = "";
+    if (status === "Putaway") style = `background:#eafbe8;color:#388e3c;padding:3px 12px;border-radius:6px;font-weight:600;display:inline-block;`;
+    else if (status === "Allocated") style = `background:#fff3e0;color:#ef6c00;padding:3px 12px;border-radius:6px;font-weight:600;display:inline-block;`;
+    else style = "";
+    tbody.innerHTML += `
+      <tr>
         <td>${item["Location"]}</td>
         <td>${item["Product Code"]}</td>
         <td>${item["Inbound Date"]}</td>
         <td>${item["BU"]}</td>
         <td>${item["Invoice No"]}</td>
         <td>${item["LOT No"]}</td>
-        <td>${item["Status"]}</td>
+        <td><span style="${style}">${statusLabel}</span></td>
         <td>${item["Qty"]}</td>
-        <td>${typeof item["PIDSet"] === "object" ? item["PIDSet"].size : item["PID"] || 0}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+        <td>${item["PIDSet"] ? item["PIDSet"].size : (typeof item["PID"] === "number" ? item["PID"] : 0)}</td>
+      </tr>
+    `;
   });
   applyFilters();
 }
@@ -184,7 +186,7 @@ function applyFilters() {
   const filters = Array.from(filterInputs).map((f) =>
     f.value.toLowerCase()
   );
-  const rows = document.querySelectorAll("#table-body tr");
+  let rows = Array.from(document.querySelectorAll("#table-body tr"));
   rows.forEach((row) => {
     const cells = Array.from(row.children);
     let show = true;
@@ -199,12 +201,39 @@ function applyFilters() {
     }
     row.style.display = show ? "" : "none";
   });
+  // Setelah filter, sort ulang by tanggal
+  sortTableByDate();
+}
+
+function parseDate(str) {
+  if (!str) return new Date(0);
+  // Try parse DD-MMM-YYYY
+  let m = str.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+  if (m) {
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const dd = +m[1], mm = months.indexOf(m[2]);
+    return new Date(m[3], mm, dd);
+  }
+  let d = new Date(str);
+  if (!isNaN(d)) return d;
+  return new Date(0);
+}
+
+function sortTableByDate() {
+  const tbody = document.getElementById("table-body");
+  let rows = Array.from(tbody.querySelectorAll("tr"));
+  rows.sort((a, b) => {
+    let adate = a.children[2].textContent;
+    let bdate = b.children[2].textContent;
+    return parseDate(adate) - parseDate(bdate);
+  });
+  tbody.innerHTML = "";
+  rows.forEach(tr => tbody.appendChild(tr));
 }
 
 // --- FETCH DARI DATABASE & RENDER ---
 async function fetchAndRenderSummary() {
   await authPromise;
-  // Fetch node per Product Code
   const snapshot = await get(ref(db, "/stock-material"));
   const dataObj = snapshot.exists() ? snapshot.val() : {};
   // Flatten for render (array of item)
@@ -246,10 +275,9 @@ function setLoaderBar(percent = 0) {
   if (loaderBar) loaderBar.style.width = percent + '%';
 }
 
-// --- UPLOAD BATCH HANDLER ---
+// --- UPLOAD BATCH ROBUST DENGAN RETRY ---
 let selectedFile = null;
 let parsedResult = [];
-
 document.getElementById("file-upload").addEventListener("change", function (e) {
   selectedFile = e.target.files[0];
   parsedResult = [];
@@ -279,7 +307,6 @@ document.getElementById("file-upload").addEventListener("change", function (e) {
   }
 });
 
-// --- UPLOAD BUTTON ---
 document.getElementById("upload-btn").addEventListener("click", async function () {
   if (!parsedResult.length) {
     alert("No data to upload!");
@@ -292,18 +319,18 @@ document.getElementById("upload-btn").addEventListener("click", async function (
   setBar(0);
   showLoader("Uploading...", 0);
 
-  await authPromise; // Make sure signed in!
-  // --- PIVOT DATA SESUAI STRUKTUR YANG DIINGINKAN ---
-  // nested: { [Product Code]: { [Location]: { ... } } }
+  await authPromise;
+
+  // GROUP, PIVOT, FILTER STATUS
   const nested = {};
   parsedResult.forEach(row => {
+    const status = (row["Status"] || "").trim();
+    if (!STATUS_ALLOW.includes(status)) return;
     const productCode = row["Product Code"] || "";
     const location = row["Location"] || "";
     if (!productCode || !location) return;
-
     const safeProdCode = sanitizeKey(productCode);
     const safeLocation = sanitizeKey(location);
-
     if (!nested[safeProdCode]) nested[safeProdCode] = {};
     if (!nested[safeProdCode][safeLocation]) {
       nested[safeProdCode][safeLocation] = {
@@ -313,12 +340,12 @@ document.getElementById("upload-btn").addEventListener("click", async function (
         "BU": row["BU"] || "",
         "Invoice No": row["Invoice No"] || "",
         "LOT No": row["LOT No"] || "",
-        "Status": row["Status"] || "",
+        "Status": status,
         "Qty": 0,
-        "PIDSet": new Set()
+        "PIDSet": new Set(),
+        "_raw_inbound": row["Inbound Date"]
       };
     }
-    // Fix: always treat qty as string before replace
     let qtyRaw = row["Qty"];
     let qty = 0;
     if (qtyRaw !== undefined && qtyRaw !== null && qtyRaw !== "") {
@@ -336,7 +363,7 @@ document.getElementById("upload-btn").addEventListener("click", async function (
     });
   });
 
-  // Batch upload per 150 ProductCode-Location pair (max)
+  // Prepare all pairs for batch upload
   const allPairs = [];
   Object.keys(nested).forEach(prodCode => {
     Object.keys(nested[prodCode]).forEach(location => {
@@ -357,15 +384,24 @@ document.getElementById("upload-btn").addEventListener("click", async function (
     let batchPairs = allPairs.slice(i, i + BATCH_SIZE);
     let updates = {};
     batchPairs.forEach(({ prodCode, location, data }) => {
-      // Use sanitized keys for structure
       updates[`/stock-material/${prodCode}/${location}`] = data;
     });
-    try {
-      await update(ref(db), updates);
-      success += batchPairs.length;
-    } catch (err) {
-      fail += batchPairs.length;
-      alert("Upload error (batch " + (i / BATCH_SIZE + 1) + "): " + err.message);
+    let tryCount = 0;
+    let uploaded = false;
+    while (!uploaded && tryCount < 3) {
+      try {
+        await update(ref(db), updates);
+        uploaded = true;
+        success += batchPairs.length;
+      } catch (err) {
+        tryCount++;
+        if (tryCount >= 3) {
+          fail += batchPairs.length;
+          alert("Upload error (batch " + (i / BATCH_SIZE + 1) + "): " + err.message);
+        } else {
+          await new Promise(res => setTimeout(res, 1000 * tryCount)); // exponential backoff
+        }
+      }
     }
     let percent = Math.round(Math.min(i + BATCH_SIZE, total) / total * 100);
     setProgress(`Uploaded ${Math.min(i + BATCH_SIZE, total)} of ${total}`, percent);
