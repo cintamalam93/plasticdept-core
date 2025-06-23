@@ -327,13 +327,15 @@ function clearAllJobs() {
       const manPowerRef = ref(db, "ManPower");
       const manPowerOvertimeRef = ref(db, "ManPowerOvertime");
       const planTargetRef = ref(db, "PlanTarget");
+      const dataStock = ref(db, "stock-material");
 
       // Jalankan penghapusan paralel
       Promise.all([
         remove(outboundRef),
         remove(manPowerRef),
         remove(manPowerOvertimeRef),
-        remove(planTargetRef)
+        remove(planTargetRef),
+        remove(dataStock)
       ])
         .then(() => {
           showNotification("✅ Semua job, plan target, man power, dan overtime berhasil dihapus.");
