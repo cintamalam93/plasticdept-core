@@ -34,24 +34,9 @@ header h1 {
 
 .actions-bar {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 18px;
-}
-
-.search-box input {
-  padding: 11px 16px;
-  border: 1.2px solid #d1d6e0;
-  border-radius: 7px;
-  font-size: 1rem;
-  min-width: 340px;
-  background: #f9fbfd;
-  transition: border 0.2s;
-}
-
-.search-box input:focus {
-  border-color: #6185ff;
-  outline: none;
 }
 
 .upload-box .custom-file-upload {
@@ -105,6 +90,7 @@ th {
   color: #4666c7;
   letter-spacing: 0.01em;
   border-bottom: 1.5px solid #d1d6e0;
+  background: #e6ecfc;
 }
 
 td {
@@ -121,13 +107,29 @@ tr:hover {
   transition: background 0.1s;
 }
 
+/* Filter row style */
+.filter-row th {
+  background: #f6f8fd;
+  border-bottom: 1.5px solid #d1d6e0;
+  padding: 7px 13px;
+}
+.filter-row input {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1.2px solid #d1d6e0;
+  border-radius: 6px;
+  font-size: 0.96rem;
+  background: #fff;
+  transition: border 0.2s;
+}
+.filter-row input:focus {
+  border-color: #6185ff;
+  outline: none;
+}
+
 @media (max-width: 900px) {
   .container {
     padding: 16px 4vw 24px 4vw;
-  }
-  .search-box input {
-    min-width: 180px;
-    width: 100%;
   }
   table {
     font-size: 0.95rem;
