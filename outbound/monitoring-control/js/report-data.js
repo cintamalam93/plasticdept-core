@@ -165,6 +165,21 @@ async function updateMpOvertimeView(shiftMode) {
     if (otCell) otCell.textContent = mpOt > 0 ? formatNumber(mpOt) : "-";
 }
 
+// Setelah function updateMpOvertimeView
+async function updateMpDayNightOtView(shiftMode) {
+    let shiftLabel, otCellId;
+    if (shiftMode === "day") {
+        shiftLabel = "Day Shift";
+        otCellId = 'mpDayShift-ot';
+    } else {
+        shiftLabel = "Night Shift";
+        otCellId = 'mpNightShift-ot';
+    }
+    const mpOt = await fetchMpOvertime(shiftLabel);
+    const otCell = document.getElementById(otCellId);
+    if (otCell) otCell.textContent = mpOt > 0 ? formatNumber(mpOt) : "-";
+}
+
 authPromise.then(async () => {
     // Ambil referensi elemen toggle dan spinner
     const dayToggle = document.getElementById('day-shift');
@@ -330,6 +345,7 @@ authPromise.then(async () => {
 
             // --- Update tampilan nilai MP Overtime pada tabel ---
             await updateMpOvertimeView(shiftMode);
+            await updateMpDayNightOtView(shiftMode)
 
             // --- Update nilai capNightShift-ot dan capDayShift-ot pada tabel ---
             const capNightShiftOtCell = document.getElementById('capNightShift-ot');
