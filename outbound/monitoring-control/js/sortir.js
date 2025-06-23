@@ -29,6 +29,25 @@ function showNotification(message, isError = false) {
   }, 4000);
 }
 
+async function getTeamNameForCurrentUser() {
+  // Ambil nama user yang sedang login dari elemen userFullName atau localStorage
+  const userName = document.getElementById("userFullName")?.textContent?.trim() ||
+                   localStorage.getItem("pic") || "";
+  if (!userName) return "";
+
+  // Cari user berdasar Name di node users
+  const usersSnap = await get(ref(db, "users"));
+  if (!usersSnap.exists()) return "";
+
+  const users = usersSnap.val();
+  for (const userId in users) {
+    if (users[userId]?.Name?.trim() === userName) {
+      return users[userId]?.Shift || "";
+    }
+  }
+  return "";
+}
+
 function savePlanTargetToFirebase(team, target) {
   const shiftType = (localStorage.getItem("shiftType") === "Night") ? "Night Shift" : "Day Shift";
   if (!team || isNaN(target) || target <= 0) {
@@ -784,7 +803,6 @@ bulkAddBtn.addEventListener("click", async () => {
 confirmAdd.addEventListener("click", async () => {
   const team = document.getElementById("teamSelect").value;
   const jobType = document.getElementById("jobTypeSelect").value;
-  // PATCH: Ambil shift yang dipilih user
   const shiftType = (localStorage.getItem("shiftType") === "Night") ? "Night Shift" : "Day Shift";
   const jobsToUpdate =
     window.jobsToBulkAssign && Array.isArray(window.jobsToBulkAssign) && window.jobsToBulkAssign.length > 0
@@ -798,10 +816,13 @@ confirmAdd.addEventListener("click", async () => {
   confirmAdd.disabled = true;
 
   try {
+    // Ambil teamName dari user login (lookup ke node users)
+    const teamName = await getTeamNameForCurrentUser();
+
     await Promise.all(
       jobsToUpdate.map(jobNo =>
-        // PATCH: Tambahkan property shift pada update
-        update(ref(db, "PhxOutboundJobs/" + jobNo), { team, jobType, shift: shiftType })
+        // PATCH: Tambahkan property shift dan teamName pada update
+        update(ref(db, "PhxOutboundJobs/" + jobNo), { team, jobType, shift: shiftType, teamName })
       )
     );
     showNotification(`Job berhasil ditambahkan ke team: ${team}`);
