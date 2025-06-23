@@ -321,15 +321,19 @@ authPromise.then(async () => {
                 }
             }
 
+            // --- Perhitungan capDayShiftActual ---
+            const capDayShiftOt = calculateCapShiftOT(jobs, "Day Shift");
+            const hasManPowerOvertimeDay = await fetchMpOvertimeQty("Day Shift");
+            let capDayShiftActual = capDayShift;
+            if (hasManPowerOvertimeDay) {
+                capDayShiftActual = capDayShift - capDayShiftOt;
+            }
+
             // --- Perhitungan capNightShiftActual ---
-            // capNightShift sudah didapat dari proses sebelumnya (global di listener onValue)
-            // capNightShiftOt adalah jumlah qty jobType OT shift Night Shift
             const capNightShiftOt = calculateCapShiftOT(jobs, "Night Shift");
-            // Cek apakah ada node ManPowerOvertime/Night Shift
-            const hasManPowerOvertime = await fetchMpOvertimeQty("Night Shift");
-            // Hitung capNightShiftActual
+            const hasManPowerOvertimeNight = await fetchMpOvertimeQty("Night Shift");
             let capNightShiftActual = capNightShift;
-            if (hasManPowerOvertime) {
+            if (hasManPowerOvertimeNight) {
                 capNightShiftActual = capNightShift - capNightShiftOt;
             }
 
@@ -337,7 +341,7 @@ authPromise.then(async () => {
             renderShiftData(
                 shiftMode === "day",
                 mpDayShift,
-                capDayShift,
+                capDayShiftActual,
                 mpNightShift,
                 capNightShiftActual,
                 cap1MPHour
