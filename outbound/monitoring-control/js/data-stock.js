@@ -13,14 +13,19 @@ const FIELD_MAP = {
   "PID": ["PID"],
 };
 
-const BATCH_SIZE = 100; // Kecil agar pasti masuk limit Firebase, batch besar bisa gagal diam-diam
-
+const BATCH_SIZE = 100;
 const STATUS_ALLOW = ["Putaway", "Allocated"];
 const STATUS_COLOR = {
   Putaway: "#4caf50",
   Allocated: "#ff9800"
 };
+const ROWS_PER_PAGE = 50;
 
+let currentPage = 1;
+let lastRenderedRows = [];
+let totalPages = 1;
+
+// --- Utility Functions ---
 function sanitizeKey(str) {
   return String(str)
     .replace(/[.#$/\[\]]/g, "_")
@@ -47,6 +52,35 @@ function formatDateDMY(dateStr) {
   const mmm = d.toLocaleString('en-US', { month: 'short' });
   const yyyy = d.getFullYear();
   return `${dd}-${mmm}-${yyyy}`;
+}
+
+function parseDate(str) {
+  if (!str) return new Date(0);
+  let m = str.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
+  if (m) {
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    const dd = +m[1], mm = months.indexOf(m[2]);
+    return new Date(m[3], mm, dd);
+  }
+  let d = new Date(str);
+  if (!isNaN(d)) return d;
+  return new Date(0);
+}
+
+// --- File Parse ---
+function getHeaderIndexes(headerRow) {
+  const map = {};
+  for (const field in FIELD_MAP) {
+    let idx = -1;
+    for (const alias of FIELD_MAP[field]) {
+      idx = headerRow.findIndex(
+        h => h && h.trim().replace(/[\.]/g, "").toLowerCase() === alias.replace(/[\.]/g, "").toLowerCase()
+      );
+      if (idx !== -1) break;
+    }
+    map[field] = idx;
+  }
+  return map;
 }
 
 function parseFileToObjects(file, callback) {
@@ -77,22 +111,7 @@ function parseFileToObjects(file, callback) {
   reader.readAsArrayBuffer(file);
 }
 
-function getHeaderIndexes(headerRow) {
-  const map = {};
-  for (const field in FIELD_MAP) {
-    let idx = -1;
-    for (const alias of FIELD_MAP[field]) {
-      idx = headerRow.findIndex(
-        h => h && h.trim().replace(/[\.]/g, "").toLowerCase() === alias.replace(/[\.]/g, "").toLowerCase()
-      );
-      if (idx !== -1) break;
-    }
-    map[field] = idx;
-  }
-  return map;
-}
-
-// --- PIVOT & GROUP: Product Code + Location + filter status allowed
+// --- Pivot data for rendering & upload ---
 function pivotData(dataArr) {
   const result = {};
   dataArr.forEach(row => {
@@ -113,49 +132,38 @@ function pivotData(dataArr) {
         "Status": status,
         "Qty": 0,
         "PIDSet": new Set(),
-        "_raw_inbound": row["Inbound Date"] // for sorting
+        "_raw_inbound": row["Inbound Date"]
       };
     }
-    // Qty
     let qtyRaw = row["Qty"];
     let qty = 0;
     if (qtyRaw !== undefined && qtyRaw !== null && qtyRaw !== "") {
       qty = parseFloat(String(qtyRaw).replace(/,/g, "")) || 0;
     }
     result[key]["Qty"] += qty;
-    // PID count (unique)
     if (row["PID"]) result[key]["PIDSet"].add(row["PID"]);
   });
-  // Convert to object per Product Code (nested)
-  const nested = {};
-  Object.values(result).forEach(item => {
-    const prod = item["Product Code"];
-    if (!nested[prod]) nested[prod] = [];
-    nested[prod].push(item);
-  });
-  return nested;
+  // Convert to array & sort by date ascending
+  let arr = Object.values(result);
+  arr.forEach(item => item["PID"] = item["PIDSet"].size);
+  arr.sort((a, b) => parseDate(a["_raw_inbound"]) - parseDate(b["_raw_inbound"]));
+  return arr;
 }
 
-// --- RENDER TABEL (pivoted, sorted by Inbound Date ascending)
-function pivotAndRender(dataArr) {
-  const nested = pivotData(dataArr);
-  let rowsAll = [];
-  Object.values(nested).forEach(arr => rowsAll = rowsAll.concat(arr));
-  // Sort by Inbound Date ascending (tua ke muda)
-  rowsAll.sort((a, b) => {
-    let da = parseDate(a["_raw_inbound"]);
-    let db = parseDate(b["_raw_inbound"]);
-    return da - db;
-  });
-  renderTableRows(rowsAll);
-}
-
-function renderTableRows(rowsAll) {
+// --- Pagination & Table Render ---
+function renderTableRows(arr, page = 1) {
+  lastRenderedRows = arr;
+  currentPage = page;
   const tbody = document.getElementById("table-body");
   tbody.innerHTML = "";
-  rowsAll.forEach(item => {
+  totalPages = Math.ceil(arr.length / ROWS_PER_PAGE);
+
+  let start = (page - 1) * ROWS_PER_PAGE;
+  let end = Math.min(start + ROWS_PER_PAGE, arr.length);
+
+  for (let i = start; i < end; i++) {
+    const item = arr[i];
     const status = item["Status"];
-    let statusLabel = status;
     let style = "";
     if (status === "Putaway") style = `background:#eafbe8;color:#388e3c;padding:3px 12px;border-radius:6px;font-weight:600;display:inline-block;`;
     else if (status === "Allocated") style = `background:#fff3e0;color:#ef6c00;padding:3px 12px;border-radius:6px;font-weight:600;display:inline-block;`;
@@ -168,92 +176,62 @@ function renderTableRows(rowsAll) {
         <td>${item["BU"]}</td>
         <td>${item["Invoice No"]}</td>
         <td>${item["LOT No"]}</td>
-        <td><span style="${style}">${statusLabel}</span></td>
+        <td><span style="${style}">${status}</span></td>
         <td>${item["Qty"]}</td>
-        <td>${item["PIDSet"] ? item["PIDSet"].size : (typeof item["PID"] === "number" ? item["PID"] : 0)}</td>
+        <td>${item["PID"]}</td>
       </tr>
     `;
-  });
-  applyFilters();
+  }
+  renderPagination();
 }
 
-// --- FILTER PER KOLOM ---
+function renderPagination() {
+  let pagDiv = document.getElementById("pagination");
+  if (!pagDiv) {
+    pagDiv = document.createElement("div");
+    pagDiv.id = "pagination";
+    pagDiv.style.textAlign = "right";
+    pagDiv.style.margin = "10px 0";
+    document.querySelector(".table-wrapper").after(pagDiv);
+  }
+  let html = "";
+  if (totalPages > 1) {
+    html += `<button ${currentPage === 1 ? "disabled" : ""} onclick="gotoPage(${currentPage-1})">Prev</button>`;
+    html += ` Page <b>${currentPage}</b> of <b>${totalPages}</b> `;
+    html += `<button ${currentPage === totalPages ? "disabled" : ""} onclick="gotoPage(${currentPage+1})">Next</button>`;
+  }
+  pagDiv.innerHTML = html;
+}
+window.gotoPage = function(page) {
+  renderTableRows(lastRenderedRows, page);
+  applyFilters(false);
+};
+
+// --- Filter (pagination aware) ---
 const filterInputs = document.querySelectorAll(".column-filter");
 filterInputs.forEach((input) => {
-  input.addEventListener("input", applyFilters);
+  input.addEventListener("input", () => applyFilters(true));
 });
-function applyFilters() {
+function applyFilters(shouldPaginate = true) {
   const filters = Array.from(filterInputs).map((f) =>
     f.value.toLowerCase()
   );
-  let rows = Array.from(document.querySelectorAll("#table-body tr"));
-  rows.forEach((row) => {
-    const cells = Array.from(row.children);
-    let show = true;
+  let arr = lastRenderedRows.filter(item => {
+    const vals = [
+      item["Location"], item["Product Code"], item["Inbound Date"], item["BU"], item["Invoice No"],
+      item["LOT No"], item["Status"], item["Qty"], item["PID"]
+    ].map(String);
     for (let i = 0; i < filters.length; i++) {
-      if (
-        filters[i] &&
-        !String(cells[i].textContent).toLowerCase().includes(filters[i])
-      ) {
-        show = false;
-        break;
-      }
+      if (filters[i] && !vals[i].toLowerCase().includes(filters[i])) return false;
     }
-    row.style.display = show ? "" : "none";
+    return true;
   });
-  // Setelah filter, sort ulang by tanggal
-  sortTableByDate();
+  // Sort by date ascending
+  arr.sort((a, b) => parseDate(a["Inbound Date"]) - parseDate(b["Inbound Date"]));
+  if (shouldPaginate) renderTableRows(arr, 1);
 }
 
-function parseDate(str) {
-  if (!str) return new Date(0);
-  // Try parse DD-MMM-YYYY
-  let m = str.match(/^(\d{2})-([A-Za-z]{3})-(\d{4})$/);
-  if (m) {
-    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-    const dd = +m[1], mm = months.indexOf(m[2]);
-    return new Date(m[3], mm, dd);
-  }
-  let d = new Date(str);
-  if (!isNaN(d)) return d;
-  return new Date(0);
-}
-
-function sortTableByDate() {
-  const tbody = document.getElementById("table-body");
-  let rows = Array.from(tbody.querySelectorAll("tr"));
-  rows.sort((a, b) => {
-    let adate = a.children[2].textContent;
-    let bdate = b.children[2].textContent;
-    return parseDate(adate) - parseDate(bdate);
-  });
-  tbody.innerHTML = "";
-  rows.forEach(tr => tbody.appendChild(tr));
-}
-
-// --- FETCH DARI DATABASE & RENDER ---
-async function fetchAndRenderSummary() {
-  await authPromise;
-  const snapshot = await get(ref(db, "/stock-material"));
-  const dataObj = snapshot.exists() ? snapshot.val() : {};
-  // Flatten for render (array of item)
-  const arr = [];
-  Object.keys(dataObj).forEach(prodCode => {
-    const locations = dataObj[prodCode];
-    Object.keys(locations).forEach(location => {
-      const item = locations[location];
-      arr.push({
-        ...item,
-        "Product Code": prodCode,
-        "Location": location,
-        "PIDSet": { size: typeof item.PID === "number" ? item.PID : 0 }
-      });
-    });
-  });
-  pivotAndRender(arr);
-}
-
-// --- SPINNER UTILS ---
+// --- Loader/Progress ---
 function showLoader(msg = "Uploading...", percent = 0) {
   document.getElementById("loader-text").textContent = msg;
   document.getElementById("loader-overlay").style.display = "flex";
@@ -275,7 +253,34 @@ function setLoaderBar(percent = 0) {
   if (loaderBar) loaderBar.style.width = percent + '%';
 }
 
-// --- UPLOAD BATCH ROBUST DENGAN RETRY ---
+// --- Fetch from DB & render ---
+async function fetchAndRenderSummary() {
+  await authPromise;
+  const snapshot = await get(ref(db, "/stock-material"));
+  const dataObj = snapshot.exists() ? snapshot.val() : {};
+  // Flatten for render (array of item)
+  const arr = [];
+  Object.keys(dataObj).forEach(prodCode => {
+    const locations = dataObj[prodCode];
+    Object.keys(locations).forEach(location => {
+      const item = locations[location];
+      arr.push({
+        ...item,
+        "Product Code": prodCode,
+        "Location": location,
+        "PID": typeof item.PID === "number" ? item.PID : 0
+      });
+    });
+  });
+  let pivoted = arr.filter(i=>STATUS_ALLOW.includes(i.Status)).map(i=>{
+    i._raw_inbound = i["Inbound Date"];
+    return i;
+  });
+  pivoted.sort((a, b) => parseDate(a["Inbound Date"]) - parseDate(b["Inbound Date"]));
+  renderTableRows(pivoted, 1);
+}
+
+// --- UPLOAD with robust batching & retry ---
 let selectedFile = null;
 let parsedResult = [];
 document.getElementById("file-upload").addEventListener("change", function (e) {
@@ -322,7 +327,7 @@ document.getElementById("upload-btn").addEventListener("click", async function (
   await authPromise;
 
   // GROUP, PIVOT, FILTER STATUS
-  const nested = {};
+  const result = {};
   parsedResult.forEach(row => {
     const status = (row["Status"] || "").trim();
     if (!STATUS_ALLOW.includes(status)) return;
@@ -331,9 +336,9 @@ document.getElementById("upload-btn").addEventListener("click", async function (
     if (!productCode || !location) return;
     const safeProdCode = sanitizeKey(productCode);
     const safeLocation = sanitizeKey(location);
-    if (!nested[safeProdCode]) nested[safeProdCode] = {};
-    if (!nested[safeProdCode][safeLocation]) {
-      nested[safeProdCode][safeLocation] = {
+    const key = `${safeProdCode}|${safeLocation}`;
+    if (!result[key]) {
+      result[key] = {
         "Product Code": productCode,
         "Location": location,
         "Inbound Date": formatDateDMY(row["Inbound Date"]),
@@ -351,29 +356,14 @@ document.getElementById("upload-btn").addEventListener("click", async function (
     if (qtyRaw !== undefined && qtyRaw !== null && qtyRaw !== "") {
       qty = parseFloat(String(qtyRaw).replace(/,/g, "")) || 0;
     }
-    nested[safeProdCode][safeLocation]["Qty"] += qty;
-    if (row["PID"]) nested[safeProdCode][safeLocation]["PIDSet"].add(row["PID"]);
+    result[key]["Qty"] += qty;
+    if (row["PID"]) result[key]["PIDSet"].add(row["PID"]);
   });
-  // Convert Set to count, and remove PIDSet (replace with count)
-  Object.keys(nested).forEach(prodCode => {
-    Object.keys(nested[prodCode]).forEach(location => {
-      const item = nested[prodCode][location];
-      item.PID = item.PIDSet.size;
-      delete item.PIDSet;
-    });
+  Object.values(result).forEach(item => {
+    item.PID = item.PIDSet.size;
+    delete item.PIDSet;
   });
-
-  // Prepare all pairs for batch upload
-  const allPairs = [];
-  Object.keys(nested).forEach(prodCode => {
-    Object.keys(nested[prodCode]).forEach(location => {
-      allPairs.push({
-        prodCode,
-        location,
-        data: nested[prodCode][location]
-      });
-    });
-  });
+  let allPairs = Object.values(result);
 
   // Clear old data before upload (replace all)
   await set(ref(db, "/stock-material"), {});
@@ -381,10 +371,12 @@ document.getElementById("upload-btn").addEventListener("click", async function (
   let total = allPairs.length;
   let success = 0, fail = 0;
   for (let i = 0; i < total; i += BATCH_SIZE) {
-    let batchPairs = allPairs.slice(i, i + BATCH_SIZE);
+    let batchArr = allPairs.slice(i, i + BATCH_SIZE);
     let updates = {};
-    batchPairs.forEach(({ prodCode, location, data }) => {
-      updates[`/stock-material/${prodCode}/${location}`] = data;
+    batchArr.forEach(item => {
+      const safeProdCode = sanitizeKey(item["Product Code"]);
+      const safeLocation = sanitizeKey(item["Location"]);
+      updates[`/stock-material/${safeProdCode}/${safeLocation}`] = item;
     });
     let tryCount = 0;
     let uploaded = false;
@@ -392,14 +384,14 @@ document.getElementById("upload-btn").addEventListener("click", async function (
       try {
         await update(ref(db), updates);
         uploaded = true;
-        success += batchPairs.length;
+        success += batchArr.length;
       } catch (err) {
         tryCount++;
         if (tryCount >= 3) {
-          fail += batchPairs.length;
+          fail += batchArr.length;
           alert("Upload error (batch " + (i / BATCH_SIZE + 1) + "): " + err.message);
         } else {
-          await new Promise(res => setTimeout(res, 1000 * tryCount)); // exponential backoff
+          await new Promise(res => setTimeout(res, 1000 * tryCount));
         }
       }
     }
