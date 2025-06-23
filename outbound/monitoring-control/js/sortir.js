@@ -529,7 +529,8 @@ function syncJobsToFirebase(jobs) {
           qty: sanitizeValue(job.BCNo),
           team: existing.team || "",
           jobType: existing.jobType || "",
-          shift: existing.shift || ""
+          shift: existing.shift || "",
+          teamName: existing.teamName || "" 
         };
         return set(jobRef, jobData);
       })
