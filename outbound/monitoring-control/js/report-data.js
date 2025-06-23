@@ -295,20 +295,6 @@ authPromise.then(async () => {
         // Fungsi update tampilan shift (hanya MP & Capacity yang dinamis)
         async function updateShiftView() {
             const shiftMode = (dayToggle && dayToggle.checked) ? "day" : "night";
-            const orderH1Val = calculateOrderH1Actual(jobs, shiftMode);
-            const orderH1Cell = document.getElementById('orderH1-actual');
-            if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? orderH1Val.toLocaleString("en-US") : "-";
-
-            // Sisa order
-            const remainingOrderCell = document.getElementById('remOrder-actual');
-            if (remainingOrderCell) {
-                if (shiftMode === "night") {
-                    remainingOrderCell.textContent = orderH1Val > 0 ? formatNumber(orderH1Val) : "-";
-                } else {
-                    const remainingOrder = (totalOrder || 0) - (totalCap || 0);
-                    remainingOrderCell.textContent = !isNaN(remainingOrder) ? formatNumber(remainingOrder) : "-";
-                }
-            }
 
             // --- Perhitungan capDayShiftActual dan capNightShiftActual ---
             const capDayShiftOt = calculateCapShiftOT(jobs, "Day Shift");
@@ -324,6 +310,52 @@ authPromise.then(async () => {
             if (hasManPowerOvertimeNight) {
                 capNightShiftActual = capNightShift - capNightShiftOt;
             }
+
+            // --- Perhitungan orderH1-actual & remOrder-actual sesuai logika baru ---
+            let orderH1Val = 0;
+            let remOrderVal = 0;
+
+            if (shiftMode === "day") {
+                // orderH1-actual: filter delivery date selain hari ini dan kemarin, jumlahkan qty-nya
+                const today = new Date();
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+                function formatDate(date) {
+                    const day = String(date.getDate()).padStart(2, "0");
+                    const month = date.toLocaleString("en-US", { month: "short" });
+                    const year = date.getFullYear();
+                    return `${day}-${month}-${year}`;
+                }
+                const todayStr = formatDate(today);
+                const yesterdayStr = formatDate(yesterday);
+                orderH1Val = Object.values(jobs || {}).reduce((sum, job) => {
+                    const deliveryDate = job.deliveryDate || "";
+                    return (deliveryDate !== todayStr && deliveryDate !== yesterdayStr)
+                        ? sum + (parseInt(job.qty, 10) || 0)
+                        : sum;
+                }, 0);
+
+                // remOrder-actual: totalOrder - totalCap
+                remOrderVal = (totalOrder || 0) - (totalCap || 0);
+
+            } else {
+                // remOrder-actual: jumlah qty semua status newjob (tanpa filter tanggal)
+                remOrderVal = Object.values(jobs || {}).reduce((sum, job) => {
+                    return (String(job.status).toLowerCase() === "newjob")
+                        ? sum + (parseInt(job.qty, 10) || 0)
+                        : sum;
+                }, 0);
+
+                // orderH1-actual: remOrder-actual + capNightShift-actual
+                orderH1Val = remOrderVal + (capNightShiftActual || 0);
+            }
+
+            // --- Tampilkan ke tabel ---
+            const orderH1Cell = document.getElementById('orderH1-actual');
+            if (orderH1Cell) orderH1Cell.textContent = orderH1Val > 0 ? formatNumber(orderH1Val) : "-";
+
+            const remainingOrderCell = document.getElementById('remOrder-actual');
+            if (remainingOrderCell) remainingOrderCell.textContent = remOrderVal > 0 ? formatNumber(remOrderVal) : "-";
 
             // --- Render data utama ke table ---
             renderShiftData(
@@ -352,7 +384,7 @@ authPromise.then(async () => {
                 if (capNightShiftOtCell) capNightShiftOtCell.textContent = "";
             }
 
-            // ===================== ACHIEVEMENT LOGIC =====================
+            // ===================== ACHIEVEMENT LOGIC =========================
             const mpDayShiftActual = Number((document.getElementById("mpDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const capDayShiftActualVal = Number((document.getElementById("capDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
