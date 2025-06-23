@@ -19,65 +19,10 @@ function getTomorrowDateStr() {
     return `${day}-${month}-${year}`;
 }
 
-function calculateOrderH1Actual(jobs, shiftMode) {
-    let total = 0;
-    if (!jobs) return total;
-
-    // Ambil hari ini dan kemarin dalam format yang sama dengan job.deliveryDate
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
-
-    function formatDate(date) {
-        const day = String(date.getDate()).padStart(2, "0");
-        const month = date.toLocaleString("en-US", { month: "short" });
-        const year = date.getFullYear();
-        return `${day}-${month}-${year}`;
-    }
-
-    const todayStr = formatDate(today);
-    const yesterdayStr = formatDate(yesterday);
-
-    // Ambil semua job newjob yang tanggal != hari ini && tanggal != kemarin
-    const filtered = Object.values(jobs).filter(job => {
-        const deliveryDate = job.deliveryDate || "";
-        const status = (job.status || "").toLowerCase();
-        return (
-            status === "newjob" &&
-            deliveryDate !== todayStr &&
-            deliveryDate !== yesterdayStr
-        );
-    });
-
-    if (shiftMode === "day") {
-        // Day shift: jumlahkan semua job newjob selain hari ini dan kemarin
-        filtered.forEach(job => {
-            total += parseInt(job.qty, 10) || 0;
-        });
-    } else if (shiftMode === "night") {
-        if (filtered.length > 0) {
-            // Jika ada: jumlahkan hanya yang tanggal selain hari ini dan kemarin
-            filtered.forEach(job => {
-                total += parseInt(job.qty, 10) || 0;
-            });
-        } else {
-            // Jika tidak ada: jumlahkan semua job newjob tanpa filter tanggal
-            Object.values(jobs).forEach(job => {
-                const status = (job.status || "").toLowerCase();
-                if (status === "newjob") {
-                    total += parseInt(job.qty, 10) || 0;
-                }
-            });
-        }
-    }
-    return total;
-}
-
 // Hitung total qty OT pada shift tertentu dari node PhxOutboundJobs
 function calculateCapShiftOT(jobs, shiftLabel) {
     let total = 0;
     if (!jobs) return total;
-
     Object.values(jobs).forEach(job => {
         const jobType = (job.jobType || "").toUpperCase();
         const shift = (job.shift || "");
@@ -101,7 +46,7 @@ async function fetchMpShift(shiftLabel) {
     return mpReguler + mpSugity;
 }
 
-// Ambil ManPowerOvertime/Night Shift (cek apakah ada node)
+// Ambil ManPowerOvertime/<Shift> (cek apakah ada node)
 async function fetchMpOvertimeQty(shiftLabel) {
     const mpOtSnap = await get(ref(db, `ManPowerOvertime/${shiftLabel}`));
     return mpOtSnap.exists();
@@ -114,6 +59,53 @@ async function fetchMpOvertime(shiftLabel) {
         return Number(mpOtSnap.val()) || 0;
     }
     return 0;
+}
+
+// Helper: Hitung total Order H-1 actual sesuai shiftMode
+function calculateOrderH1Actual(jobs, shiftMode) {
+    let total = 0;
+    if (!jobs) return total;
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+    function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = date.toLocaleString("en-US", { month: "short" });
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    }
+    const todayStr = formatDate(today);
+    const yesterdayStr = formatDate(yesterday);
+
+    const filtered = Object.values(jobs).filter(job => {
+        const deliveryDate = job.deliveryDate || "";
+        const status = (job.status || "").toLowerCase();
+        return (
+            status === "newjob" &&
+            deliveryDate !== todayStr &&
+            deliveryDate !== yesterdayStr
+        );
+    });
+
+    if (shiftMode === "day") {
+        filtered.forEach(job => {
+            total += parseInt(job.qty, 10) || 0;
+        });
+    } else if (shiftMode === "night") {
+        if (filtered.length > 0) {
+            filtered.forEach(job => {
+                total += parseInt(job.qty, 10) || 0;
+            });
+        } else {
+            Object.values(jobs).forEach(job => {
+                const status = (job.status || "").toLowerCase();
+                if (status === "newjob") {
+                    total += parseInt(job.qty, 10) || 0;
+                }
+            });
+        }
+    }
+    return total;
 }
 
 // Render shift data ke tabel (toggle show/hide)
@@ -165,7 +157,7 @@ async function updateMpOvertimeView(shiftMode) {
     if (otCell) otCell.textContent = mpOt > 0 ? formatNumber(mpOt) : "-";
 }
 
-// Setelah function updateMpOvertimeView
+// Update tampilan nilai mpDayShift-ot & mpNightShift-ot sesuai shift aktif
 async function updateMpDayNightOtView(shiftMode) {
     let shiftLabel, otCellId;
     if (shiftMode === "day") {
@@ -245,13 +237,6 @@ authPromise.then(async () => {
         // 4. Total Order = Remaining + Additional + Order H-1
         const totalOrder = totalRemaining + totalAdditional + totalOrderH1;
 
-        // Tambahkan log detail sumber nilai totalOrder-actual
-        console.log(`[TRACE] totalRemaining: ${totalRemaining} (jobType: "Remaining")`);
-        console.log(`[TRACE] totalAdditional: ${totalAdditional} (jobType: "Additional")`);
-        console.log(`[TRACE] totalOrderH1: ${totalOrderH1} (Order H-1, dari calculateOrderH1Actual(jobs, "day"))`);
-        console.log(`[TRACE] totalOrder-actual = totalRemaining + totalAdditional + totalOrderH1`);
-        console.log(`[TRACE] totalOrder-actual = ${totalRemaining} + ${totalAdditional} + ${totalOrderH1} = ${totalOrder}`);
-
         // 1. Total MP = Mp day shift + Mp night shift
         const totalMP = (mpDayShift || 0) + (mpNightShift || 0);
 
@@ -279,7 +264,6 @@ authPromise.then(async () => {
 
         const totalOrderCell = document.getElementById('totalOrder-actual');
         if (totalOrderCell) {
-            console.log(`[DISPLAY] totalOrder-actual yang akan ditampilkan ke tabel: ${totalOrder > 0 ? formatNumber(totalOrder) : "-"}`);
             totalOrderCell.textContent = totalOrder > 0 ? formatNumber(totalOrder) : "-";
         }
 
@@ -321,7 +305,7 @@ authPromise.then(async () => {
                 }
             }
 
-            // --- Perhitungan capDayShiftActual ---
+            // --- Perhitungan capDayShiftActual dan capNightShiftActual ---
             const capDayShiftOt = calculateCapShiftOT(jobs, "Day Shift");
             const hasManPowerOvertimeDay = await fetchMpOvertimeQty("Day Shift");
             let capDayShiftActual = capDayShift;
@@ -329,7 +313,6 @@ authPromise.then(async () => {
                 capDayShiftActual = capDayShift - capDayShiftOt;
             }
 
-            // --- Perhitungan capNightShiftActual ---
             const capNightShiftOt = calculateCapShiftOT(jobs, "Night Shift");
             const hasManPowerOvertimeNight = await fetchMpOvertimeQty("Night Shift");
             let capNightShiftActual = capNightShift;
@@ -349,7 +332,9 @@ authPromise.then(async () => {
 
             // --- Update tampilan nilai MP Overtime pada tabel ---
             await updateMpOvertimeView(shiftMode);
-            await updateMpDayNightOtView(shiftMode)
+
+            // --- Update tampilan mpDayShift-ot & mpNightShift-ot sesuai shift aktif ---
+            await updateMpDayNightOtView(shiftMode);
 
             // --- Update nilai capNightShift-ot dan capDayShift-ot pada tabel ---
             const capNightShiftOtCell = document.getElementById('capNightShift-ot');
@@ -358,27 +343,25 @@ authPromise.then(async () => {
                 if (capNightShiftOtCell) capNightShiftOtCell.textContent = capNightShiftOt > 0 ? formatNumber(capNightShiftOt) : "-";
                 if (capDayShiftOtCell) capDayShiftOtCell.textContent = "";
             } else {
-                const capDayOT = calculateCapShiftOT(jobs, "Day Shift");
-                if (capDayShiftOtCell) capDayShiftOtCell.textContent = capDayOT > 0 ? formatNumber(capDayOT) : "-";
+                if (capDayShiftOtCell) capDayShiftOtCell.textContent = capDayShiftOt > 0 ? formatNumber(capDayShiftOt) : "-";
                 if (capNightShiftOtCell) capNightShiftOtCell.textContent = "";
             }
 
             // ===================== ACHIEVEMENT LOGIC =====================
-            // Ambil nilai actual
             const mpDayShiftActual = Number((document.getElementById("mpDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
-            const capDayShiftActual = Number((document.getElementById("capDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
+            const capDayShiftActualVal = Number((document.getElementById("capDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
 
             if (shiftMode === "day") {
-                let mpDayAchv = (mpDayShiftActual !== 0) ? capDayShiftActual / mpDayShiftActual : 0;
+                let mpDayAchv = (mpDayShiftActual !== 0) ? capDayShiftActualVal / mpDayShiftActual : 0;
                 document.getElementById("mpDayShift-achievement").textContent =
-                    (mpDayShiftActual > 0 && capDayShiftActual > 0)
+                    (mpDayShiftActual > 0 && capDayShiftActualVal > 0)
                         ? Math.round(mpDayAchv).toLocaleString('en-US')
                         : "-";
 
                 let capDayAchv = mpDayAchv - cap1MPHourAchievement;
                 document.getElementById("capDayShift-achievement").textContent =
-                    (mpDayShiftActual > 0 && capDayShiftActual > 0 && cap1MPHourAchievement > 0)
+                    (mpDayShiftActual > 0 && capDayShiftActualVal > 0 && cap1MPHourAchievement > 0)
                         ? Math.round(capDayAchv).toLocaleString('en-US')
                         : "-";
             } else {
@@ -388,39 +371,28 @@ authPromise.then(async () => {
             // ============================================================
 
             // ===================== PERCENTAGE LOGIC =====================
-            // Helper: Persentase, dibulatkan ke integer
             function percentRound(val) {
                 return Math.round(val * 100);
             }
-
-            // cap1MPHour-percentage harus dihitung dari cap1MPHour-achievement/mpDayShift-achievement (atau mpNightShift-achievement)
             let cap1MPHourPercentage = 0;
             if (shiftMode === "day") {
-                // cap1MPHour-percentage = cap1MPHour-achievement / mpDayShift-achievement
                 const mpDayShiftAchievement = Number((document.getElementById("mpDayShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
                 if (mpDayShiftAchievement !== 0) {
                     cap1MPHourPercentage = cap1MPHourAchievement / mpDayShiftAchievement;
                 }
             } else {
-                // cap1MPHour-percentage = cap1MPHour-achievement / mpNightShift-achievement
                 const mpNightShiftAchievement = Number((document.getElementById("mpNightShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
                 if (mpNightShiftAchievement !== 0) {
                     cap1MPHourPercentage = cap1MPHourAchievement / mpNightShiftAchievement;
                 }
             }
-
-            // capDayShift-percentage
             let capDayShiftPercent = 1 - cap1MPHourPercentage;
             document.getElementById("capDayShift-percentage").textContent = percentRound(capDayShiftPercent) + "%";
-
-            // capNightShift-percentage: clear jika tidak dipakai
             if (shiftMode === "day") {
                 document.getElementById("capNightShift-percentage").textContent = "";
             } else {
                 document.getElementById("capNightShift-percentage").textContent = "";
             }
-
-            // totalCap-percentage
             const totalCapActual = Number((document.getElementById("totalCap-actual")?.textContent || "").replace(/,/g, "")) || 0;
             let totalCapPercent = (totalCapActual !== 0)
                 ? 1 - (88200 / totalCapActual)
