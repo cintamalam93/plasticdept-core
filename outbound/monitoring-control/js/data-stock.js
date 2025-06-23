@@ -41,6 +41,14 @@ function getHeaderIndexes(headerRow) {
   return map;
 }
 
+// Fungsi untuk mengubah string jadi key yang valid di Firebase
+function sanitizeKey(str) {
+  // Ganti karakter dilarang dengan '_'
+  return String(str)
+    .replace(/[.#$/\[\]]/g, '_')
+    .replace(/\s+/g, '_'); // Ganti spasi juga jadi underscore supaya aman
+}
+
 // --- Format Inbound Date jadi DD-MMM-YYYY
 function formatDateDMY(dateStr) {
   if (!dateStr) return "";
@@ -334,8 +342,11 @@ document.getElementById("upload-btn").addEventListener("click", async function (
     let batchPairs = allPairs.slice(i, i + BATCH_SIZE);
     let updates = {};
     batchPairs.forEach(({ prodCode, location, data }) => {
-      updates[`/stock-material/${prodCode}/${location}`] = data;
+      const safeProdCode = sanitizeKey(prodCode);
+      const safeLocation = sanitizeKey(location);
+        updates[`/stock-material/${safeProdCode}/${safeLocation}`] = data;
     });
+
     try {
       await update(ref(db), updates);
       success += batchPairs.length;
