@@ -1019,32 +1019,36 @@ function checkPythonAPIAvailable() {
     .catch(() => false);
 }
 
-async function saveOutJobAchievement() {
+async function saveOutJobAchievementFiltered() {
   // 1. Ambil semua job dari node PhxOutboundJobs
   const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
   if (!jobsSnap.exists()) return;
 
   const jobs = Object.values(jobsSnap.val());
 
-  // 2. Kelompokkan & akumulasi qty per teamName dan shift
-  // Hanya "Blue Team" dan "Green Team" yang diambil
-  const teamAchievement = {};
-  for (const job of jobs) {
-    const teamName = (job.teamName || "").trim();
-    if (!["Blue Team", "Green Team"].includes(teamName)) continue;
-    const shift = job.shift || "";
-    const qty = Number(job.qty) || 0;
+  // 2. Ambil shift aktif dari localStorage
+  const activeShift = localStorage.getItem("shiftType") === "Night" ? "Night Shift" : "Day Shift";
 
-    // Gunakan key gabungan teamName + shift agar shift per team tidak tertukar
-    const key = teamName;
-    if (!teamAchievement[key]) {
-      teamAchievement[key] = { achievement: 0, shift };
+  // 3. Filter seperti export Excel + shift
+  const filteredJobs = jobs.filter(job =>
+    job.team &&
+    (job.team.toLowerCase() === "sugity" || job.team.toLowerCase() === "reguler") &&
+    (job.shift === activeShift)
+  );
+
+  // 4. Akumulasi achievement per team
+  const teamAchievement = {};
+  for (const job of filteredJobs) {
+    const teamName = (job.team || "").trim().replace(" ", "_");
+    const qty = Number(job.qty) || 0;
+    if (!teamAchievement[teamName]) {
+      teamAchievement[teamName] = { achievement: 0, shift: job.shift };
     }
-    teamAchievement[key].achievement += qty;
-    teamAchievement[key].shift = shift; // update shift (pakai shift terakhir yang ditemukan)
+    teamAchievement[teamName].achievement += qty;
+    teamAchievement[teamName].shift = job.shift;
   }
 
-  // 3. Siapkan struktur node berdasarkan tanggal sekarang
+  // 5. Struktur node berdasarkan tanggal sekarang
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1053,10 +1057,10 @@ async function saveOutJobAchievement() {
   const nodeMonth = `${month}_${yearShort}`;
   const nodeDay = String(now.getDate()).padStart(2, '0');
 
-  // 4. Simpan ke database per teamName
+  // 6. Simpan ke database per team
   for (const teamName of Object.keys(teamAchievement)) {
     const { achievement, shift } = teamAchievement[teamName];
-    const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${teamName.replace(" ", "_")}`;
+    const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${teamName}`;
     await set(ref(db, dbPath), {
       shift,
       achievement
