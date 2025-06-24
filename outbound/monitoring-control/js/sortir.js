@@ -1019,7 +1019,7 @@ function checkPythonAPIAvailable() {
     .catch(() => false);
 }
 
-async function saveOutJobAchievementFiltered() {
+async function saveOutJobAchievement( {
   // 1. Ambil semua job dari node PhxOutboundJobs
   const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
   if (!jobsSnap.exists()) return;
