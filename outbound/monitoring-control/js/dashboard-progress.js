@@ -317,7 +317,6 @@ function renderMiniDonutSugity(achieved, planTarget) {
         }
       }
     },
-    plugins: [centerLabelPlugin]
   });
   // Tambahan untuk animated counter
   const donutCenterText = document.getElementById("miniDonutSugityCenter");
@@ -361,7 +360,6 @@ function renderMiniDonutReguler(achieved, planTarget) {
         }
       }
     },
-    plugins: [centerLabelPlugin]
   });
     // Tambahan untuk animated counter
   const donutCenterText = document.getElementById("miniDonutRegulerCenter");
