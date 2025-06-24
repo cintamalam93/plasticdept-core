@@ -319,7 +319,14 @@ function renderMiniDonutSugity(achieved, planTarget) {
     },
     plugins: [centerLabelPlugin]
   });
+  // Tambahan untuk animated counter
+  const donutCenterText = document.getElementById("miniDonutSugityCenter");
+  if (donutCenterText) {
+    const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
+    animateCountUp(donutCenterText, Math.round(percent));
+  }
 }
+
 
 // --- Mini Donut Chart Reguler ---
 function renderMiniDonutReguler(achieved, planTarget) {
@@ -356,7 +363,14 @@ function renderMiniDonutReguler(achieved, planTarget) {
     },
     plugins: [centerLabelPlugin]
   });
+    // Tambahan untuk animated counter
+  const donutCenterText = document.getElementById("miniDonutRegulerCenter");
+  if (donutCenterText) {
+    const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
+    animateCountUp(donutCenterText, Math.round(percent));
+  }
 }
+
 
 // --- Donut Chart Gabungan ---
 function renderDonutChart(totalAchieved, totalPlanTarget) {

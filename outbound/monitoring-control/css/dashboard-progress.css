@@ -340,6 +340,7 @@ body {
   margin-top: 12px;
   margin-bottom: 0;
   width: 100%;
+  position: relative;
 }
 #miniDonutSugity {
   max-width: 90px;
@@ -352,6 +353,21 @@ body {
   max-height: 90px;
   width: 90px;
   height: 90px;
+}
+
+.mini-donut-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  text-align: center;
+  font-size: 1.35em;
+  font-weight: 700;
+  color: var(--blue);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  letter-spacing: .03em;
 }
 
 /* ====== PROGRESS BAR (OPTIONAL) ====== */
