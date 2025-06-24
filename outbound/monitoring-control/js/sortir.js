@@ -1020,35 +1020,32 @@ function checkPythonAPIAvailable() {
 }
 
 async function saveOutJobAchievement() {
-  // 1. Ambil semua job dari node PhxOutboundJobs
   const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
   if (!jobsSnap.exists()) return;
 
   const jobs = Object.values(jobsSnap.val());
 
-  // 2. Ambil shift aktif dari localStorage
-  const activeShift = localStorage.getItem("shiftType") === "Night" ? "Night Shift" : "Day Shift";
+  // Struktur: { [shiftType]: { [teamName]: { qtySum, planTarget } } }
+  const achievementData = {};
 
-  // 3. Filter seperti export Excel + shift
-  const filteredJobs = jobs.filter(job =>
-    job.team &&
-    (job.team.toLowerCase() === "sugity" || job.team.toLowerCase() === "reguler") &&
-    (job.shift === activeShift)
-  );
+  // 1. Kelompokkan dan jumlahkan qty
+  jobs.forEach(job => {
+    const shiftRaw = job.shift || "";
+    // Standarisasi: shift "Night Shift" => "NightShift", "Day Shift" => "DayShift"
+    const shiftType = shiftRaw.replace(/\s/g, "");
+    const teamNameRaw = job.teamName || "";
+    // Standarisasi: "Blue Team" => "BlueTeam", "Green Team" => "GreenTeam"
+    const teamNameKey = teamNameRaw.replace(/\s/g, "");
+    if (!achievementData[shiftType]) achievementData[shiftType] = {};
+    if (!achievementData[shiftType][teamNameKey]) achievementData[shiftType][teamNameKey] = 0;
+    achievementData[shiftType][teamNameKey] += Number(job.qty) || 0;
+  });
 
-  // 4. Akumulasi achievement per team
-  const teamAchievement = {};
-  for (const job of filteredJobs) {
-    const teamName = (job.team || "").trim().replace(" ", "_");
-    const qty = Number(job.qty) || 0;
-    if (!teamAchievement[teamName]) {
-      teamAchievement[teamName] = { achievement: 0, shift: job.shift };
-    }
-    teamAchievement[teamName].achievement += qty;
-    teamAchievement[teamName].shift = job.shift;
-  }
+  // 2. Ambil PlanTarget per shift dan team
+  const planTargetSnap = await get(ref(db, "PlanTarget"));
+  const planTargetData = planTargetSnap.exists() ? planTargetSnap.val() : {};
 
-  // 5. Struktur node berdasarkan tanggal sekarang
+  // 3. Path penamaan
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1057,14 +1054,32 @@ async function saveOutJobAchievement() {
   const nodeMonth = `${month}_${yearShort}`;
   const nodeDay = String(now.getDate()).padStart(2, '0');
 
-  // 6. Simpan ke database per team
-  for (const teamName of Object.keys(teamAchievement)) {
-    const { achievement, shift } = teamAchievement[teamName];
-    const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${teamName}`;
-    await set(ref(db, dbPath), {
-      shift,
-      achievement
-    });
+  // 4. Simpan ke database per kombinasi shift + teamName
+  for (const shiftType in achievementData) {
+    // shiftType: "NightShift" / "DayShift"
+    const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${shiftType}`;
+    const updates = {};
+
+    for (const teamNameKey in achievementData[shiftType]) {
+      // key achievement: BlueTeamAchvmnt / GreenTeamAchvmnt
+      const achKey = (teamNameKey === "BlueTeam") ? "BlueTeamAchvmnt" : (teamNameKey === "GreenTeam") ? "GreenTeamAchvmnt" : `${teamNameKey}Achvmnt`;
+      updates[achKey] = achievementData[shiftType][teamNameKey];
+
+      // PlanTarget
+      const planTargetShift = (shiftType === "NightShift") ? "Night Shift" : "Day Shift";
+      const planTarget = planTargetData?.[planTargetShift]?.[teamNameRaw(teamNameKey)] || 0;
+      updates["PlanTarget"] = planTarget;
+    }
+
+    // Simpan sekali per shift
+    await update(ref(db, dbPath), updates);
+  }
+
+  // Helper untuk convert "BlueTeam"->"Blue Team"
+  function teamNameRaw(key) {
+    if (key === "BlueTeam") return "Blue Team";
+    if (key === "GreenTeam") return "Green Team";
+    return key.replace(/([A-Z])/g, ' $1').trim();
   }
 }
 
