@@ -1025,27 +1025,32 @@ async function saveOutJobAchievement() {
 
   const jobs = Object.values(jobsSnap.val());
 
-  // Struktur: { [shiftType]: { [teamName]: { qtySum, planTarget } } }
+  // Struktur: { [shiftType]: { [teamNameAchvmnt]: qtySum } }
   const achievementData = {};
 
-  // 1. Kelompokkan dan jumlahkan qty
+  // 1. Kelompokkan dan jumlahkan qty per shift dan team
   jobs.forEach(job => {
     const shiftRaw = job.shift || "";
-    // Standarisasi: shift "Night Shift" => "NightShift", "Day Shift" => "DayShift"
-    const shiftType = shiftRaw.replace(/\s/g, "");
+    // Standarisasi shift: "Night Shift" => "NightShift", "Day Shift" => "DayShift"
+    const shiftType = shiftRaw === "Night Shift" ? "NightShift" : "DayShift";
     const teamNameRaw = job.teamName || "";
-    // Standarisasi: "Blue Team" => "BlueTeam", "Green Team" => "GreenTeam"
-    const teamNameKey = teamNameRaw.replace(/\s/g, "");
+    // Standarisasi: "Blue Team" => "BlueTeamAchvmnt", "Green Team" => "GreenTeamAchvmnt"
+    let achKey = "";
+    if (/blue/i.test(teamNameRaw)) achKey = "BlueTeamAchvmnt";
+    else if (/green/i.test(teamNameRaw)) achKey = "GreenTeamAchvmnt";
+    else if (teamNameRaw) achKey = teamNameRaw.replace(/\s/g, "") + "Achvmnt";
+    else return; // skip jika team kosong
+
     if (!achievementData[shiftType]) achievementData[shiftType] = {};
-    if (!achievementData[shiftType][teamNameKey]) achievementData[shiftType][teamNameKey] = 0;
-    achievementData[shiftType][teamNameKey] += Number(job.qty) || 0;
+    if (!achievementData[shiftType][achKey]) achievementData[shiftType][achKey] = 0;
+    achievementData[shiftType][achKey] += Number(job.qty) || 0;
   });
 
-  // 2. Ambil PlanTarget per shift dan team
+  // 2. Ambil PlanTarget dari node PlanTarget
   const planTargetSnap = await get(ref(db, "PlanTarget"));
   const planTargetData = planTargetSnap.exists() ? planTargetSnap.val() : {};
 
-  // 3. Path penamaan
+  // 3. Struktur tanggal
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1054,32 +1059,27 @@ async function saveOutJobAchievement() {
   const nodeMonth = `${month}_${yearShort}`;
   const nodeDay = String(now.getDate()).padStart(2, '0');
 
-  // 4. Simpan ke database per kombinasi shift + teamName
+  // 4. Simpan ke database per shift, hanya di bawah shift node
   for (const shiftType in achievementData) {
     // shiftType: "NightShift" / "DayShift"
     const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${shiftType}`;
     const updates = {};
 
-    for (const teamNameKey in achievementData[shiftType]) {
-      // key achievement: BlueTeamAchvmnt / GreenTeamAchvmnt
-      const achKey = (teamNameKey === "BlueTeam") ? "BlueTeamAchvmnt" : (teamNameKey === "GreenTeam") ? "GreenTeamAchvmnt" : `${teamNameKey}Achvmnt`;
-      updates[achKey] = achievementData[shiftType][teamNameKey];
-
-      // PlanTarget
-      const planTargetShift = (shiftType === "NightShift") ? "Night Shift" : "Day Shift";
-      const planTarget = planTargetData?.[planTargetShift]?.[teamNameRaw(teamNameKey)] || 0;
-      updates["PlanTarget"] = planTarget;
+    // Untuk setiap team di shift ini
+    for (const achKey in achievementData[shiftType]) {
+      updates[achKey] = achievementData[shiftType][achKey];
     }
 
-    // Simpan sekali per shift
-    await update(ref(db, dbPath), updates);
-  }
+    let planTarget = 0;
+    if ("BlueTeamAchvmnt" in achievementData[shiftType]) {
+      planTarget = planTargetData?.[shiftType === "NightShift" ? "Night Shift" : "Day Shift"]?.["Blue Team"] || 0;
+    } else if ("GreenTeamAchvmnt" in achievementData[shiftType]) {
+      planTarget = planTargetData?.[shiftType === "NightShift" ? "Night Shift" : "Day Shift"]?.["Green Team"] || 0;
+    }
+    updates["PlanTarget"] = planTarget;
 
-  // Helper untuk convert "BlueTeam"->"Blue Team"
-  function teamNameRaw(key) {
-    if (key === "BlueTeam") return "Blue Team";
-    if (key === "GreenTeam") return "Green Team";
-    return key.replace(/([A-Z])/g, ' $1').trim();
+    // Pakai set supaya node lama ikut terhapus, hanya node yang diinginkan yang tersimpan
+    await set(ref(db, dbPath), updates);
   }
 }
 
