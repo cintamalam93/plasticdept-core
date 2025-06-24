@@ -161,7 +161,7 @@ function renderChart(achievedQty, totalQty) {
   // Update center label di HTML (hanya satu, tidak dobel)
   const donutCenterText = document.getElementById("donutCenterTextTeam");
   if (donutCenterText) {
-    donutCenterText.textContent = percentage + "%";
+    animateCountUp(donutCenterText, percentage);
   }
 }
 
@@ -278,3 +278,21 @@ authPromise.then(() => {
     loadTeamJobs();
   });
 });
+
+function animateCountUp(element, targetValue, duration = 800) {
+  if (!element) return;
+  let start = 0;
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const value = Math.floor(progress * targetValue);
+    element.textContent = value + "%";
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      element.textContent = targetValue + "%";
+    }
+  };
+  window.requestAnimationFrame(step);
+}
