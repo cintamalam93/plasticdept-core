@@ -197,7 +197,7 @@ authPromise.then(async () => {
             cap1MPHour = (capDayShift + capNightShift) / (mpDayShift + mpNightShift) / (450 / 60);
         }
 
-        // Tampilkan ke tabel (non-shifted, biar tidak error shiftMode)
+        // Tampilkan ke tabel (non-shifted)
         const remOrderDayHCell = document.getElementById('remOrderDayH-actual');
         if (remOrderDayHCell) remOrderDayHCell.textContent = totalRemaining > 0 ? formatNumber(totalRemaining) : "-";
 
@@ -360,12 +360,12 @@ authPromise.then(async () => {
             } else {
                 document.getElementById("mpDayShift-achievement").textContent = "";
                 document.getElementById("capDayShift-achievement").textContent = "";
+            }
 
             // ===================== PERCENTAGE LOGIC =====================
             function percentRound(val) {
                 return Math.round(val * 100);
             }
-
             if (shiftMode === "day") {
                 let cap1MPHourPercentage = 0;
                 const mpDayShiftAchievement = Number((document.getElementById("mpDayShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
@@ -376,7 +376,7 @@ authPromise.then(async () => {
                 let capDayShiftPercent = 1 - cap1MPHourPercentage;
                 document.getElementById("capDayShift-percentage").textContent = percentRound(capDayShiftPercent) + "%";
                 document.getElementById("capNightShift-percentage").textContent = "";
-            } else
+            } else {
                 let cap1MPHourPercentage = 0;
                 const mpNightShiftAchievement = Number((document.getElementById("mpNightShift-achievement")?.textContent || "").replace(/,/g, "")) || 0;
                 const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
