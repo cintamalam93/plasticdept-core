@@ -397,7 +397,7 @@ function renderDonutChart(totalAchieved, totalPlanTarget) {
   const donutCenterText = document.getElementById("donutCenterText");
   if (donutCenterText) {
     const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
-    donutCenterText.textContent = percent.toFixed(0) + "%";
+    animateCountUp(donutCenterText, Math.round(percent));
   }
 }
 
@@ -516,3 +516,21 @@ authPromise.then(() => {
   loadDashboardData();
   setupRealtimeListeners();
 });
+
+function animateCountUp(element, targetValue, duration = 800) {
+  if (!element) return;
+  let start = 0;
+  let startTimestamp = null;
+  const step = (timestamp) => {
+    if (!startTimestamp) startTimestamp = timestamp;
+    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+    const value = Math.floor(progress * targetValue);
+    element.textContent = value + "%";
+    if (progress < 1) {
+      window.requestAnimationFrame(step);
+    } else {
+      element.textContent = targetValue + "%";
+    }
+  };
+  window.requestAnimationFrame(step);
+}
