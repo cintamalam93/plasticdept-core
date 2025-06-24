@@ -234,7 +234,7 @@ window.sortTableBy = function (key) {
         okText: "Unassign",
         okClass: "logout",
         onConfirm: () => {
-          update(jobRef, { team: "", jobType: "" })
+          update(jobRef, {team: "", jobType: "", shift: "", teamName: ""})
             .then(() => {
               showNotification("✅ Job berhasil di-unassign.");
               refreshDataWithoutReset();
