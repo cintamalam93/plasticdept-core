@@ -1020,37 +1020,38 @@ function checkPythonAPIAvailable() {
 }
 
 async function saveOutJobAchievement() {
+  // 1. Ambil semua job dari node PhxOutboundJobs (untuk achievement, jika perlu)
   const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
-  if (!jobsSnap.exists()) return;
+  const jobs = jobsSnap.exists() ? Object.values(jobsSnap.val()) : [];
 
-  const jobs = Object.values(jobsSnap.val());
+  // 2. Ambil PlanTarget dan jumlahkan per shift
+  const planTargetSnap = await get(ref(db, "PlanTarget"));
+  const planTargetData = planTargetSnap.exists() ? planTargetSnap.val() : {};
 
-  // Struktur: { [shiftType]: { [teamNameAchvmnt]: qtySum } }
+  // Helper: jumlahkan semua value pada node PlanTarget/{shift}
+  function sumPlanTargetForShift(shiftLabel) {
+    const node = planTargetData[shiftLabel];
+    if (!node || typeof node !== "object") return 0;
+    return Object.values(node).reduce((acc, v) => acc + (typeof v === "number" ? v : parseInt(v) || 0), 0);
+  }
+
+  // 3. Achievement per team (opsional, jika ingin tetap simpan BlueTeamAchvmnt/GreenTeamAchvmnt)
   const achievementData = {};
-
-  // 1. Kelompokkan dan jumlahkan qty per shift dan team
   jobs.forEach(job => {
     const shiftRaw = job.shift || "";
-    // Standarisasi shift: "Night Shift" => "NightShift", "Day Shift" => "DayShift"
     const shiftType = shiftRaw === "Night Shift" ? "NightShift" : "DayShift";
     const teamNameRaw = job.teamName || "";
-    // Standarisasi: "Blue Team" => "BlueTeamAchvmnt", "Green Team" => "GreenTeamAchvmnt"
     let achKey = "";
     if (/blue/i.test(teamNameRaw)) achKey = "BlueTeamAchvmnt";
     else if (/green/i.test(teamNameRaw)) achKey = "GreenTeamAchvmnt";
     else if (teamNameRaw) achKey = teamNameRaw.replace(/\s/g, "") + "Achvmnt";
-    else return; // skip jika team kosong
-
+    else return;
     if (!achievementData[shiftType]) achievementData[shiftType] = {};
     if (!achievementData[shiftType][achKey]) achievementData[shiftType][achKey] = 0;
     achievementData[shiftType][achKey] += Number(job.qty) || 0;
   });
 
-  // 2. Ambil PlanTarget dari node PlanTarget
-  const planTargetSnap = await get(ref(db, "PlanTarget"));
-  const planTargetData = planTargetSnap.exists() ? planTargetSnap.val() : {};
-
-  // 3. Struktur tanggal
+  // 4. Struktur tanggal
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1059,26 +1060,24 @@ async function saveOutJobAchievement() {
   const nodeMonth = `${month}_${yearShort}`;
   const nodeDay = String(now.getDate()).padStart(2, '0');
 
-  // 4. Simpan ke database per shift, hanya di bawah shift node
-  for (const shiftType in achievementData) {
-    // shiftType: "NightShift" / "DayShift"
+  // 5. Simpan PlanTarget ke path yang sesuai
+  for (const [shiftType, planTargetLabel] of [
+    ["NightShift", "Night Shift"],
+    ["DayShift", "Day Shift"]
+  ]) {
     const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${shiftType}`;
     const updates = {};
 
-    // Untuk setiap team di shift ini
-    for (const achKey in achievementData[shiftType]) {
-      updates[achKey] = achievementData[shiftType][achKey];
+    // (Opsional) Achievement jika ada
+    if (achievementData[shiftType]) {
+      for (const achKey in achievementData[shiftType]) {
+        updates[achKey] = achievementData[shiftType][achKey];
+      }
     }
+    // PlanTarget dari hasil penjumlahan
+    updates["PlanTarget"] = sumPlanTargetForShift(planTargetLabel);
 
-    let planTarget = 0;
-    if ("BlueTeamAchvmnt" in achievementData[shiftType]) {
-      planTarget = planTargetData?.[shiftType === "NightShift" ? "Night Shift" : "Day Shift"]?.["Blue Team"] || 0;
-    } else if ("GreenTeamAchvmnt" in achievementData[shiftType]) {
-      planTarget = planTargetData?.[shiftType === "NightShift" ? "Night Shift" : "Day Shift"]?.["Green Team"] || 0;
-    }
-    updates["PlanTarget"] = planTarget;
-
-    // Pakai set supaya node lama ikut terhapus, hanya node yang diinginkan yang tersimpan
+    // Simpan
     await set(ref(db, dbPath), updates);
   }
 }
