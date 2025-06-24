@@ -1082,7 +1082,7 @@ document.getElementById("exportExcelBtn").addEventListener("click", async () => 
     }
     const data = snapshot.val();
     const filtered = Object.values(data).filter(j =>
-      j.team && (j.team.toLowerCase() === "sugity" || j.team.toLowerCase() === "reguler")
+      j.teamName && (j.teamName === "Blue Team" || j.teamName === "Green Team")
     );
     if (filtered.length === 0) {
       showNotification("Tidak ada job yang sudah assign ke Sugity/Reguler.", true);
