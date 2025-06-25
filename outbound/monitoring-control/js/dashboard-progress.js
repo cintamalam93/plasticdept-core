@@ -223,6 +223,11 @@ async function loadDashboardData() {
     if (orderA !== orderB) return orderA - orderB;
     return (a.jobNo || '').localeCompare(b.jobNo || '');
   });
+  // renderJobsTable(allJobs); // TABEL SUDAH DIHAPUS
+
+  // --- Tambahan: Render Line Chart Outbound (NEW) ---
+  renderLineChartOutbound(allJobs, shiftType);
+
   applyShiftLogicPerTeam();
   await updateOutstandingJobLabel();
 }
@@ -476,6 +481,200 @@ function renderBarChart(actualArr, planArr) {
     plugins: [ChartDataLabels]
   });
 }
+
+// ===================== LINE CHART OUTBOUND (NEW) =====================
+let lineChartOutbound;
+
+// --- Target Table per Shift (Manual)
+const TARGET_TABLE = {
+  "Day": [
+    { time: "8:00", target: 3528 },
+    { time: "9:00", target: 10584 },
+    { time: "10:00", target: 17640 },
+    { time: "11:00", target: 24696 },
+    { time: "12:00", target: 24696 },
+    { time: "13:00", target: 31752 },
+    { time: "14:00", target: 38808 },
+    { time: "15:00", target: 45864 },
+    { time: "16:00", target: 52920 },
+    { time: "17:00", target: 52920 }
+  ],
+  "Night": [
+    { time: "20:00", target: 2352 },
+    { time: "21:00", target: 7056 },
+    { time: "22:00", target: 11760 },
+    { time: "23:00", target: 16464 },
+    { time: "0:00", target: 21168 },
+    { time: "1:00", target: 25872 },
+    { time: "2:00", target: 30576 },
+    { time: "3:00", target: 35280 },
+    { time: "4:00", target: 35280 },
+    { time: "5:00", target: 35280 }
+  ]
+};
+
+// --- Helper: Range jam untuk per shift
+function getHourRange(shiftType) {
+  if (shiftType === "Day") {
+    // 8:00 - 17:00
+    return [
+      { label: "8:00", start: 8, end: 9 },
+      { label: "9:00", start: 9, end: 10 },
+      { label: "10:00", start: 10, end: 11 },
+      { label: "11:00", start: 11, end: 12 },
+      { label: "12:00", start: 12, end: 13 },
+      { label: "13:00", start: 13, end: 14 },
+      { label: "14:00", start: 14, end: 15 },
+      { label: "15:00", start: 15, end: 16 },
+      { label: "16:00", start: 16, end: 17 },
+      { label: "17:00", start: 17, end: 18 }
+    ];
+  } else {
+    // Night: 20:00 - 5:00
+    return [
+      { label: "20:00", start: 20, end: 21 },
+      { label: "21:00", start: 21, end: 22 },
+      { label: "22:00", start: 22, end: 23 },
+      { label: "23:00", start: 23, end: 24 },
+      { label: "0:00", start: 0, end: 1 },
+      { label: "1:00", start: 1, end: 2 },
+      { label: "2:00", start: 2, end: 3 },
+      { label: "3:00", start: 3, end: 4 },
+      { label: "4:00", start: 4, end: 5 },
+      { label: "5:00", start: 5, end: 6 }
+    ];
+  }
+}
+
+// --- Helper: Ambil jam selesai (asumsi ada field finishedAt, else fallback)
+function getJobFinishedHour(job) {
+  // Format yang didukung: "2025-06-25T09:22:00", "09:22", dst
+  if (job.finishedAt) {
+    let h = 0;
+    if (job.finishedAt.includes("T")) {
+      h = parseInt(job.finishedAt.split("T")[1].split(":")[0]);
+    } else {
+      h = parseInt(job.finishedAt.split(":")[0]);
+    }
+    return h;
+  }
+  // Jika tidak ada, fallback ke jam deliveryDate (parsing jika bisa, else null)
+  if (job.deliveryDate) {
+    // Coba cari pattern jam di deliveryNote/remark
+    if (job.deliveryNote && /\b([01]?\d|2[0-3]):[0-5]\d\b/.test(job.deliveryNote)) {
+      let h = parseInt(job.deliveryNote.match(/\b([01]?\d|2[0-3]):[0-5]\d\b/)[1]);
+      if (!isNaN(h)) return h;
+    }
+    // Jika tidak bisa, skip
+  }
+  return null;
+}
+
+// --- Fungsi utama render Line Chart Outbound
+function renderLineChartOutbound(jobs, shiftType) {
+  // Label dan data target
+  const tableTarget = TARGET_TABLE[shiftType];
+  const hourRange = getHourRange(shiftType);
+
+  // Inisialisasi array actual
+  let actualHourArr = Array(hourRange.length).fill(0);
+
+  // Filter job selesai ("packed", "loaded", "completed")
+  const finishedStatus = ["packed", "loaded", "completed"];
+  jobs.forEach(job => {
+    const status = (job.status || "").toLowerCase();
+    if (finishedStatus.includes(status)) {
+      let jamSelesai = getJobFinishedHour(job);
+      if (jamSelesai !== null) {
+        for (let idx = 0; idx < hourRange.length; idx++) {
+          if (
+            (hourRange[idx].start <= jamSelesai && jamSelesai < hourRange[idx].end) ||
+            (hourRange[idx].start === 0 && jamSelesai === 0)
+          ) {
+            actualHourArr[idx] += parseInt(job.qty) || 0;
+            break;
+          }
+        }
+      }
+    }
+  });
+
+  // Buat cumulative (akumulasi qty per jam)
+  let actualCumulative = [];
+  let sum = 0;
+  for (let i = 0; i < actualHourArr.length; i++) {
+    sum += actualHourArr[i];
+    actualCumulative.push(sum);
+  }
+
+  const labels = tableTarget.map(row => row.time);
+  const targetArr = tableTarget.map(row => row.target);
+
+  // --- Render Chart.js
+  const canvas = document.getElementById("lineChartOutbound");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (lineChartOutbound) lineChartOutbound.destroy();
+
+  lineChartOutbound = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Actual",
+          data: actualCumulative,
+          borderColor: "#FF9900",
+          backgroundColor: "rgba(255,153,0,0.10)",
+          borderWidth: 3,
+          pointBackgroundColor: "#FF9900",
+          pointBorderColor: "#fff",
+          pointRadius: 6,
+          fill: false,
+          tension: 0.2
+        },
+        {
+          label: "Target",
+          data: targetArr,
+          borderColor: "#2577F6",
+          backgroundColor: "rgba(37,119,246,0.10)",
+          borderWidth: 3,
+          pointBackgroundColor: "#2577F6",
+          pointBorderColor: "#fff",
+          pointRadius: 6,
+          fill: false,
+          tension: 0.2
+        }
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: true, position: "bottom" },
+        tooltip: { mode: "index", intersect: false },
+        datalabels: {
+          display: true,
+          color: "#222",
+          font: { weight: "bold", size: 11 },
+          formatter: (value, ctx) => {
+            return value > 0 ? value.toLocaleString() : "";
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: "Qty (kg)", font: { size: 14, weight: "bold" } }
+        },
+        x: {
+          title: { display: true, text: "Jam" }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+// ================== END LINE CHART OUTBOUND =======================
 
 // --- Real-time update refresh when shift or data changes ---
 function setupRealtimeListeners() {
