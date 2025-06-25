@@ -46,7 +46,7 @@ function setPicMetricFromDb() {
     }
     // Filter hanya team Sugity lalu ambil nama-nama
     const picNames = Object.values(allPicData)
-      .filter(pic => (pic.team || "").toLowerCase() === "Reguler")
+      .filter(pic => (pic.team || "").toLowerCase() === "reguler")
       .map(pic => pic.name || "-");
 
     if (picNames.length === 0) picNames.push("-");
