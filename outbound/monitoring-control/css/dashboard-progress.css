@@ -490,21 +490,30 @@ body {
   vertical-align: middle;
 }
 
+/* === LINE CHART CONTAINER ALIGNMENT === */
 .line-chart-container {
-  max-width: 520px;        /* atur lebar maksimal chart */
-  margin: 0 auto 32px auto;
-  padding: 10px 6px 20px 6px;
+  /* Lebar mengikuti 2 card team (64% + 12px gap kiri, 12px gap kanan) */
+  width: calc(64% + 24px);
+  max-width: none; /* override jika ada max-width sebelumnya */
+  margin-left: 0;  /* rata kiri dengan parent */
+  margin-right: 0; /* rata kanan */
+  margin-top: 18px;
+  margin-bottom: 38px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   box-shadow: 0 2px 12px 0 rgba(0,0,0,0.07);
+  padding: 24px 18px 24px 18px;
+  /* responsive, biar tidak mentok di layar kecil */
+  min-width: 320px;
 }
 
+/* Membuat kanvas selalu penuh container tapi tidak lebih */
 #lineChartOutbound {
-  width: 100% !important;  /* chart selalu 100% parent */
-  height: 600px !important;/* atur tinggi chart sesuai kebutuhan */
+  width: 100% !important;
+  height: 340px !important; /* set tinggi yang proporsional, bisa diubah sesuai preferensi */
   display: block;
   max-width: 100%;
-  max-height: 280px;
+  max-height: 400px;
   margin: 0 auto;
   background: transparent;
 }
