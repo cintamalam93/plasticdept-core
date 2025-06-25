@@ -767,10 +767,23 @@ window.addEventListener("storage", function(e) {
   }
 });
 
-// --- Inisialisasi Dashboard ---
+function scheduleHourlyUpdate() {
+  // Hitung sisa waktu ke jam berikutnya (dalam ms)
+  const now = new Date();
+  const msToNextHour = (60 - now.getMinutes()) * 60 * 1000 - now.getSeconds() * 1000 - now.getMilliseconds();
+
+  // Timer satu kali ke jam berikutnya
+  setTimeout(() => {
+    loadDashboardData(); // Update tepat di jam baru
+    setInterval(loadDashboardData, 60 * 60 * 1000); // Setelah itu, update tiap 1 jam
+  }, msToNextHour);
+}
+
+// Setelah auth dan setup listener
 authPromise.then(() => {
   loadDashboardData();
   setupRealtimeListeners();
+  scheduleHourlyUpdate();
 });
 
 function animateCountUp(element, targetValue, duration = 800) {
