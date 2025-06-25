@@ -493,7 +493,7 @@ body {
 /* === LINE CHART CONTAINER ALIGNMENT === */
 .line-chart-container {
   /* Lebar mengikuti 2 card team (64% + 12px gap kiri, 12px gap kanan) */
-  width: calc(64% + 24px);
+  width: 64;
   max-width: none; /* override jika ada max-width sebelumnya */
   margin-left: 0;  /* rata kiri dengan parent */
   margin-right: 0; /* rata kanan */
