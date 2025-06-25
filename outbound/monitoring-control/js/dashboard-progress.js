@@ -26,9 +26,6 @@ const remainingSugity = document.getElementById("remainingSugity");
 const remainingReguler = document.getElementById("remainingReguler");
 const outstandingJobLabel = document.getElementById("outstandingJobLabel");
 
-// Outbound jobs table
-const jobsTableBody = document.querySelector("#jobsTable tbody");
-
 // Team matrix card title
 const teamTitleSugity = document.querySelector('.team-matrix-card .team-title'); // biasanya yang pertama (Sugity)
 const teamTitleReguler = document.querySelectorAll('.team-matrix-card .team-title')[1]; // yang kedua (Reguler)
@@ -226,8 +223,6 @@ async function loadDashboardData() {
     if (orderA !== orderB) return orderA - orderB;
     return (a.jobNo || '').localeCompare(b.jobNo || '');
   });
-  renderJobsTable(allJobs);
-
   applyShiftLogicPerTeam();
   await updateOutstandingJobLabel();
 }
@@ -479,27 +474,6 @@ function renderBarChart(actualArr, planArr) {
       }
     },
     plugins: [ChartDataLabels]
-  });
-}
-
-// --- Tabel Outbound Jobs Gabungan ---
-function renderJobsTable(jobs) {
-  if (!jobsTableBody) return;
-  jobsTableBody.innerHTML = "";
-  jobs.forEach(job => {
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${job.team}</td>
-      <td>${job.jobNo}</td>
-      <td>${job.deliveryDate}</td>
-      <td>${job.deliveryNote}</td>
-      <td>${job.remark}</td>
-      <td>
-        <span class="status-label ${getStatusClass(job.status)}">${job.status}</span>
-      </td>
-      <td>${formatNumber(job.qty)}</td>
-    `;
-    jobsTableBody.appendChild(row);
   });
 }
 
