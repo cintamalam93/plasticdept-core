@@ -344,6 +344,8 @@ authPromise.then(async () => {
             const mpDayShiftActual = Number((document.getElementById("mpDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const capDayShiftActualVal = Number((document.getElementById("capDayShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
             const cap1MPHourAchievement = Number((document.getElementById("cap1MPHour-achievement")?.textContent || "").replace(/,/g, "")) || 0;
+            const mpNightShiftActual = Number((document.getElementById("mpNightShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
+            const capNightShiftActualVal = Number((document.getElementById("capNightShift-actual")?.textContent || "").replace(/,/g, "")) || 0;
 
             if (shiftMode === "day") {
                 let mpDayAchv = (mpDayShiftActual !== 0) ? capDayShiftActualVal / mpDayShiftActual : 0;
@@ -357,7 +359,25 @@ authPromise.then(async () => {
                     (mpDayShiftActual > 0 && capDayShiftActualVal > 0 && cap1MPHourAchievement > 0)
                         ? Math.round(capDayAchv).toLocaleString('en-US')
                         : "-";
+
+                // Kosongkan kolom night shift
+                document.getElementById("mpNightShift-achievement").textContent = "";
+                document.getElementById("capNightShift-achievement").textContent = "";
             } else {
+                // Night shift achievement
+                let mpNightAchv = (mpNightShiftActual !== 0) ? capNightShiftActualVal / mpNightShiftActual : 0;
+                document.getElementById("mpNightShift-achievement").textContent =
+                    (mpNightShiftActual > 0 && capNightShiftActualVal > 0)
+                        ? Math.round(mpNightAchv).toLocaleString('en-US')
+                        : "-";
+
+                let capNightAchv = mpNightAchv - cap1MPHourAchievement;
+                document.getElementById("capNightShift-achievement").textContent =
+                    (mpNightShiftActual > 0 && capNightShiftActualVal > 0 && cap1MPHourAchievement > 0)
+                        ? Math.round(capNightAchv).toLocaleString('en-US')
+                        : "-";
+
+                // Kosongkan kolom day shift
                 document.getElementById("mpDayShift-achievement").textContent = "";
                 document.getElementById("capDayShift-achievement").textContent = "";
             }
