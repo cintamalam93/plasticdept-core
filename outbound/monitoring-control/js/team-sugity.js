@@ -271,11 +271,19 @@ async function setupRoleButtons() {
 authPromise.then(() => {
   setPicMetricFromDb("TeamSugity");
   setupRoleButtons();
-  onValue(ref(db, `PlanTarget/${currentTeam}`), (snapshot) => {
-    if (snapshot.exists()) {
-      PLAN_TARGET_QTY = parseInt(snapshot.val()) || PLAN_TARGET_QTY;
+  onValue(ref(db, `PlanTarget/Day Shift/${currentTeam}`), (snapshot) => {
+    let val = snapshot.exists() ? parseInt(snapshot.val()) : 0;
+    if (val && val > 0) {
+      PLAN_TARGET_QTY = val;
+      loadTeamJobs();
+    } else {
+      // Jika Day Shift kosong/0, ambil dari Night Shift
+      onValue(ref(db, `PlanTarget/Night Shift/${currentTeam}`), (snapshot2) => {
+        let val2 = snapshot2.exists() ? parseInt(snapshot2.val()) : 0;
+        PLAN_TARGET_QTY = val2 && val2 > 0 ? val2 : 0;
+        loadTeamJobs();
+      }, { onlyOnce: true });
     }
-    loadTeamJobs();
   });
 });
 
