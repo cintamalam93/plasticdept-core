@@ -1078,7 +1078,7 @@ async function saveOutJobAchievement() {
     updates["PlanTarget"] = sumPlanTargetForShift(planTargetLabel);
 
     // Simpan
-    await set(ref(db, dbPath), updates);
+    await update(ref(db, dbPath), updates);
   }
 }
 
