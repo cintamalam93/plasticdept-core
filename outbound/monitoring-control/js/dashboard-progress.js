@@ -497,7 +497,7 @@ const PLAN_TARGET_TABLE = {
       { time: "10:00", target: 10584 },
       { time: "11:00", target: 17640 },
       { time: "12:00", target: 24696 },
-      { time: "13:00", target: null },
+      { time: "13:00", target: 0 },
       { time: "14:00", target: 31752 },
       { time: "15:00", target: 38808 },
       { time: "16:00", target: 45864 },
@@ -623,7 +623,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   let visibleTargets = planTargetArr.map((row, idx) => {
     // jam plan target harus <= jam saat ini, kecuali jam istirahat (target null)
     let jamRow = parseInt(row.time);
-    if (row.target === null) return null;
+    if (row.target === null || typeof row.target === "undefined") return 0;
     // Penentuan untuk Day atau Night shift
     if (shiftType === "Day") {
       // jam 9:00 (idx 1) muncul jika >= 9
