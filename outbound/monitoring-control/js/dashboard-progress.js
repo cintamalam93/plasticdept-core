@@ -127,6 +127,9 @@ async function loadDashboardData() {
     MP_REGULER = parseFloat(manPowerVal.Reguler) || 0;
   }
 
+  // Setelah inisialisasi MP_SUGITY dan MP_REGULER
+  const manPowerTotal = +(MP_SUGITY + MP_REGULER).toFixed(2); // pastikan float, contoh: 2.5, 3, 2
+
   // Hitung Outstanding Job For Next Shift
   let outstandingQty = 0;
   for (const jobNo in outboundJobs) {
@@ -226,7 +229,7 @@ async function loadDashboardData() {
   // renderJobsTable(allJobs); // TABEL SUDAH DIHAPUS
 
   // --- Tambahan: Render Line Chart Outbound (NEW) ---
-  renderLineChartOutbound(allJobs, shiftType);
+  renderLineChartOutbound(allJobs, shiftType, manPowerTotal);
 
   applyShiftLogicPerTeam();
   await updateOutstandingJobLabel();
@@ -485,32 +488,48 @@ function renderBarChart(actualArr, planArr) {
 // ===================== LINE CHART OUTBOUND (NEW) =====================
 let lineChartOutbound;
 
-// --- Target Table per Shift (Manual)
-const TARGET_TABLE = {
-  "Day": [
-    { time: "8:00", target: 3528 },
-    { time: "9:00", target: 10584 },
-    { time: "10:00", target: 17640 },
-    { time: "11:00", target: 24696 },
-    { time: "12:00", target: 24696 },
-    { time: "13:00", target: 31752 },
-    { time: "14:00", target: 38808 },
-    { time: "15:00", target: 45864 },
-    { time: "16:00", target: 52920 },
-    { time: "17:00", target: 52920 }
-  ],
-  "Night": [
-    { time: "20:00", target: 2352 },
-    { time: "21:00", target: 7056 },
-    { time: "22:00", target: 11760 },
-    { time: "23:00", target: 16464 },
-    { time: "0:00", target: 21168 },
-    { time: "1:00", target: 25872 },
-    { time: "2:00", target: 30576 },
-    { time: "3:00", target: 35280 },
-    { time: "4:00", target: 35280 },
-    { time: "5:00", target: 35280 }
-  ]
+// Map plan target berdasarkan shift & total man power
+const PLAN_TARGET_TABLE = {
+  "Day": {
+    "3": [
+      { time: "8:00", target: null },
+      { time: "9:00", target: 3528 },
+      { time: "10:00", target: 10584 },
+      { time: "11:00", target: 17640 },
+      { time: "12:00", target: 24696 },
+      { time: "13:00", target: null },
+      { time: "14:00", target: 31752 },
+      { time: "15:00", target: 38808 },
+      { time: "16:00", target: 45864 },
+      { time: "17:00", target: 52920 }
+    ],
+    "2.5": [
+      { time: "8:00", target: null },
+      { time: "9:00", target: 2940 },
+      { time: "10:00", target: 8820 },
+      { time: "11:00", target: 14700 },
+      { time: "12:00", target: 20580 },
+      { time: "13:00", target: null },
+      { time: "14:00", target: 26460 },
+      { time: "15:00", target: 32340 },
+      { time: "16:00", target: 38220 },
+      { time: "17:00", target: 44100 }
+    ]
+  },
+  "Night": {
+    "2": [
+      { time: "20:00", target: null },
+      { time: "21:00", target: 2352 },
+      { time: "22:00", target: 7056 },
+      { time: "23:00", target: 11760 },
+      { time: "0:00", target: 16464 },
+      { time: "1:00", target: null },
+      { time: "2:00", target: 21168 },
+      { time: "3:00", target: 25872 },
+      { time: "4:00", target: 30576 },
+      { time: "5:00", target: 35280 }
+    ]
+  }
 };
 
 // --- Helper: Range jam untuk per shift
@@ -571,15 +590,67 @@ function getJobFinishedHour(job) {
 }
 
 // --- Fungsi utama render Line Chart Outbound
-function renderLineChartOutbound(jobs, shiftType) {
-  // Label dan data target
-  const tableTarget = TARGET_TABLE[shiftType];
-  const hourRange = getHourRange(shiftType);
+function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
+  // Pilih tabel plan target sesuai shift dan manPower
+  let planTargetArr = [];
+  const mpKey = String(manPowerTotal);
+  if (
+    PLAN_TARGET_TABLE[shiftType] &&
+    PLAN_TARGET_TABLE[shiftType][mpKey]
+  ) {
+    planTargetArr = PLAN_TARGET_TABLE[shiftType][mpKey];
+  } else {
+    // fallback: semua plan target null
+    planTargetArr = (shiftType === "Day")
+      ? [
+        { time: "8:00", target: null },{ time: "9:00", target: null },{ time: "10:00", target: null },
+        { time: "11:00", target: null },{ time: "12:00", target: null },{ time: "13:00", target: null },
+        { time: "14:00", target: null },{ time: "15:00", target: null },{ time: "16:00", target: null },{ time: "17:00", target: null }
+      ]
+      : [
+        { time: "20:00", target: null },{ time: "21:00", target: null },{ time: "22:00", target: null },
+        { time: "23:00", target: null },{ time: "0:00", target: null },{ time: "1:00", target: null },
+        { time: "2:00", target: null },{ time: "3:00", target: null },{ time: "4:00", target: null },{ time: "5:00", target: null }
+      ];
+  }
+
+  // Filter plan target agar hanya tampil sesuai jam berjalan
+  const now = new Date();
+  let currentHour = now.getHours();
+  // Jam plan target berjalan: hanya tampil plan target <= jam saat ini
+  // Untuk Day shift, jam 9:00 berarti index 1, dst.
+  // Untuk Night shift, jam 21:00 berarti index 1, dst.
+  let visibleTargets = planTargetArr.map((row, idx) => {
+    // jam plan target harus <= jam saat ini, kecuali jam istirahat (target null)
+    let jamRow = parseInt(row.time);
+    if (row.target === null) return null;
+    // Penentuan untuk Day atau Night shift
+    if (shiftType === "Day") {
+      // jam 9:00 (idx 1) muncul jika >= 9
+      if (jamRow > currentHour) return null;
+    } else {
+      // Night shift: jam 21:00 - 5:00 besok
+      // handle jam 0,1,2... setelah tengah malam
+      let idxHour = jamRow;
+      if (jamRow === 0 || jamRow < 6) {
+        idxHour += 24; // jadi 24, 25, dst, biar urutan naik
+      }
+      let curr = currentHour;
+      if (curr < 6) curr += 24;
+      if (idxHour > curr) return null;
+    }
+    return row.target;
+  });
+
+  // ... lanjutkan proses seperti existing: labels, actual, dsb
 
   // Inisialisasi array actual
+  // (kode existing)
+  const tableTarget = planTargetArr;
+  const hourRange = getHourRange(shiftType);
   let actualHourArr = Array(hourRange.length).fill(0);
 
-  // Filter job selesai ("packed", "loaded", "completed")
+  // (kode existing actual)
   const finishedStatus = ["packed", "loaded", "completed"];
   jobs.forEach(job => {
     const status = (job.status || "").toLowerCase();
@@ -599,7 +670,7 @@ function renderLineChartOutbound(jobs, shiftType) {
     }
   });
 
-  // Buat cumulative (akumulasi qty per jam)
+  // Cumulative actual
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
@@ -607,8 +678,7 @@ function renderLineChartOutbound(jobs, shiftType) {
     actualCumulative.push(sum);
   }
 
-  const labels = tableTarget.map(row => row.time);
-  const targetArr = tableTarget.map(row => row.target);
+  const labels = planTargetArr.map(row => row.time);
 
   // --- Render Chart.js
   const canvas = document.getElementById("lineChartOutbound");
@@ -635,7 +705,7 @@ function renderLineChartOutbound(jobs, shiftType) {
         },
         {
           label: "Target",
-          data: targetArr,
+          data: visibleTargets,
           borderColor: "#2577F6",
           backgroundColor: "rgba(37,119,246,0.10)",
           borderWidth: 3,
@@ -643,7 +713,8 @@ function renderLineChartOutbound(jobs, shiftType) {
           pointBorderColor: "#fff",
           pointRadius: 6,
           fill: false,
-          tension: 0.2
+          tension: 0.2,
+          spanGaps: false
         }
       ],
     },
