@@ -652,7 +652,9 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
 
   // (kode existing actual)
   const finishedStatus = ["packed", "loaded", "completed"];
+  let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
   jobs.forEach(job => {
+    if ((job.shift || "") !== shiftLabel) return;
     const status = (job.status || "").toLowerCase();
     if (finishedStatus.includes(status)) {
       let jamSelesai = getJobFinishedHour(job);
