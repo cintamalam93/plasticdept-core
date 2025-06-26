@@ -568,9 +568,12 @@ function getHourRange(shiftType) {
 // --- Helper: Ambil jam selesai (asumsi ada field finishedAt, else fallback)
 function getJobFinishedHour(job) {
   let finishedAtStr = String(job.finishedAt || "").trim();
+  console.log('DEBUG RAW finishAt:', job.finishedAt, '| String:', finishedAtStr, '| Type:', typeof job.finishedAt);
 
-  // Cek format jam HH:mm atau H:mm (ex: "23:04", "1:56", "08:10", "2:12")
-  let match = finishedAtStr.match(/^(\d{1,2}):\d{2}$/);
+  // Lebih toleran terhadap spasi/tanda baca aneh
+  let match = finishedAtStr.match(/^\s*(\d{1,2})\s*:\s*(\d{2})\s*$/);
+  console.log('DEBUG regex match:', match);
+
   if (match) {
     let h = parseInt(match[1], 10);
     if (!isNaN(h)) return h;
