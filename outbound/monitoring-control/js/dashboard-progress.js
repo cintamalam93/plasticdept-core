@@ -567,11 +567,11 @@ function getHourRange(shiftType) {
 
 // --- Helper: Ambil jam selesai (asumsi ada field finishedAt, else fallback)
 function getJobFinishedHour(job) {
-  let finishedAtStr = String(job.finishedAt || "").trim();
-  console.log('DEBUG RAW finishAt:', job.finishedAt, '| String:', finishedAtStr, '| Type:', typeof job.finishedAt);
+  let finishAtStr = String(job.finishAt || "").trim();
+  console.log('DEBUG RAW finishAt:', job.finishAt, '| String:', finishAtStr, '| Type:', typeof job.finishAt);
 
   // Lebih toleran terhadap spasi/tanda baca aneh
-  let match = finishedAtStr.match(/^\s*(\d{1,2})\s*:\s*(\d{2})\s*$/);
+  let match = finishAtStr.match(/^\s*(\d{1,2})\s*:\s*(\d{2})\s*$/);
   console.log('DEBUG regex match:', match);
 
   if (match) {
@@ -580,7 +580,7 @@ function getJobFinishedHour(job) {
   }
 
   // ISO format: "YYYY-MM-DDTHH:mm:ss"
-  let isoMatch = finishedAtStr.match(/T(\d{1,2}):\d{2}/);
+  let isoMatch = finishAtStr.match(/T(\d{1,2}):\d{2}/);
   if (isoMatch) {
     let h = parseInt(isoMatch[1], 10);
     if (!isNaN(h)) return h;
