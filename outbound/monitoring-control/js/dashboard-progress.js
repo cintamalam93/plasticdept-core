@@ -599,42 +599,43 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   ) {
     planTargetArr = PLAN_TARGET_TABLE[shiftType][mpKey];
   } else {
-    // fallback: semua plan target null
     planTargetArr = (shiftType === "Day")
-      ? [
-        { time: "8:00", target: null },{ time: "9:00", target: null },{ time: "10:00", target: null },
-        { time: "11:00", target: null },{ time: "12:00", target: null },{ time: "13:00", target: null },
-        { time: "14:00", target: null },{ time: "15:00", target: null },{ time: "16:00", target: null },{ time: "17:00", target: null }
-      ]
-      : [
-        { time: "20:00", target: null },{ time: "21:00", target: null },{ time: "22:00", target: null },
-        { time: "23:00", target: null },{ time: "0:00", target: null },{ time: "1:00", target: null },
-        { time: "2:00", target: null },{ time: "3:00", target: null },{ time: "4:00", target: null },{ time: "5:00", target: null }
-      ];
+      ? [ /* ... */ ]
+      : [ /* ... */ ];
+  }
+
+  // -- Cumulative plan target, break = 0 --
+  let planCumulative = [];
+  let lastVal = 0;
+  for (let i = 0; i < planTargetArr.length; i++) {
+    let t = planTargetArr[i].target;
+    if (t === null || typeof t === "undefined") {
+      planCumulative.push(0);   // break turun ke bawah
+    } else {
+      lastVal = t;
+      planCumulative.push(lastVal);
+    }
   }
 
   // Filter plan target agar hanya tampil sesuai jam berjalan
   const now = new Date();
   let currentHour = now.getHours();
-  // Untuk night shift, jam 0-5 dianggap 24-29 supaya urutan naik
   let adjustedHour = currentHour;
   if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
 
-  let visibleTargets = planTargetArr.map((row, idx) => {
-    // jam plan target harus <= jam saat ini, kecuali jam istirahat (target null)
-    let jamRow = parseInt(row.time);
-    if (row.target === null || typeof row.target === "undefined") return null;
+  let visiblePlanCumulative = planCumulative.map((val, idx) => {
+    let jamRow = parseInt(planTargetArr[idx].time);
     let jamCompare = jamRow;
     if (shiftType === "Night" && jamRow < 6) jamCompare += 24;
     if (jamCompare > adjustedHour) return null;
-    return row.target;
+    return val;
   });
 
   // Inisialisasi array actual
   const hourRange = getHourRange(shiftType);
   let actualHourArr = Array(hourRange.length).fill(0);
 
-  // Tandai jam istirahat pada actualHourArr (supaya actual juga turun ke bawah)
+  // Tandai jam istirahat pada actualHourArr
   for (let idx = 0; idx < hourRange.length; idx++) {
     if (planTargetArr[idx].target === null) {
       actualHourArr[idx] = null;
@@ -651,7 +652,6 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       let jamSelesai = getJobFinishedHour(job);
       if (jamSelesai !== null) {
         for (let idx = 0; idx < hourRange.length; idx++) {
-          // skip jam istirahat (target null)
           if (planTargetArr[idx].target === null) continue;
           if (
             (hourRange[idx].start <= jamSelesai && jamSelesai < hourRange[idx].end) ||
@@ -665,7 +665,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   });
 
-  // Cumulative actual: lanjutkan nilai dari jam sebelumnya, break turun ke bawah (0), cumulative tetap lanjut setelah break
+  // Cumulative actual: lanjutkan nilai dari jam sebelumnya, break turun ke bawah (0)
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
@@ -674,13 +674,12 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
 
     if (actualHourArr[i] === null) {
-      // Jam istirahat, tampilkan 0 agar line turun ke bawah
       actualCumulative.push(0);
     } else if (jamCompare <= adjustedHour) {
       sum += actualHourArr[i];
       actualCumulative.push(sum);
     } else {
-      actualCumulative.push(null); // jam berikutnya belum waktunya
+      actualCumulative.push(null);
     }
   }
 
@@ -712,7 +711,6 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           tension: 0.2,
           datalabels: {
             display: function(context) {
-              // Tampilkan label hanya jika value ada
               return context.dataset.data[context.dataIndex] !== null;
             },
             backgroundColor: "#FF9900",
@@ -725,12 +723,13 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             formatter: (value) => value !== null ? value.toLocaleString() : "",
             anchor: 'end',
             align: 'top',
+            offset: 8,
             clamp: true
           }
         },
         {
           label: "Target",
-          data: visibleTargets,
+          data: visiblePlanCumulative,
           borderColor: "#2577F6",
           backgroundColor: "rgba(37,119,246,0.10)",
           borderWidth: 3,
@@ -739,7 +738,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           pointRadius: 6,
           fill: false,
           tension: 0.2,
-          spanGaps: false,
+          spanGaps: true,
           datalabels: {
             display: function(context) {
               return context.dataset.data[context.dataIndex] !== null;
@@ -751,9 +750,10 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-            formatter: (value) => value ? value.toLocaleString() : "",
-            anchor: 'end',
-            align: 'top',
+            formatter: (value) => value !== null ? value.toLocaleString() : "",
+            anchor: 'start',
+            align: 'bottom',
+            offset: 8,
             clamp: true
           }
         }
