@@ -679,6 +679,9 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     sum += actualHourArr[i];
     actualCumulative.push(sum);
   }
+  console.log('actualHourArr:', actualHourArr);
+  console.log('actualCumulative:', actualCumulative);
+  console.log('jobs:', jobs);
 
   const labels = planTargetArr.map(row => row.time);
 
