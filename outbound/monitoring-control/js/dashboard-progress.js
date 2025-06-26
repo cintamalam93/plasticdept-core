@@ -567,15 +567,15 @@ function getHourRange(shiftType) {
 
 // --- Helper: Ambil jam selesai (asumsi ada field finishedAt, else fallback)
 function getJobFinishedHour(job) {
-  // Format yang didukung: "2025-06-25T09:22:00", "09:22", dst
-  if (job.finishedAt) {
-    let h = 0;
-    if (job.finishedAt.includes("T")) {
-      h = parseInt(job.finishedAt.split("T")[1].split(":")[0]);
-    } else {
-      h = parseInt(job.finishedAt.split(":")[0]);
+    // Selalu perlakukan finishAt sebagai string
+    let finishedAtStr = String(job.finishedAt || "");
+    let h = null;
+    if (finishedAtStr.includes("T")) {
+      h = parseInt(finishedAtStr.split("T")[1].split(":")[0]);
+    } else if (finishedAtStr.includes(":")) {
+      h = parseInt(finishedAtStr.split(":")[0]);
     }
-    return h;
+    return isNaN(h) ? null : h;
   }
   // Jika tidak ada, fallback ke jam deliveryDate (parsing jika bisa, else null)
   if (job.deliveryDate) {
