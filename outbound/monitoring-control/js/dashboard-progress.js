@@ -591,6 +591,10 @@ function getJobFinishedHour(job) {
 
 // --- Fungsi utama render Line Chart Outbound
 function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
+  console.log('jobs:', jobs);
+  jobs.forEach(job => {
+    console.log('job.shift:', job.shift, 'job.status:', job.status, 'job.finishAt:', job.finishAt, 'job.qty:', job.qty);
+  });
   // Pilih tabel plan target sesuai shift dan manPower
   let planTargetArr = [];
   const mpKey = String(manPowerTotal);
