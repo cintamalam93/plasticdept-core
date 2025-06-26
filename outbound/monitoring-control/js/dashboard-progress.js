@@ -568,25 +568,16 @@ function getHourRange(shiftType) {
 // --- Helper: Ambil jam selesai (asumsi ada field finishedAt, else fallback)
 function getJobFinishedHour(job) {
   let finishAtStr = String(job.finishAt || "").trim();
-  console.log('DEBUG RAW finishAt:', job.finishAt, '| String:', finishAtStr, '| Type:', typeof job.finishAt);
-
-  // Lebih toleran terhadap spasi/tanda baca aneh
   let match = finishAtStr.match(/^\s*(\d{1,2})\s*:\s*(\d{2})\s*$/);
-  console.log('DEBUG regex match:', match);
-
   if (match) {
     let h = parseInt(match[1], 10);
     if (!isNaN(h)) return h;
   }
-
-  // ISO format: "YYYY-MM-DDTHH:mm:ss"
   let isoMatch = finishAtStr.match(/T(\d{1,2}):\d{2}/);
   if (isoMatch) {
     let h = parseInt(isoMatch[1], 10);
     if (!isNaN(h)) return h;
   }
-
-  // Fallback: cari di deliveryNote
   if (job.deliveryDate && job.deliveryNote) {
     let noteMatch = job.deliveryNote.match(/(\d{1,2}):\d{2}/);
     if (noteMatch) {
@@ -594,16 +585,11 @@ function getJobFinishedHour(job) {
       if (!isNaN(h2)) return h2;
     }
   }
-
   return null;
 }
 
 // --- Fungsi utama render Line Chart Outbound
 function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
-  console.log('jobs:', jobs);
-  jobs.forEach(job => {
-    console.log('job.shift:', job.shift, 'job.status:', job.status, 'job.finishAt:', job.finishAt, 'job.qty:', job.qty);
-  });
   // Pilih tabel plan target sesuai shift dan manPower
   let planTargetArr = [];
   const mpKey = String(manPowerTotal);
@@ -630,40 +616,25 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   // Filter plan target agar hanya tampil sesuai jam berjalan
   const now = new Date();
   let currentHour = now.getHours();
-  // Jam plan target berjalan: hanya tampil plan target <= jam saat ini
-  // Untuk Day shift, jam 9:00 berarti index 1, dst.
-  // Untuk Night shift, jam 21:00 berarti index 1, dst.
+  // Untuk night shift, jam 0-5 dianggap 24-29 supaya urutan naik
+  let adjustedHour = currentHour;
+  if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
+
   let visibleTargets = planTargetArr.map((row, idx) => {
     // jam plan target harus <= jam saat ini, kecuali jam istirahat (target null)
     let jamRow = parseInt(row.time);
-    if (row.target === null || typeof row.target === "undefined") return 0;
-    // Penentuan untuk Day atau Night shift
-    if (shiftType === "Day") {
-      // jam 9:00 (idx 1) muncul jika >= 9
-      if (jamRow > currentHour) return null;
-    } else {
-      // Night shift: jam 21:00 - 5:00 besok
-      // handle jam 0,1,2... setelah tengah malam
-      let idxHour = jamRow;
-      if (jamRow === 0 || jamRow < 6) {
-        idxHour += 24; // jadi 24, 25, dst, biar urutan naik
-      }
-      let curr = currentHour;
-      if (curr < 6) curr += 24;
-      if (idxHour > curr) return null;
-    }
+    if (row.target === null || typeof row.target === "undefined") return null;
+    let jamCompare = jamRow;
+    if (shiftType === "Night" && jamRow < 6) jamCompare += 24;
+    if (jamCompare > adjustedHour) return null;
     return row.target;
   });
 
-  // ... lanjutkan proses seperti existing: labels, actual, dsb
-
   // Inisialisasi array actual
-  // (kode existing)
-  const tableTarget = planTargetArr;
   const hourRange = getHourRange(shiftType);
   let actualHourArr = Array(hourRange.length).fill(0);
 
-  // (kode existing actual)
+  // Status yang dianggap selesai
   const finishedStatus = ["packed", "loaded", "completed"];
   let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
   jobs.forEach(job => {
@@ -671,14 +642,12 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     const status = (job.status || "").toLowerCase();
     if (finishedStatus.includes(status)) {
       let jamSelesai = getJobFinishedHour(job);
-      console.log('Parsed jamSelesai:', jamSelesai, 'from finishAt:', job.finishAt);
       if (jamSelesai !== null) {
         for (let idx = 0; idx < hourRange.length; idx++) {
           if (
             (hourRange[idx].start <= jamSelesai && jamSelesai < hourRange[idx].end) ||
             (hourRange[idx].start === 0 && jamSelesai === 0)
           ) {
-            console.log('Match jam:', jamSelesai, 'hourRange:', hourRange[idx], 'qty:', job.qty, 'index:', idx);
             actualHourArr[idx] += parseInt(job.qty) || 0;
             break;
           }
@@ -687,26 +656,32 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   });
 
-  // Cumulative actual
+  // Cumulative actual, hanya tampil sampai jam saat ini
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
     sum += actualHourArr[i];
-    actualCumulative.push(sum);
+    // Ambil jam label dari hourRange
+    let jamLabel = hourRange[i].start;
+    let jamCompare = jamLabel;
+    if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
+    // Isi hanya jika jam <= jam saat ini, sisanya null (agar line chart hanya sampai jam berjalan)
+    if (jamCompare <= adjustedHour) {
+      actualCumulative.push(sum);
+    } else {
+      actualCumulative.push(null);
+    }
   }
-  console.log('actualHourArr:', actualHourArr);
-  console.log('actualCumulative:', actualCumulative);
-  console.log('jobs:', jobs);
 
   const labels = planTargetArr.map(row => row.time);
 
-  // --- Render Chart.js
+  // --- Render Chart.js dengan datalabels custom box ---
   const canvas = document.getElementById("lineChartOutbound");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  if (lineChartOutbound) lineChartOutbound.destroy();
+  if (window.lineChartOutbound) window.lineChartOutbound.destroy();
 
-  lineChartOutbound = new Chart(ctx, {
+  window.lineChartOutbound = new Chart(ctx, {
     type: "line",
     data: {
       labels: labels,
@@ -721,7 +696,24 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           pointBorderColor: "#fff",
           pointRadius: 6,
           fill: false,
-          tension: 0.2
+          tension: 0.2,
+          datalabels: {
+            display: function(context) {
+              // Tampilkan label hanya jika value ada
+              return context.dataset.data[context.dataIndex] !== null;
+            },
+            backgroundColor: "#FF9900",
+            borderColor: "#fff",
+            borderWidth: 2,
+            color: "#222",
+            borderRadius: 4,
+            padding: 6,
+            font: { weight: "bold", size: 12 },
+            formatter: (value) => value ? value.toLocaleString() : "",
+            anchor: 'end',
+            align: 'top',
+            clamp: true
+          }
         },
         {
           label: "Target",
@@ -734,7 +726,23 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           pointRadius: 6,
           fill: false,
           tension: 0.2,
-          spanGaps: false
+          spanGaps: false,
+          datalabels: {
+            display: function(context) {
+              return context.dataset.data[context.dataIndex] !== null;
+            },
+            backgroundColor: "#2577F6",
+            borderColor: "#fff",
+            borderWidth: 2,
+            color: "#fff",
+            borderRadius: 4,
+            padding: 6,
+            font: { weight: "bold", size: 12 },
+            formatter: (value) => value ? value.toLocaleString() : "",
+            anchor: 'end',
+            align: 'top',
+            clamp: true
+          }
         }
       ],
     },
@@ -744,12 +752,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
         legend: { display: true, position: "bottom" },
         tooltip: { mode: "index", intersect: false },
         datalabels: {
-          display: true,
-          color: "#222",
-          font: { weight: "bold", size: 11 },
-          formatter: (value, ctx) => {
-            return value > 0 ? value.toLocaleString() : "";
-          }
+          // Default, override by dataset
         }
       },
       scales: {
