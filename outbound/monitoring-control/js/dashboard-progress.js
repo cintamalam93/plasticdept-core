@@ -662,12 +662,14 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     const status = (job.status || "").toLowerCase();
     if (finishedStatus.includes(status)) {
       let jamSelesai = getJobFinishedHour(job);
+      console.log('Parsed jamSelesai:', jamSelesai, 'from finishAt:', job.finishAt);
       if (jamSelesai !== null) {
         for (let idx = 0; idx < hourRange.length; idx++) {
           if (
             (hourRange[idx].start <= jamSelesai && jamSelesai < hourRange[idx].end) ||
             (hourRange[idx].start === 0 && jamSelesai === 0)
           ) {
+            console.log('Match jam:', jamSelesai, 'hourRange:', hourRange[idx], 'qty:', job.qty, 'index:', idx);
             actualHourArr[idx] += parseInt(job.qty) || 0;
             break;
           }
