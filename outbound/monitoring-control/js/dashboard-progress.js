@@ -665,23 +665,20 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
 
   // --- Cumulative actual, dengan break hour ke-0 ---
   let actualCumulative = [];
-  let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
-    // Break time reset to 0
-    if ((shiftType === "Night" && i === 0) || (shiftType === "Night" && i === 5) ||
-        (shiftType === "Day" && i === 0) || (shiftType === "Day" && i === 5)) {
-      sum = 0;
+    // jika jam break, copy dari jam sebelumnya
+    if (
+      (shiftType === "Night" && (i === 0 || i === 5)) ||
+      (shiftType === "Day" && (i === 0 || i === 5))
+    ) {
+      if (i === 0) {
+        actualCumulative.push(0);
+      } else {
+        actualCumulative.push(actualCumulative[i - 1]);
+      }
     } else {
-      sum += actualHourArr[i];
-    }
-    // Hanya tampilkan data sampai jam berjalan
-    let jamLabel = hourRange[i].start;
-    let jamCompare = jamLabel;
-    if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
-    if (jamCompare <= adjustedHour) {
-      actualCumulative.push(sum);
-    } else {
-      actualCumulative.push(null);
+      let prev = i === 0 ? 0 : actualCumulative[i - 1];
+      actualCumulative.push(prev + actualHourArr[i]);
     }
   }
 
