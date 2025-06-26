@@ -679,7 +679,9 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   const canvas = document.getElementById("lineChartOutbound");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  if (window.lineChartOutbound) window.lineChartOutbound.destroy();
+  if (window.lineChartOutbound && typeof window.lineChartOutbound.destroy === "function") {
+    window.lineChartOutbound.destroy();
+  }
 
   window.lineChartOutbound = new Chart(ctx, {
     type: "line",
