@@ -569,28 +569,25 @@ function getHourRange(shiftType) {
 function getJobFinishedHour(job) {
   let finishedAtStr = String(job.finishedAt || "").trim();
 
-  // Cek format jam HH:mm atau H:mm (ex: "23:04", "1:56", "08:10")
+  // Cek format jam HH:mm atau H:mm (ex: "23:04", "1:56", "08:10", "2:12")
   let match = finishedAtStr.match(/^(\d{1,2}):\d{2}$/);
   if (match) {
-    let h = parseInt(match[1]);
+    let h = parseInt(match[1], 10);
     if (!isNaN(h)) return h;
   }
 
-  // ISO format: "YYYY-MM-DDTHH:MM:SS"
-  if (finishedAtStr.includes("T")) {
-    let splitT = finishedAtStr.split("T");
-    if (splitT.length > 1) {
-      let jamBagian = splitT[1].split(":")[0];
-      let h = parseInt(jamBagian);
-      if (!isNaN(h)) return h;
-    }
+  // ISO format: "YYYY-MM-DDTHH:mm:ss"
+  let isoMatch = finishedAtStr.match(/T(\d{1,2}):\d{2}/);
+  if (isoMatch) {
+    let h = parseInt(isoMatch[1], 10);
+    if (!isNaN(h)) return h;
   }
 
   // Fallback: cari di deliveryNote
   if (job.deliveryDate && job.deliveryNote) {
-    let noteMatch = job.deliveryNote.match(/\b(\d{1,2}):\d{2}\b/);
+    let noteMatch = job.deliveryNote.match(/(\d{1,2}):\d{2}/);
     if (noteMatch) {
-      let h2 = parseInt(noteMatch[1]);
+      let h2 = parseInt(noteMatch[1], 10);
       if (!isNaN(h2)) return h2;
     }
   }
