@@ -567,24 +567,23 @@ function getHourRange(shiftType) {
 
 // --- Helper: Ambil jam selesai (asumsi ada field finishedAt, else fallback)
 function getJobFinishedHour(job) {
-  // Format yang didukung: "2025-06-25T09:22:00", "09:22", dst
-  if (job.finishedAt) {
-    let h = 0;
-    if (job.finishedAt.includes("T")) {
-      h = parseInt(job.finishedAt.split("T")[1].split(":")[0]);
-    } else {
-      h = parseInt(job.finishedAt.split(":")[0]);
-    }
-    return h;
+  let finishAtStr = String(job.finishAt || "").trim();
+  let match = finishAtStr.match(/^\s*(\d{1,2})\s*:\s*(\d{2})\s*$/);
+  if (match) {
+    let h = parseInt(match[1], 10);
+    if (!isNaN(h)) return h;
   }
-  // Jika tidak ada, fallback ke jam deliveryDate (parsing jika bisa, else null)
-  if (job.deliveryDate) {
-    // Coba cari pattern jam di deliveryNote/remark
-    if (job.deliveryNote && /\b([01]?\d|2[0-3]):[0-5]\d\b/.test(job.deliveryNote)) {
-      let h = parseInt(job.deliveryNote.match(/\b([01]?\d|2[0-3]):[0-5]\d\b/)[1]);
-      if (!isNaN(h)) return h;
+  let isoMatch = finishAtStr.match(/T(\d{1,2}):\d{2}/);
+  if (isoMatch) {
+    let h = parseInt(isoMatch[1], 10);
+    if (!isNaN(h)) return h;
+  }
+  if (job.deliveryDate && job.deliveryNote) {
+    let noteMatch = job.deliveryNote.match(/(\d{1,2}):\d{2}/);
+    if (noteMatch) {
+      let h2 = parseInt(noteMatch[1], 10);
+      if (!isNaN(h2)) return h2;
     }
-    // Jika tidak bisa, skip
   }
   return null;
 }
@@ -600,57 +599,50 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   ) {
     planTargetArr = PLAN_TARGET_TABLE[shiftType][mpKey];
   } else {
-    // fallback: semua plan target null
     planTargetArr = (shiftType === "Day")
-      ? [
-        { time: "8:00", target: null },{ time: "9:00", target: null },{ time: "10:00", target: null },
-        { time: "11:00", target: null },{ time: "12:00", target: null },{ time: "13:00", target: null },
-        { time: "14:00", target: null },{ time: "15:00", target: null },{ time: "16:00", target: null },{ time: "17:00", target: null }
-      ]
-      : [
-        { time: "20:00", target: null },{ time: "21:00", target: null },{ time: "22:00", target: null },
-        { time: "23:00", target: null },{ time: "0:00", target: null },{ time: "1:00", target: null },
-        { time: "2:00", target: null },{ time: "3:00", target: null },{ time: "4:00", target: null },{ time: "5:00", target: null }
-      ];
+      ? [ /* ... */ ]
+      : [ /* ... */ ];
+  }
+
+  // -- Cumulative plan target, break = 0 --
+  let planCumulative = [];
+  let lastVal = 0;
+  for (let i = 0; i < planTargetArr.length; i++) {
+    let t = planTargetArr[i].target;
+    if (t === null || typeof t === "undefined") {
+      planCumulative.push(0);   // break turun ke bawah
+    } else {
+      lastVal = t;
+      planCumulative.push(lastVal);
+    }
   }
 
   // Filter plan target agar hanya tampil sesuai jam berjalan
   const now = new Date();
   let currentHour = now.getHours();
-  // Jam plan target berjalan: hanya tampil plan target <= jam saat ini
-  // Untuk Day shift, jam 9:00 berarti index 1, dst.
-  // Untuk Night shift, jam 21:00 berarti index 1, dst.
-  let visibleTargets = planTargetArr.map((row, idx) => {
-    // jam plan target harus <= jam saat ini, kecuali jam istirahat (target null)
-    let jamRow = parseInt(row.time);
-    if (row.target === null || typeof row.target === "undefined") return 0;
-    // Penentuan untuk Day atau Night shift
-    if (shiftType === "Day") {
-      // jam 9:00 (idx 1) muncul jika >= 9
-      if (jamRow > currentHour) return null;
-    } else {
-      // Night shift: jam 21:00 - 5:00 besok
-      // handle jam 0,1,2... setelah tengah malam
-      let idxHour = jamRow;
-      if (jamRow === 0 || jamRow < 6) {
-        idxHour += 24; // jadi 24, 25, dst, biar urutan naik
-      }
-      let curr = currentHour;
-      if (curr < 6) curr += 24;
-      if (idxHour > curr) return null;
-    }
-    return row.target;
+  let adjustedHour = currentHour;
+  if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
+
+  let visiblePlanCumulative = planCumulative.map((val, idx) => {
+    let jamRow = parseInt(planTargetArr[idx].time);
+    let jamCompare = jamRow;
+    if (shiftType === "Night" && jamRow < 6) jamCompare += 24;
+    if (jamCompare > adjustedHour) return null;
+    return val;
   });
 
-  // ... lanjutkan proses seperti existing: labels, actual, dsb
-
   // Inisialisasi array actual
-  // (kode existing)
-  const tableTarget = planTargetArr;
   const hourRange = getHourRange(shiftType);
   let actualHourArr = Array(hourRange.length).fill(0);
 
-  // (kode existing actual)
+  // Tandai jam istirahat pada actualHourArr
+  for (let idx = 0; idx < hourRange.length; idx++) {
+    if (planTargetArr[idx].target === null) {
+      actualHourArr[idx] = null;
+    }
+  }
+
+  // Status yang dianggap selesai
   const finishedStatus = ["packed", "loaded", "completed"];
   let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
   jobs.forEach(job => {
@@ -660,6 +652,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       let jamSelesai = getJobFinishedHour(job);
       if (jamSelesai !== null) {
         for (let idx = 0; idx < hourRange.length; idx++) {
+          if (planTargetArr[idx].target === null) continue;
           if (
             (hourRange[idx].start <= jamSelesai && jamSelesai < hourRange[idx].end) ||
             (hourRange[idx].start === 0 && jamSelesai === 0)
@@ -672,23 +665,35 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   });
 
-  // Cumulative actual
+  // Cumulative actual: lanjutkan nilai dari jam sebelumnya, break turun ke bawah (0)
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
-    sum += actualHourArr[i];
-    actualCumulative.push(sum);
+    let jamLabel = hourRange[i].start;
+    let jamCompare = jamLabel;
+    if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
+
+    if (actualHourArr[i] === null) {
+      actualCumulative.push(0);
+    } else if (jamCompare <= adjustedHour) {
+      sum += actualHourArr[i];
+      actualCumulative.push(sum);
+    } else {
+      actualCumulative.push(null);
+    }
   }
 
   const labels = planTargetArr.map(row => row.time);
 
-  // --- Render Chart.js
+  // --- Render Chart.js dengan datalabels custom box ---
   const canvas = document.getElementById("lineChartOutbound");
   if (!canvas) return;
   const ctx = canvas.getContext("2d");
-  if (lineChartOutbound) lineChartOutbound.destroy();
+  if (window.lineChartOutbound && typeof window.lineChartOutbound.destroy === "function") {
+    window.lineChartOutbound.destroy();
+  }
 
-  lineChartOutbound = new Chart(ctx, {
+  window.lineChartOutbound = new Chart(ctx, {
     type: "line",
     data: {
       labels: labels,
@@ -703,11 +708,28 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           pointBorderColor: "#fff",
           pointRadius: 6,
           fill: false,
-          tension: 0.2
+          tension: 0.2,
+          datalabels: {
+            display: function(context) {
+              return context.dataset.data[context.dataIndex] !== null;
+            },
+            backgroundColor: "#FF9900",
+            borderColor: "#fff",
+            borderWidth: 2,
+            color: "#222",
+            borderRadius: 4,
+            padding: 6,
+            font: { weight: "bold", size: 12 },
+            formatter: (value) => value !== null ? value.toLocaleString() : "",
+            anchor: 'end',
+            align: 'top',
+            offset: 8,
+            clamp: true
+          }
         },
         {
           label: "Target",
-          data: visibleTargets,
+          data: visiblePlanCumulative,
           borderColor: "#2577F6",
           backgroundColor: "rgba(37,119,246,0.10)",
           borderWidth: 3,
@@ -716,7 +738,24 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           pointRadius: 6,
           fill: false,
           tension: 0.2,
-          spanGaps: false
+          spanGaps: true,
+          datalabels: {
+            display: function(context) {
+              return context.dataset.data[context.dataIndex] !== null;
+            },
+            backgroundColor: "#2577F6",
+            borderColor: "#fff",
+            borderWidth: 2,
+            color: "#fff",
+            borderRadius: 4,
+            padding: 6,
+            font: { weight: "bold", size: 12 },
+            formatter: (value) => value !== null ? value.toLocaleString() : "",
+            anchor: 'start',
+            align: 'bottom',
+            offset: 8,
+            clamp: true
+          }
         }
       ],
     },
@@ -726,12 +765,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
         legend: { display: true, position: "bottom" },
         tooltip: { mode: "index", intersect: false },
         datalabels: {
-          display: true,
-          color: "#222",
-          font: { weight: "bold", size: 11 },
-          formatter: (value, ctx) => {
-            return value > 0 ? value.toLocaleString() : "";
-          }
+          // Default, override by dataset
         }
       },
       scales: {
