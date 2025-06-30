@@ -602,7 +602,7 @@ function getJobFinishedHour(job) {
 
 // --- Fungsi utama render Line Chart Outbound
 function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
-  let planTargetArr = [];
+   let planTargetArr = [];
   const mpKey = String(manPowerTotal);
   if (
     PLAN_TARGET_TABLE[shiftType] &&
@@ -677,7 +677,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   }
 })();
 
-   // Jam & waktu
+    // Jam & waktu
   const now = new Date();
   let currentHour = now.getHours();
   let adjustedHour = currentHour;
