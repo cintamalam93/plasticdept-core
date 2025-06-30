@@ -635,12 +635,13 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   let adjustedHour = currentHour;
   if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
 
-  let visiblePlanCumulative = planCumulative.map((val, idx) => {
-    let jamRow = parseInt(planTargetArr[idx].time);
-    let jamCompare = jamRow;
-    if (shiftType === "Night" && jamRow < 6) jamCompare += 24;
-    if (jamCompare > adjustedHour) return null;
-    return val;
+  let visiblePlanCumulative = planCumulative.map((_, idx, arr) => {
+    if (idx === 0) return null;
+    if (planTargetArr[idx].target === 0) return 0;
+    if (planTargetArr[idx - 1].target !== null && planTargetArr[idx - 1].target !== 0) {
+      return arr[idx - 1];
+    }
+    return null;
   });
 
   // Inisialisasi array actual
