@@ -627,30 +627,27 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   }
 
-  // Hanya tampil nilai plan yang jam-nya sudah lewat/masuk (jam sekarang >= jam label)
+    // Ambil jam sekarang dan adjust malam
   const now = new Date();
   let currentHour = now.getHours();
   let adjustedHour = currentHour;
   if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
 
-  // Urutkan jam label (agar jam 0:00, 1:00 dst pada night shift benar)
+  // Dapatkan index jam berikutnya (pertama jam > jam sekarang)
   let jamArr = planTargetArr.map((row, idx) => {
     let jam = parseInt(row.time);
     if (shiftType === "Night" && jam < 6) jam += 24;
     return {idx, jam};
   });
-
-  // Cari index jam berikutnya (pertama yang jam label > jam sekarang)
   let nextIdx = jamArr.find(j => adjustedHour < j.jam)?.idx ?? -1;
 
-  // Plan chart: tampilkan semua plan yang <= nextIdx
+  // Tampilkan titik plan hanya sampai nextIdx saja, titik setelah itu null
   let visiblePlanChartArr = planTargetArr.map((row, idx) => {
-    if (idx === 0) return null; // jam awal pasti null
-    if (row.target === 0) return 0; // jam break
-    if (row.target === null) return null; // break
-    // Tampilkan plan target jika idx <= nextIdx
-    if (idx <= nextIdx && planTargetArr[idx - 1]?.target !== null && planTargetArr[idx - 1]?.target !== 0) {
-      return planTargetArr[idx - 1].target;
+    if (idx === 0) return 0;
+    if (row.target === 0) return 0;
+    if (row.target === null || typeof row.target === "undefined") return null;
+    if (nextIdx !== -1 && idx <= nextIdx) {
+      return row.target;
     }
     return null;
   });
