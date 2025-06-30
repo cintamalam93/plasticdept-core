@@ -514,6 +514,18 @@ const PLAN_TARGET_TABLE = {
       { time: "15:00", target: 32340 },
       { time: "16:00", target: 38220 },
       { time: "17:00", target: 44100 }
+    ],
+    "2": [  // << Tambahkan blok ini!
+      { time: "8:00", target: null },
+      { time: "9:00", target: 2352 },
+      { time: "10:00", target: 7056 },
+      { time: "11:00", target: 11760 },
+      { time: "12:00", target: 16464 },
+      { time: "13:00", target: null },
+      { time: "14:00", target: 21168 },
+      { time: "15:00", target: 25872 },
+      { time: "16:00", target: 30576 },
+      { time: "17:00", target: 35280 }
     ]
   },
   "Night": {
