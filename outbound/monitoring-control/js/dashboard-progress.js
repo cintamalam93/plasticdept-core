@@ -616,37 +616,41 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       : [ /* ... */ ];
   }
 
-  // --- PLAN CUMULATIVE ---
+  // -- Cumulative plan target, break = 0 --
   let planCumulative = [];
   let lastVal = 0;
   for (let i = 0; i < planTargetArr.length; i++) {
     let t = planTargetArr[i].target;
     if (t === null || typeof t === "undefined") {
-      planCumulative.push(0);
+      planCumulative.push(0);   // break turun ke bawah
     } else {
       lastVal = t;
       planCumulative.push(lastVal);
     }
   }
 
-  // --- LOGIKA BARU: PLAN TARGET MUNCUL DI TITIK JAM BERIKUTNYA ---
-  let visiblePlanCumulative = planCumulative.map((val, idx, arr) => {
-    if (idx === 0) return null;
-    if (planTargetArr[idx].target === 0) return 0;
-    if (planTargetArr[idx - 1].target !== null && planTargetArr[idx - 1].target !== 0) {
-      return arr[idx - 1];
-    }
-    return null;
+  // Filter plan target agar hanya tampil sesuai jam berjalan
+  const now = new Date();
+  let currentHour = now.getHours();
+  let adjustedHour = currentHour;
+  if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
+
+  let visiblePlanCumulative = planCumulative.map((val, idx) => {
+    let jamRow = parseInt(planTargetArr[idx].time);
+    let jamCompare = jamRow;
+    if (shiftType === "Night" && jamRow < 6) jamCompare += 24;
+    if (jamCompare > adjustedHour) return null;
+    return val;
   });
 
-  // --- ACTUAL: logika tetap seperti sebelumnya ---
+  // Inisialisasi array actual
   const hourRange = getHourRange(shiftType);
   let actualHourArr = Array(hourRange.length).fill(0);
 
   // Tandai jam istirahat pada actualHourArr
   for (let idx = 0; idx < hourRange.length; idx++) {
-    if (planTargetArr[idx].target === null || planTargetArr[idx].target === 0) {
-      actualHourArr[idx] = 0;
+    if (planTargetArr[idx].target === null) {
+      actualHourArr[idx] = null;
     }
   }
 
@@ -660,7 +664,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       let jamSelesai = getJobFinishedHour(job);
       if (jamSelesai !== null) {
         for (let idx = 0; idx < hourRange.length; idx++) {
-          if (planTargetArr[idx].target === null || planTargetArr[idx].target === 0) continue;
+          if (planTargetArr[idx].target === null) continue;
           if (
             (hourRange[idx].start <= jamSelesai && jamSelesai < hourRange[idx].end) ||
             (hourRange[idx].start === 0 && jamSelesai === 0)
@@ -673,15 +677,17 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   });
 
-  // --- ACTUAL CUMULATIVE ---
+  // Cumulative actual: lanjutkan nilai dari jam sebelumnya, break turun ke bawah (0)
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
-    if (planTargetArr[i].target === 0) {
-      actualCumulative.push(0); // break turun ke bawah
-    } else if (i === 0) {
-      actualCumulative.push(null);
-    } else if (planTargetArr[i].target !== null && planTargetArr[i - 1].target !== null) {
+    let jamLabel = hourRange[i].start;
+    let jamCompare = jamLabel;
+    if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
+
+    if (actualHourArr[i] === null) {
+      actualCumulative.push(0);
+    } else if (jamCompare <= adjustedHour) {
       sum += actualHourArr[i];
       actualCumulative.push(sum);
     } else {
