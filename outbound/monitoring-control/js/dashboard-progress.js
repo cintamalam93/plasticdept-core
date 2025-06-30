@@ -611,12 +611,10 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   ) {
     planTargetArr = PLAN_TARGET_TABLE[shiftType][mpKey];
   } else {
-    planTargetArr = (shiftType === "Day")
-      ? []
-      : [];
+    planTargetArr = (shiftType === "Day") ? [] : [];
   }
 
-  // --- PLAN TARGET: Sesuai logika sebelumnya (biarkan) ---
+  // --- PLAN TARGET: (biarkan sesuai logika sebelumnya) ---
   let planChartArr = Array(planTargetArr.length).fill(null);
   for (let i = 1; i < planTargetArr.length; i++) {
     if (planTargetArr[i].target === 0) {
@@ -626,13 +624,12 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   }
 
-  // Ambil jam sekarang dan adjust malam
+  // Jam & waktu
   const now = new Date();
   let currentHour = now.getHours();
   let adjustedHour = currentHour;
   if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
 
-  // Dapatkan index jam berikutnya (pertama jam > jam sekarang)
   let jamArr = planTargetArr.map((row, idx) => {
     let jam = parseInt(row.time);
     if (shiftType === "Night" && jam < 6) jam += 24;
@@ -640,7 +637,6 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   });
   let nextIdx = jamArr.find(j => adjustedHour < j.jam)?.idx ?? -1;
 
-  // Tampilkan titik plan hanya sampai nextIdx saja, titik setelah itu null
   let visiblePlanChartArr = planTargetArr.map((row, idx) => {
     if (idx === 0) return 0;
     if (row.target === 0) return 0;
@@ -651,8 +647,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     return null;
   });
 
-  // ----------------- BAGIAN ACTUAL (BARU) -----------------
-  // 1. Ambil yang finishAt ada nilainya dan status selesai
+  // ----------------- BAGIAN ACTUAL (UPDATED) -----------------
   const hourRange = getHourRange(shiftType);
   const finishedStatus = ["packed", "loaded", "completed"];
   let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
@@ -664,9 +659,8 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     return null;
   }
 
-  // 2. Akumulasi qty sesuai range waktu: >jam sebelum s/d <=jam sekarang
+  // Akumulasi qty untuk setiap interval jam (mulai i=1 agar jam 9:00 dapat total dari >8:00 s/d <=9:00)
   let actualHourArr = Array(hourRange.length).fill(0);
-
   for (let i = 1; i < hourRange.length; i++) {
     const prev = hourRange[i - 1];
     const curr = hourRange[i];
@@ -677,7 +671,6 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       if (!finishedStatus.includes(status)) return;
       const fin = parseFinishAt(job.finishAt);
       if (!fin) return;
-      // range: >prev.start:00 dan <=curr.start:00
       let jamFin = fin.hour;
       if (shiftType === "Night" && jamFin < 6) jamFin += 24;
       let prevStart = prev.start;
@@ -694,14 +687,15 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       }
     });
   }
-  // Jam istirahat: jika planTargetArr[i].target === null, actual = 0
+
+  // Jam istirahat: kalau planTargetArr[i].target === null, actual = 0
   for (let idx = 0; idx < hourRange.length; idx++) {
     if (planTargetArr[idx].target === null) {
       actualHourArr[idx] = 0;
     }
   }
 
-  // 3. Cumulative actual, tampilkan hanya di jam yang sudah lewat, jam berikutnya null
+  // Cumulative sum, tampilkan titik hanya jam yang sudah lewat, jam berikutnya null
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
@@ -709,7 +703,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     let jamCompare = jamLabel;
     if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
     if (planTargetArr[i].target === null) {
-      actualCumulative.push(0); // waktu istirahat: turun ke 0
+      actualCumulative.push(0);
     } else if (jamCompare <= adjustedHour) {
       sum += actualHourArr[i];
       actualCumulative.push(sum);
@@ -746,7 +740,10 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           tension: 0.2,
           datalabels: {
             display: function(context) {
-              return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] !== 0;
+              // Tampil label actual hanya jika value ada (tidak null), dan bukan 0 di jam istirahat
+              return context.dataset.data[context.dataIndex] !== null &&
+                     (context.dataset.data[context.dataIndex] !== 0 ||
+                      planTargetArr[context.dataIndex].target === 0);
             },
             backgroundColor: "#FF9900",
             borderColor: "#fff",
@@ -755,11 +752,16 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-            formatter: (value) => value !== null && value !== 0 ? value.toLocaleString() : "",
+            // Offset supaya label actual tidak tumpang tindih (atas)
             anchor: 'end',
             align: 'top',
-            offset: 8,
-            clamp: true
+            offset: 16, // lebih tinggi dari sebelumnya
+            clamp: true,
+            formatter: (value, ctx) => {
+              // Jangan tampilkan 0 selain di jam istirahat
+              if (value === 0 && planTargetArr[ctx.dataIndex].target !== 0 && planTargetArr[ctx.dataIndex].target !== null) return "";
+              return value !== null ? value.toLocaleString() : "";
+            }
           }
         },
         {
@@ -785,11 +787,12 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-            formatter: (value) => value !== null && value !== 0 ? value.toLocaleString() : "",
+            // Offset supaya label plan turun sedikit (tidak tumpang tindih)
             anchor: 'start',
             align: 'bottom',
-            offset: 8,
-            clamp: true
+            offset: 16,
+            clamp: true,
+            formatter: (value) => value !== null && value !== 0 ? value.toLocaleString() : ""
           }
         }
       ],
