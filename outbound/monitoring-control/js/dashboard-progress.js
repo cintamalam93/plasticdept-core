@@ -612,39 +612,55 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     planTargetArr = PLAN_TARGET_TABLE[shiftType][mpKey];
   } else {
     planTargetArr = (shiftType === "Day")
-      ? [ /* ... */ ]
-      : [ /* ... */ ];
+      ? []
+      : [];
   }
 
-  // -- Cumulative plan target, break = 0 --
+  // Cumulative plan target (tidak dipakai untuk grafik, hanya untuk referensi)
   let planCumulative = [];
   let lastVal = 0;
   for (let i = 0; i < planTargetArr.length; i++) {
     let t = planTargetArr[i].target;
     if (t === null || typeof t === "undefined") {
-      planCumulative.push(0);   // break turun ke bawah
+      planCumulative.push(0);
     } else {
       lastVal = t;
       planCumulative.push(lastVal);
     }
   }
 
-  // Filter plan target agar hanya tampil sesuai jam berjalan
+  // --- LOGIKA: tampilkan plan target hanya di titik jam berikutnya, qty sesuai array, titik lain null ---
+  // Misal jam 8:00 (idx 0), plan target muncul di jam 9:00 (idx 1) dengan qty planTargetArr[1].target
+  // Hanya satu titik yang tampil, sesuai jam berjalan.
   const now = new Date();
   let currentHour = now.getHours();
   let adjustedHour = currentHour;
   if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
 
-  let visiblePlanCumulative = planCumulative.map((_, idx, arr) => {
-    if (idx === 0) return null;
-    if (planTargetArr[idx].target === 0) return 0;
-    if (planTargetArr[idx - 1].target !== null && planTargetArr[idx - 1].target !== 0) {
-      return arr[idx - 1];
+  // Cari index jam berikutnya, yaitu index pertama jam pada planTargetArr > jam sekarang
+  let nextIdx = -1;
+  for (let i = 0; i < planTargetArr.length; i++) {
+    let jamRow = parseInt(planTargetArr[i].time);
+    if (shiftType === "Night" && jamRow < 6) jamRow += 24;
+    if (adjustedHour < jamRow) {
+      nextIdx = i;
+      break;
     }
-    return null;
-  });
+  }
 
-  // Inisialisasi array actual
+  // Build array: hanya nextIdx yang muncul plan target, lain null, break=0
+  let visiblePlanCumulative = Array(planTargetArr.length).fill(null);
+  if (nextIdx !== -1 && planTargetArr[nextIdx].target !== 0 && planTargetArr[nextIdx].target !== null) {
+    visiblePlanCumulative[nextIdx] = planTargetArr[nextIdx].target;
+  }
+  // Tampilkan titik break (jam istirahat) jika target === 0
+  for (let i = 0; i < planTargetArr.length; i++) {
+    if (planTargetArr[i].target === 0) {
+      visiblePlanCumulative[i] = 0;
+    }
+  }
+
+  // --- Actual logic tetap sama ---
   const hourRange = getHourRange(shiftType);
   let actualHourArr = Array(hourRange.length).fill(0);
 
@@ -682,17 +698,11 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
-    let jamLabel = hourRange[i].start;
-    let jamCompare = jamLabel;
-    if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
-
     if (actualHourArr[i] === null) {
       actualCumulative.push(0);
-    } else if (jamCompare <= adjustedHour) {
+    } else {
       sum += actualHourArr[i];
       actualCumulative.push(sum);
-    } else {
-      actualCumulative.push(null);
     }
   }
 
@@ -724,7 +734,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           tension: 0.2,
           datalabels: {
             display: function(context) {
-              return context.dataset.data[context.dataIndex] !== null;
+              return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] !== 0;
             },
             backgroundColor: "#FF9900",
             borderColor: "#fff",
@@ -733,7 +743,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-            formatter: (value) => value !== null ? value.toLocaleString() : "",
+            formatter: (value) => value !== null && value !== 0 ? value.toLocaleString() : "",
             anchor: 'end',
             align: 'top',
             offset: 8,
@@ -754,7 +764,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           spanGaps: true,
           datalabels: {
             display: function(context) {
-              return context.dataset.data[context.dataIndex] !== null;
+              return context.dataset.data[context.dataIndex] !== null && context.dataset.data[context.dataIndex] !== 0;
             },
             backgroundColor: "#2577F6",
             borderColor: "#fff",
@@ -763,7 +773,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-            formatter: (value) => value !== null ? value.toLocaleString() : "",
+            formatter: (value) => value !== null && value !== 0 ? value.toLocaleString() : "",
             anchor: 'start',
             align: 'bottom',
             offset: 8,
