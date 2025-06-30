@@ -616,10 +616,9 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       : [];
   }
 
-  // --- PLAN TARGET: Geser ke titik jam berikutnya, dan tampilkan semua nilai yang sudah lewat ---
+  // --- PLAN TARGET: Sesuai logika sebelumnya (biarkan) ---
   let planChartArr = Array(planTargetArr.length).fill(null);
   for (let i = 1; i < planTargetArr.length; i++) {
-    // Untuk jam istirahat/break, tetap tampilkan 0
     if (planTargetArr[i].target === 0) {
       planChartArr[i] = 0;
     } else if (planTargetArr[i-1].target !== null && planTargetArr[i-1].target !== 0) {
@@ -627,7 +626,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   }
 
-    // Ambil jam sekarang dan adjust malam
+  // Ambil jam sekarang dan adjust malam
   const now = new Date();
   let currentHour = now.getHours();
   let adjustedHour = currentHour;
@@ -652,49 +651,65 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     return null;
   });
 
-  // --- ACTUAL: Cumulative, hanya tampil di jam yang sudah masuk, jam berikutnya null ---
+  // ----------------- BAGIAN ACTUAL (BARU) -----------------
+  // 1. Ambil yang finishAt ada nilainya dan status selesai
   const hourRange = getHourRange(shiftType);
+  const finishedStatus = ["packed", "loaded", "completed"];
+  let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
+  function parseFinishAt(str) {
+    const m = String(str).match(/(\d{1,2}):(\d{2})/);
+    if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10) };
+    const iso = String(str).match(/T(\d{1,2}):(\d{2})/);
+    if (iso) return { hour: parseInt(iso[1], 10), minute: parseInt(iso[2], 10) };
+    return null;
+  }
+
+  // 2. Akumulasi qty sesuai range waktu: >jam sebelum s/d <=jam sekarang
   let actualHourArr = Array(hourRange.length).fill(0);
 
-  // Tandai jam istirahat pada actualHourArr
+  for (let i = 1; i < hourRange.length; i++) {
+    const prev = hourRange[i - 1];
+    const curr = hourRange[i];
+    jobs.forEach(job => {
+      if ((job.shift || "") !== shiftLabel) return;
+      if (!job.finishAt) return;
+      const status = (job.status || '').toLowerCase();
+      if (!finishedStatus.includes(status)) return;
+      const fin = parseFinishAt(job.finishAt);
+      if (!fin) return;
+      // range: >prev.start:00 dan <=curr.start:00
+      let jamFin = fin.hour;
+      if (shiftType === "Night" && jamFin < 6) jamFin += 24;
+      let prevStart = prev.start;
+      let currStart = curr.start;
+      if (shiftType === "Night" && prevStart < 6) prevStart += 24;
+      if (shiftType === "Night" && currStart < 6) currStart += 24;
+
+      if (
+        (jamFin > prevStart && jamFin < currStart) ||
+        (jamFin === prevStart && fin.minute > 0) ||
+        (jamFin === currStart && fin.minute === 0)
+      ) {
+        actualHourArr[i] += parseInt(job.qty) || 0;
+      }
+    });
+  }
+  // Jam istirahat: jika planTargetArr[i].target === null, actual = 0
   for (let idx = 0; idx < hourRange.length; idx++) {
     if (planTargetArr[idx].target === null) {
-      actualHourArr[idx] = null;
+      actualHourArr[idx] = 0;
     }
   }
 
-  // Status yang dianggap selesai
-  const finishedStatus = ["packed", "loaded", "completed"];
-  let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
-  jobs.forEach(job => {
-    if ((job.shift || "") !== shiftLabel) return;
-    const status = (job.status || "").toLowerCase();
-    if (finishedStatus.includes(status)) {
-      let jamSelesai = getJobFinishedHour(job);
-      if (jamSelesai !== null) {
-        for (let idx = 0; idx < hourRange.length; idx++) {
-          if (planTargetArr[idx].target === null) continue;
-          if (
-            (hourRange[idx].start <= jamSelesai && jamSelesai < hourRange[idx].end) ||
-            (hourRange[idx].start === 0 && jamSelesai === 0)
-          ) {
-            actualHourArr[idx] += parseInt(job.qty) || 0;
-            break;
-          }
-        }
-      }
-    }
-  });
-
-  // --- CUMULATIVE ACTUAL: hanya tampilkan di jam yang sudah masuk, jam berikutnya null ---
+  // 3. Cumulative actual, tampilkan hanya di jam yang sudah lewat, jam berikutnya null
   let actualCumulative = [];
   let sum = 0;
   for (let i = 0; i < actualHourArr.length; i++) {
     let jamLabel = hourRange[i].start;
     let jamCompare = jamLabel;
     if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
-    if (actualHourArr[i] === null) {
-      actualCumulative.push(0);
+    if (planTargetArr[i].target === null) {
+      actualCumulative.push(0); // waktu istirahat: turun ke 0
     } else if (jamCompare <= adjustedHour) {
       sum += actualHourArr[i];
       actualCumulative.push(sum);
