@@ -633,11 +633,25 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   let adjustedHour = currentHour;
   if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
 
-  let visiblePlanChartArr = planChartArr.map((val, idx) => {
-    let jamRow = parseInt(planTargetArr[idx].time);
-    if (shiftType === "Night" && jamRow < 6) jamRow += 24;
-    // Tampilkan plan jika jam label <= jam sekarang
-    if (jamRow <= adjustedHour) return val;
+  // Urutkan jam label (agar jam 0:00, 1:00 dst pada night shift benar)
+  let jamArr = planTargetArr.map((row, idx) => {
+    let jam = parseInt(row.time);
+    if (shiftType === "Night" && jam < 6) jam += 24;
+    return {idx, jam};
+  });
+
+  // Cari index jam berikutnya (pertama yang jam label > jam sekarang)
+  let nextIdx = jamArr.find(j => adjustedHour < j.jam)?.idx ?? -1;
+
+  // Plan chart: tampilkan semua plan yang <= nextIdx
+  let visiblePlanChartArr = planTargetArr.map((row, idx) => {
+    if (idx === 0) return null; // jam awal pasti null
+    if (row.target === 0) return 0; // jam break
+    if (row.target === null) return null; // break
+    // Tampilkan plan target jika idx <= nextIdx
+    if (idx <= nextIdx && planTargetArr[idx - 1]?.target !== null && planTargetArr[idx - 1]?.target !== 0) {
+      return planTargetArr[idx - 1].target;
+    }
     return null;
   });
 
