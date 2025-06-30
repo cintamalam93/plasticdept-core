@@ -624,6 +624,60 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   }
 
+  // --- DEBUG LOG: Semua range jam (misal Day shift: 8:00-9:00, 9:00-10:00, dst) ---
+(function debugLogAllRanges() {
+  const finishedStatus = ["packed", "loaded", "completed"];
+  let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
+  function parseFinishAt(str) {
+    const m = String(str).match(/(\d{1,2}):(\d{2})/);
+    if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10), raw: m[0] };
+    const iso = String(str).match(/T(\d{1,2}):(\d{2})/);
+    if (iso) return { hour: parseInt(iso[1], 10), minute: parseInt(iso[2], 10), raw: iso[0] };
+    return null;
+  }
+  const hourRange = getHourRange(shiftType);
+
+  for (let i = 1; i < hourRange.length; i++) {
+    const prev = hourRange[i - 1];
+    const curr = hourRange[i];
+
+    // Adjust for night shift jam (24+)
+    let prevStart = prev.start;
+    let currStart = curr.start;
+    if (shiftType === "Night" && prevStart < 6) prevStart += 24;
+    if (shiftType === "Night" && currStart < 6) currStart += 24;
+
+    // Filter jobs di range ini
+    const jobsInRange = jobs.filter(job => {
+      if ((job.shift || "") !== shiftLabel) return false;
+      if (!job.finishAt) return false;
+      const status = (job.status || '').toLowerCase();
+      if (!finishedStatus.includes(status)) return false;
+      const fin = parseFinishAt(job.finishAt);
+      if (!fin) return false;
+      let jamFin = fin.hour;
+      if (shiftType === "Night" && jamFin < 6) jamFin += 24;
+      return (
+        (jamFin > prevStart && jamFin < currStart) ||
+        (jamFin === prevStart && fin.minute > 0) ||
+        (jamFin === currStart && fin.minute === 0)
+      );
+    });
+
+    // Log hasilnya
+    console.log(`--- DEBUG: Jobs selesai di range ${prev.label} - ${curr.label} ---`);
+    let total = 0;
+    jobsInRange.forEach(job => {
+      const fin = parseFinishAt(job.finishAt);
+      const qty = parseInt(job.qty) || 0;
+      total += qty;
+      console.log(`jobNo: ${job.jobNo || "-"}, qty: ${qty}, finishAt: ${job.finishAt}`);
+    });
+    console.log(`Total qty: ${total}`);
+    console.log(`------------------------------`);
+  }
+})();
+
   // Jam & waktu
   const now = new Date();
   let currentHour = now.getHours();
