@@ -119,6 +119,13 @@ async function loadDashboardData() {
   // Outbound Jobs
   const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
 
+  logOutboundJobsByFinishRange(
+  Object.values(outboundJobs).filter(
+    j => ["packed", "loaded", "completed"].includes((j.status || '').toLowerCase())
+  ),
+  shiftType
+);
+
   // Data ManPower
   let MP_SUGITY = 0, MP_REGULER = 0;
   if (manPowerSnap.exists()) {
