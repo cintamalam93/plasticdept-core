@@ -119,13 +119,6 @@ async function loadDashboardData() {
   // Outbound Jobs
   const outboundJobs = outboundJobsSnap.exists() ? outboundJobsSnap.val() : {};
 
-  logOutboundJobsByFinishRange(
-  Object.values(outboundJobs).filter(
-    j => ["packed", "loaded", "completed"].includes((j.status || '').toLowerCase())
-  ),
-  shiftType
-);
-
   // Data ManPower
   let MP_SUGITY = 0, MP_REGULER = 0;
   if (manPowerSnap.exists()) {
@@ -240,49 +233,6 @@ async function loadDashboardData() {
 
   applyShiftLogicPerTeam();
   await updateOutstandingJobLabel();
-}
-
-function logOutboundJobsByFinishRange(jobs, shiftType = "Day") {
-  // Tentukan range jam sesuai shift
-  const hourRange = getHourRange(shiftType);
-
-  // Helper parse finishAt jadi objek {hour, minute}
-  function parseFinishAt(str) {
-    const m = String(str).match(/(\d{1,2}):(\d{2})/);
-    if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10) };
-    const iso = String(str).match(/T(\d{1,2}):(\d{2})/);
-    if (iso) return { hour: parseInt(iso[1], 10), minute: parseInt(iso[2], 10) };
-    return null;
-  }
-
-  // Loop tiap jam range (skip jam pertama, karena 8:00-8:00 tidak ada job)
-  for (let i = 1; i < hourRange.length; i++) {
-    const { label, start, end } = hourRange[i];
-    // Range: setelah start prev sampe end sekarang. Misal Jam 9:00 berarti >8:00 sampai <=9:00
-    const prev = hourRange[i-1];
-    const jobsInThisHour = jobs.filter(job => {
-      const fin = parseFinishAt(job.finishAt);
-      if (!fin) return false;
-      // Untuk jam 0:00 - 23:59 (Day shift)
-      // Misal: Jam 9:00, berarti >8:00 s/d <=9:00
-      if (fin.hour > prev.start && fin.hour < end) return true;
-      if (fin.hour === prev.start && fin.minute > 0) return true;
-      if (fin.hour === end && fin.minute === 0) return true;
-      return false;
-    });
-
-    if (jobsInThisHour.length > 0) {
-      console.log(`Jam ${end}:00`);
-      let total = 0;
-      jobsInThisHour.forEach(job => {
-        const qty = parseInt(job.qty) || 0;
-        total += qty;
-        console.log(`${job.jobNo || "-"}: ${qty}`);
-      });
-      console.log(`\nTotal: ${total}`);
-      console.log("=======================");
-    }
-  }
 }
 
 // --- Shift Logic Title ---
