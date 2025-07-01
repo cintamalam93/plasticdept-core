@@ -757,7 +757,9 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     let jamCompare = jamLabel;
     if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
     if (planTargetArr[i].target === null) {
+      // Turunkan ke bawah (0) saat jam istirahat, dan reset sum supaya grafik naik lagi dari bawah
       actualCumulative.push(0);
+      sum = 0;
     } else if (jamCompare <= adjustedHour) {
       sum += actualHourArr[i];
       actualCumulative.push(sum);
