@@ -734,10 +734,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           tension: 0.2,
           datalabels: {
             display: function(context) {
-              // Tampil label actual hanya jika value ada (tidak null), dan bukan 0 di jam istirahat
-              return context.dataset.data[context.dataIndex] !== null &&
-                     (context.dataset.data[context.dataIndex] !== 0 ||
-                      planTargetArr[context.dataIndex].target === 0);
+              return context.dataset.data[context.dataIndex] !== null;
             },
             backgroundColor: "#FF9900",
             borderColor: "#fff",
