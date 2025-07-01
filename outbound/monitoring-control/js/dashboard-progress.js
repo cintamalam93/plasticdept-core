@@ -771,6 +771,24 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
         actualCumulative.push(sum);
       }
     }
+    // PATCH: Sembunyikan data setelah jam saat ini (supaya line & label hanya sampai jam sekarang)
+    const now = new Date();
+    let currentHour = now.getHours();
+    let chartHour = currentHour;
+    if (shiftType === "Night" && chartHour < 6) chartHour += 24;
+
+    let jamArr = planTargetArr.map((row, idx) => {
+      let jam = parseInt(row.time);
+      if (shiftType === "Night" && jam < 6) jam += 24;
+      return {idx, jam};
+    });
+    let nowIdx = jamArr.findIndex(j => chartHour < j.jam);
+    if (nowIdx === -1) nowIdx = planTargetArr.length;
+
+    // Sembunyikan data setelah jam sekarang
+    for (let i = nowIdx; i < actualCumulative.length; i++) {
+      actualCumulative[i] = null;
+    }
   } else {
     // Default: hide jam berikutnya
     for (let i = 0; i < actualHourArr.length; i++) {
@@ -789,6 +807,10 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   }
 
   const labels = planTargetArr.map(row => row.time);
+
+  // --- sebelum inisialisasi Chart ---
+  const allVals = [...actualCumulative, ...visiblePlanChartArr].filter(v => typeof v === 'number');
+  const maxQty = Math.max(...allVals, 1000);
 
   // --- Render Chart.js dengan datalabels custom box ---
   const canvas = document.getElementById("lineChartOutbound");
@@ -882,6 +904,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       scales: {
         y: {
           beginAtZero: true,
+          suggestedMax: maxQty * 1.15,
           title: { display: true, text: "Qty (kg)", font: { size: 14, weight: "bold" } }
         },
         x: {
