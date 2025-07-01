@@ -644,6 +644,53 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     });
   }
 
+  // --- DEBUG: Log jobNo & qty selesai per jam ---
+const jobsByHour = {}; // {jam: [{jobNo, qty}]}
+for (let i = 1; i < hourRange.length; i++) {
+  const prev = hourRange[i - 1];
+  const curr = hourRange[i];
+  const jamLabel = curr.label;
+  jobsByHour[jamLabel] = [];
+  jobs.forEach(job => {
+    if ((job.shift || "") !== shiftLabel) return;
+    if (!job.finishAt) return;
+    const status = (job.status || '').toLowerCase();
+    if (!finishedStatus.includes(status)) return;
+    const fin = parseFinishAt(job.finishAt);
+    if (!fin) return;
+    let jamFin = fin.hour;
+    if (shiftType === "Night" && jamFin < 6) jamFin += 24;
+    let prevStart = prev.start;
+    let currStart = curr.start;
+    if (shiftType === "Night" && prevStart < 6) prevStart += 24;
+    if (shiftType === "Night" && currStart < 6) currStart += 24;
+    if (
+      (jamFin > prevStart && jamFin < currStart) ||
+      (jamFin === prevStart && fin.minute > 0) ||
+      (jamFin === currStart && fin.minute === 0)
+    ) {
+      jobsByHour[jamLabel].push({
+        jobNo: job.jobNo || "-",
+        qty: parseInt(job.qty) || 0
+      });
+    }
+  });
+}
+
+// Tampilkan di console
+Object.keys(jobsByHour).forEach(jam => {
+  const arr = jobsByHour[jam];
+  if (arr.length > 0) {
+    console.log(`jam ${jam}`);
+    let total = 0;
+    arr.forEach(j => {
+      console.log(`${j.jobNo}: ${j.qty}`);
+      total += j.qty;
+    });
+    console.log(`Total: ${total}\n`);
+  }
+});
+
   // --- Akumulasi (untuk line grafik dan datalabel) ---
   let actualCumulative = [];
   let sum = 0;
