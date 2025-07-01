@@ -671,18 +671,19 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   let nowIdx = jamArr.findIndex(j => chartHour < j.jam);
   if (nowIdx === -1) nowIdx = planTargetArr.length;
 
+  // Datalabel actual: isi dengan akumulasi di semua jam yang SUDAH LEWAT (jam ke-0/awal tetap null), istirahat = 0, jam berikutnya null
   let datalabelActualArr = [];
   for (let i = 0; i < actualCumulative.length; i++) {
     if (planTargetArr[i].target === null) {
-      datalabelActualArr.push(0); // istirahat tetap tampil 0
-    } else if (actualCumulative[i] !== null && i < nowIdx) {
-      datalabelActualArr.push(actualCumulative[i]);
+      datalabelActualArr.push(0); // jam istirahat, label 0
+    } else if (i > 0 && i < nowIdx && actualCumulative[i] !== null) {
+      datalabelActualArr.push(actualCumulative[i]); // akumulasi, hanya jam yang sudah lewat
     } else {
-      datalabelActualArr.push(null);
+      datalabelActualArr.push(null); // jam yang belum lewat atau jam ke-0
     }
   }
 
-  // Sembunyikan data actualCumulative setelah jam saat ini
+  // Sembunyikan data actualCumulative setelah jam saat ini (agar line putus di titik berikutnya)
   for (let i = nowIdx; i < actualCumulative.length; i++) {
     actualCumulative[i] = null;
   }
