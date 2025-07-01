@@ -826,7 +826,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       labels: labels,
       datasets: [
         {
-          label: "Actual",
+          label: "Actual Target",
           data: actualCumulative,
           borderColor: "#FF9900",
           backgroundColor: "rgba(255,153,0,0.10)",
@@ -861,7 +861,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           }
         },
         {
-          label: "Target",
+          label: "Plan Target",
           data: visiblePlanChartArr,
           borderColor: "#2577F6",
           backgroundColor: "rgba(37,119,246,0.10)",
