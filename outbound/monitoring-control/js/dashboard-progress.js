@@ -683,6 +683,15 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   }
 
+  // === LOG DEBUG (letakkan di sini) ===
+  console.log('actualCumulative:', actualCumulative);
+  console.log('datalabelActualArr:', datalabelActualArr);
+  console.log('nowIdx:', nowIdx);
+  console.log('chartHour:', chartHour);
+  console.log('jamArr:', jamArr);
+  console.log('planTargetArr:', planTargetArr);
+  // === END LOG DEBUG ===
+
   // Sembunyikan data actualCumulative setelah jam saat ini (agar line putus di titik berikutnya)
   for (let i = nowIdx; i < actualCumulative.length; i++) {
     actualCumulative[i] = null;
