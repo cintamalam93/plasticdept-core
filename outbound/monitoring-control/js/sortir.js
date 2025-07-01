@@ -1020,11 +1020,11 @@ function checkPythonAPIAvailable() {
 }
 
 async function saveOutJobAchievement() {
-  // 1. Ambil semua job dari node PhxOutboundJobs
+  // Ambil semua job dari node PhxOutboundJobs
   const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
   const jobs = jobsSnap.exists() ? Object.values(jobsSnap.val()) : [];
 
-  // 2. Buat struktur tanggal
+  // Buat struktur tanggal
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1033,19 +1033,13 @@ async function saveOutJobAchievement() {
   const nodeMonth = `${month}_${yearShort}`;
   const nodeDay = String(now.getDate()).padStart(2, '0');
 
-  // 3. Kelompokkan data per shift & teamName
-  // Akan menghasilkan: result[shift][teamName][jobNo] = { ...detail }
+  // Kelompokkan data per shift & teamName
   const result = { NightShift: {}, DayShift: {} };
   for (const job of jobs) {
-    // Validasi field penting
     if (!job.teamName || !job.jobNo) continue;
-    // Map shift
     const shiftPath = job.shift === "Night Shift" ? "NightShift" : "DayShift";
-    // TeamName, gunakan original
     const teamName = job.teamName;
-    // Inisialisasi node jika belum ada
     if (!result[shiftPath][teamName]) result[shiftPath][teamName] = {};
-    // Simpan detail job sesuai gambar 1
     result[shiftPath][teamName][job.jobNo] = {
       deliveryDate: job.deliveryDate,
       deliveryNote: job.deliveryNote,
@@ -1056,16 +1050,15 @@ async function saveOutJobAchievement() {
       shift: job.shift,
       status: job.status,
       team: job.team,
-      teamName: job.teamName
+      teamName: job.teamName,
+      finishAt: job.finishAt || "" // Ambil dari PhxOutboundJobs, biarkan kosong kalau tidak ada
     };
   }
 
-  // 4. Simpan ke database, hanya jika ada datanya
-  // NightShift
+  // Simpan ke database
   if (Object.keys(result.NightShift).length > 0) {
     await set(ref(db, `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/NightShift`), result.NightShift);
   }
-  // DayShift
   if (Object.keys(result.DayShift).length > 0) {
     await set(ref(db, `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/DayShift`), result.DayShift);
   }
