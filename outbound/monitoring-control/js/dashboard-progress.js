@@ -34,11 +34,19 @@ const teamTitleReguler = document.querySelectorAll('.team-matrix-card .team-titl
 let donutChart, barChart;
 
 // --- Helper Functions ---
+/**
+ * Format angka dengan ribuan
+ * @param {number|string} num
+ * @returns {string}
+ */
 function formatNumber(num) {
   if (isNaN(num)) return "0";
   return Number(num).toLocaleString();
 }
 
+/**
+ * Update label outstanding job sesuai shift
+ */
 async function updateOutstandingJobLabel() {
   const snapshot = await get(ref(db, "ManPower"));
   if (outstandingJobLabel) {
@@ -95,13 +103,16 @@ function getStatusSortOrder(status) {
 }
 
 // --- Main Data Loader ---
+/**
+ * Muat data utama dashboard, isi matrix dan render semua chart
+ */
 async function loadDashboardData() {
   // Ambil shiftType dari localStorage yang diset dari halaman assignment
   const shiftType = localStorage.getItem("shiftType") || "Day";
   const planTargetPath = `PlanTarget/${shiftType} Shift`;
   const manPowerPath = `ManPower/${shiftType} Shift`;
 
-  // Ambil data PlanTarget & ManPower dari path sesuai shift
+  // Ambil data PlanTarget, OutboundJobs, dan ManPower
   const [planTargetSnap, outboundJobsSnap, manPowerSnap] = await Promise.all([
     get(ref(db, planTargetPath)),
     get(ref(db, "PhxOutboundJobs")),
@@ -128,7 +139,7 @@ async function loadDashboardData() {
   }
 
   // Setelah inisialisasi MP_SUGITY dan MP_REGULER
-  const manPowerTotal = +(MP_SUGITY + MP_REGULER).toFixed(2); // pastikan float, contoh: 2.5, 3, 2
+  const manPowerTotal = +(MP_SUGITY + MP_REGULER).toFixed(2);
 
   // Hitung Outstanding Job For Next Shift
   let outstandingQty = 0;
@@ -200,22 +211,15 @@ async function loadDashboardData() {
   if (remainingSugity) remainingSugity.textContent = formatNumber(sumRemainingSugity);
   if (remainingReguler) remainingReguler.textContent = formatNumber(sumRemainingReguler);
 
-  // --- Mini Donut Chart Sugity ---
+  // --- Render Chart ---
   renderMiniDonutSugity(sumAchievedSugity, planSugityVal);
-
-  // --- Mini Donut Chart Reguler ---
   renderMiniDonutReguler(sumAchievedReguler, planRegulerVal);
-
-  // --- Chart Donut (Gabungan) ---
   renderDonutChart(totalAchieved, totalPlanTarget);
+  renderBarChart([sumAchievedSugity, sumAchievedReguler], [planSugityVal, planRegulerVal]);
 
-  // --- Chart Bar (Team) ---
-  renderBarChart(
-    [sumAchievedSugity, sumAchievedReguler],
-    [planSugityVal, planRegulerVal]
-  );
+  // --- Outbound Jobs Table sudah dihapus ---
 
-  // --- Tabel Outbound Jobs (sort by status order) ---
+  // --- Render Line Chart Outbound (NEW) ---
   const allJobs = [
     ...sugityJobs.map(j => ({...j, team: "Sugity"})),
     ...regulerJobs.map(j => ({...j, team: "Reguler"}))
@@ -226,9 +230,7 @@ async function loadDashboardData() {
     if (orderA !== orderB) return orderA - orderB;
     return (a.jobNo || '').localeCompare(b.jobNo || '');
   });
-  // renderJobsTable(allJobs); // TABEL SUDAH DIHAPUS
 
-  // --- Tambahan: Render Line Chart Outbound (NEW) ---
   renderLineChartOutbound(allJobs, shiftType, manPowerTotal);
 
   applyShiftLogicPerTeam();
@@ -236,6 +238,9 @@ async function loadDashboardData() {
 }
 
 // --- Shift Logic Title ---
+/**
+ * Update judul dan data matrix per team sesuai shift
+ */
 function applyShiftLogicPerTeam() {
   const shiftType = localStorage.getItem("shiftType") || "Day";
   if (shiftType === "Night") {
@@ -247,7 +252,6 @@ function applyShiftLogicPerTeam() {
     if (actualReguler) actualReguler.textContent = "";
     if (achievedReguler) achievedReguler.textContent = "";
     if (remainingReguler) remainingReguler.textContent = "";
-    // MiniDonutReguler otomatis diupdate oleh renderMiniDonutReguler (akan nol jika nilainya nol)
   } else {
     if (teamTitleSugity) teamTitleSugity.textContent = "Sugity (Day Shift)";
     if (teamTitleReguler) teamTitleReguler.textContent = "Reguler (Day Shift)";
@@ -259,11 +263,8 @@ const centerLabelPlugin = {
   id: 'centerLabelPlugin',
   afterDraw: function(chart) {
     if (chart.config.type !== 'doughnut') return;
-
     const {ctx, chartArea: {left, right, top, bottom}} = chart;
     ctx.save();
-
-    // Ambil Achieved dan Plan Target asli (dari options/plugins)
     const achieved = chart.data.datasets[0].data[0];
     let planTarget =
       chart.options.plugins &&
@@ -271,23 +272,22 @@ const centerLabelPlugin = {
       typeof chart.options.plugins.customPercentTarget.planTarget === 'number'
         ? chart.options.plugins.customPercentTarget.planTarget
         : achieved + chart.data.datasets[0].data[1];
-
     const percent = planTarget > 0 ? (achieved / planTarget * 100) : 0;
-
     ctx.font = 'bold 18px Inter, Arial, sans-serif';
     ctx.fillStyle = '#2c3e50';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-
     const centerX = (left + right) / 2;
     const centerY = (top + bottom) / 2;
-
     ctx.fillText(percent.toFixed(0) + '%', centerX, centerY);
     ctx.restore();
   }
 };
 
 // --- Mini Donut Chart Sugity ---
+/**
+ * Render mini donut chart untuk Sugity
+ */
 function renderMiniDonutSugity(achieved, planTarget) {
   const canvas = document.getElementById("miniDonutSugity");
   if (!canvas) return;
@@ -321,7 +321,7 @@ function renderMiniDonutSugity(achieved, planTarget) {
       }
     },
   });
-  // Tambahan untuk animated counter
+  // Animated counter
   const donutCenterText = document.getElementById("miniDonutSugityCenter");
   if (donutCenterText) {
     const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
@@ -329,8 +329,10 @@ function renderMiniDonutSugity(achieved, planTarget) {
   }
 }
 
-
 // --- Mini Donut Chart Reguler ---
+/**
+ * Render mini donut chart untuk Reguler
+ */
 function renderMiniDonutReguler(achieved, planTarget) {
   const canvas = document.getElementById("miniDonutReguler");
   if (!canvas) return;
@@ -364,7 +366,7 @@ function renderMiniDonutReguler(achieved, planTarget) {
       }
     },
   });
-    // Tambahan untuk animated counter
+  // Animated counter
   const donutCenterText = document.getElementById("miniDonutRegulerCenter");
   if (donutCenterText) {
     const percent = planTargetVal > 0 ? (achievedVal / planTargetVal * 100) : 0;
@@ -372,8 +374,10 @@ function renderMiniDonutReguler(achieved, planTarget) {
   }
 }
 
-
 // --- Donut Chart Gabungan ---
+/**
+ * Render donut chart total gabungan
+ */
 function renderDonutChart(totalAchieved, totalPlanTarget) {
   const canvas = document.getElementById("donutChart");
   if (!canvas) return;
@@ -417,6 +421,9 @@ function renderDonutChart(totalAchieved, totalPlanTarget) {
 }
 
 // --- Bar Chart (Progress Per Team) ---
+/**
+ * Render bar chart untuk progres per team
+ */
 function renderBarChart(actualArr, planArr) {
   const canvas = document.getElementById("barChart");
   if (!canvas) return;
@@ -431,15 +438,15 @@ function renderBarChart(actualArr, planArr) {
         {
           label: "Actual Target",
           data: actualArr,
-          backgroundColor: 'rgba(23, 78, 166, 0.85)',      // Biru tebal
-          borderRadius: 7,                                  // Rounded corner
+          backgroundColor: 'rgba(23, 78, 166, 0.85)',
+          borderRadius: 7,
           barPercentage: 0.85,
           categoryPercentage: 0.7
         },
         {
           label: "Plan Target",
           data: planArr,
-          backgroundColor: 'rgba(14, 189, 154, 0.65)',      // Toska hijau
+          backgroundColor: 'rgba(14, 189, 154, 0.65)',
           borderRadius: 7,
           barPercentage: 0.85,
           categoryPercentage: 0.7
@@ -449,7 +456,7 @@ function renderBarChart(actualArr, planArr) {
     options: {
       responsive: true,
       plugins: {
-        legend: { display: true, position: "bottom" },         // Legend di atas
+        legend: { display: true, position: "bottom" },
         tooltip: {
           callbacks: {
             label: function(ctx) {
@@ -515,7 +522,7 @@ const PLAN_TARGET_TABLE = {
       { time: "16:00", target: 38220 },
       { time: "17:00", target: 44100 }
     ],
-    "2": [  // << Tambahkan blok ini!
+    "2": [
       { time: "8:00", target: null },
       { time: "9:00", target: 2352 },
       { time: "10:00", target: 7056 },
@@ -577,30 +584,10 @@ function getHourRange(shiftType) {
   }
 }
 
-// --- Helper: Ambil jam selesai (asumsi ada field finishedAt, else fallback)
-function getJobFinishedHour(job) {
-  let finishAtStr = String(job.finishAt || "").trim();
-  let match = finishAtStr.match(/^\s*(\d{1,2})\s*:\s*(\d{2})\s*$/);
-  if (match) {
-    let h = parseInt(match[1], 10);
-    if (!isNaN(h)) return h;
-  }
-  let isoMatch = finishAtStr.match(/T(\d{1,2}):\d{2}/);
-  if (isoMatch) {
-    let h = parseInt(isoMatch[1], 10);
-    if (!isNaN(h)) return h;
-  }
-  if (job.deliveryDate && job.deliveryNote) {
-    let noteMatch = job.deliveryNote.match(/(\d{1,2}):\d{2}/);
-    if (noteMatch) {
-      let h2 = parseInt(noteMatch[1], 10);
-      if (!isNaN(h2)) return h2;
-    }
-  }
-  return null;
-}
-
-// --- Fungsi utama render Line Chart Outbound
+// --- Fungsi utama render Line Chart Outbound ---
+/**
+ * Render line chart progress outbound per jam (actual vs plan)
+ */
 function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   // Pilih tabel plan target sesuai shift dan manPower
   let planTargetArr = [];
@@ -614,94 +601,15 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     planTargetArr = (shiftType === "Day") ? [] : [];
   }
 
-  // --- PLAN TARGET: (biarkan sesuai logika sebelumnya) ---
-  let planChartArr = Array(planTargetArr.length).fill(null);
-  for (let i = 1; i < planTargetArr.length; i++) {
-    if (planTargetArr[i].target === 0) {
-      planChartArr[i] = 0;
-    } else if (planTargetArr[i-1].target !== null && planTargetArr[i-1].target !== 0) {
-      planChartArr[i] = planTargetArr[i-1].target;
-    }
-  }
-
-  // --- DEBUG LOG: Semua range jam (misal Day shift: 8:00-9:00, 9:00-10:00, dst) ---
-(function debugLogAllRanges() {
-  const finishedStatus = ["packed", "loaded", "completed"];
-  let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
-  function parseFinishAt(str) {
-    const m = String(str).match(/(\d{1,2}):(\d{2})/);
-    if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10), raw: m[0] };
-    const iso = String(str).match(/T(\d{1,2}):(\d{2})/);
-    if (iso) return { hour: parseInt(iso[1], 10), minute: parseInt(iso[2], 10), raw: iso[0] };
-    return null;
-  }
-  const hourRange = getHourRange(shiftType);
-
-  for (let i = 1; i < hourRange.length; i++) {
-    const prev = hourRange[i - 1];
-    const curr = hourRange[i];
-
-    // Adjust for night shift jam (24+)
-    let prevStart = prev.start;
-    let currStart = curr.start;
-    if (shiftType === "Night" && prevStart < 6) prevStart += 24;
-    if (shiftType === "Night" && currStart < 6) currStart += 24;
-
-    // Filter jobs di range ini
-    const jobsInRange = jobs.filter(job => {
-      if ((job.shift || "") !== shiftLabel) return false;
-      if (!job.finishAt) return false;
-      const status = (job.status || '').toLowerCase();
-      if (!finishedStatus.includes(status)) return false;
-      const fin = parseFinishAt(job.finishAt);
-      if (!fin) return false;
-      let jamFin = fin.hour;
-      if (shiftType === "Night" && jamFin < 6) jamFin += 24;
-      return (
-        (jamFin > prevStart && jamFin < currStart) ||
-        (jamFin === prevStart && fin.minute > 0) ||
-        (jamFin === currStart && fin.minute === 0)
-      );
-    });
-
-    // Log hasilnya
-    console.log(`--- DEBUG: Jobs selesai di range ${prev.label} - ${curr.label} ---`);
-    let total = 0;
-    jobsInRange.forEach(job => {
-      const fin = parseFinishAt(job.finishAt);
-      const qty = parseInt(job.qty) || 0;
-      total += qty;
-      console.log(`jobNo: ${job.jobNo || "-"}, qty: ${qty}, finishAt: ${job.finishAt}`);
-    });
-    console.log(`Total qty: ${total}`);
-    console.log(`------------------------------`);
-  }
-})();
-
-  // Jam & waktu
-  const now = new Date();
-  let currentHour = now.getHours();
-  let adjustedHour = currentHour;
-  if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
-
-  let jamArr = planTargetArr.map((row, idx) => {
-    let jam = parseInt(row.time);
-    if (shiftType === "Night" && jam < 6) jam += 24;
-    return {idx, jam};
-  });
-  let nextIdx = jamArr.find(j => adjustedHour < j.jam)?.idx ?? -1;
-
+  // Build visible plan chart array (line turun ke bawah pada jam istirahat)
   let visiblePlanChartArr = planTargetArr.map((row, idx) => {
     if (idx === 0) return 0;
     if (row.target === 0) return 0;
     if (row.target === null || typeof row.target === "undefined") return null;
-    if (nextIdx !== -1 && idx <= nextIdx) {
-      return row.target;
-    }
-    return null;
+    return row.target;
   });
 
-  // ----------------- BAGIAN ACTUAL (UPDATED) -----------------
+  // --- BAGIAN ACTUAL (UPDATED & RAPID) ---
   const hourRange = getHourRange(shiftType);
   const finishedStatus = ["packed", "loaded", "completed"];
   let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
@@ -713,7 +621,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     return null;
   }
 
-  // Akumulasi qty untuk setiap interval jam (mulai i=1 agar jam 9:00 dapat total dari >8:00 s/d <=9:00)
+  // Akumulasi qty untuk setiap interval jam
   let actualHourArr = Array(hourRange.length).fill(0);
   for (let i = 1; i < hourRange.length; i++) {
     const prev = hourRange[i - 1];
@@ -752,19 +660,49 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   // Cumulative sum, tampilkan titik hanya jam yang sudah lewat, jam berikutnya null
   let actualCumulative = [];
   let sum = 0;
-  for (let i = 0; i < actualHourArr.length; i++) {
-    let jamLabel = hourRange[i].start;
-    let jamCompare = jamLabel;
-    if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
-    if (planTargetArr[i].target === null) {
-      // Turunkan ke bawah (0) saat jam istirahat, dan reset sum supaya grafik naik lagi dari bawah
-      actualCumulative.push(0);
-      sum = 0;
-    } else if (jamCompare <= adjustedHour) {
-      sum += actualHourArr[i];
-      actualCumulative.push(sum);
-    } else {
-      actualCumulative.push(null);
+  const now = new Date();
+  let currentHour = now.getHours();
+  let adjustedHour = currentHour;
+  if (shiftType === "Night" && currentHour < 6) adjustedHour += 24;
+
+  if (shiftType === "Day" || shiftType === "Night") {
+    for (let i = 0; i < actualHourArr.length; i++) {
+      if (planTargetArr[i] && planTargetArr[i].target === null) {
+        actualCumulative.push(0);
+        sum = 0;
+      } else {
+        sum += actualHourArr[i];
+        actualCumulative.push(sum);
+      }
+    }
+    // PATCH: Sembunyikan data setelah jam sekarang (supaya line & label hanya sampai jam sekarang)
+    let chartHour = currentHour;
+    if (shiftType === "Night" && chartHour < 6) chartHour += 24;
+    let jamArr = planTargetArr.map((row, idx) => {
+      let jam = parseInt(row.time);
+      if (shiftType === "Night" && jam < 6) jam += 24;
+      return {idx, jam};
+    });
+    let nowIdx = jamArr.findIndex(j => chartHour < j.jam);
+    if (nowIdx === -1) nowIdx = planTargetArr.length;
+    for (let i = nowIdx; i < actualCumulative.length; i++) {
+      actualCumulative[i] = null;
+    }
+  } else {
+    // Default: hide jam berikutnya
+    for (let i = 0; i < actualHourArr.length; i++) {
+      let jamLabel = hourRange[i].start;
+      let jamCompare = jamLabel;
+      if (shiftType === "Night" && jamLabel < 6) jamCompare += 24;
+      if (planTargetArr[i] && planTargetArr[i].target === null) {
+        actualCumulative.push(0);
+        sum = 0;
+      } else if (jamCompare <= adjustedHour) {
+        sum += actualHourArr[i];
+        actualCumulative.push(sum);
+      } else {
+        actualCumulative.push(null);
+      }
     }
   }
 
@@ -808,13 +746,11 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-            // Offset supaya label actual tidak tumpang tindih (atas)
             anchor: 'end',
             align: 'top',
-            offset: 16, // lebih tinggi dari sebelumnya
+            offset: 16,
             clamp: true,
             formatter: (value, ctx) => {
-              // Jangan tampilkan 0 selain di jam istirahat
               if (value === 0 && planTargetArr[ctx.dataIndex].target !== 0 && planTargetArr[ctx.dataIndex].target !== null) return "";
               return value !== null ? value.toLocaleString() : "";
             }
@@ -843,7 +779,6 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-            // Offset supaya label plan turun sedikit (tidak tumpang tindih)
             anchor: 'start',
             align: 'bottom',
             offset: 16,
@@ -858,9 +793,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       plugins: {
         legend: { display: true, position: "bottom" },
         tooltip: { mode: "index", intersect: false },
-        datalabels: {
-          // Default, override by dataset
-        }
+        datalabels: {}
       },
       scales: {
         y: {
@@ -875,9 +808,11 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     plugins: [ChartDataLabels]
   });
 }
-// ================== END LINE CHART OUTBOUND =======================
 
 // --- Real-time update refresh when shift or data changes ---
+/**
+ * Setup realtime listener firebase untuk data utama
+ */
 function setupRealtimeListeners() {
   const shiftType = localStorage.getItem("shiftType") || "Day";
   const planTargetPath = `PlanTarget/${shiftType} Shift`;
@@ -897,15 +832,15 @@ window.addEventListener("storage", function(e) {
   }
 });
 
+/**
+ * Schedule refresh dashboard pada awal jam berikutnya, lalu tiap 1 jam
+ */
 function scheduleHourlyUpdate() {
-  // Hitung sisa waktu ke jam berikutnya (dalam ms)
   const now = new Date();
   const msToNextHour = (60 - now.getMinutes()) * 60 * 1000 - now.getSeconds() * 1000 - now.getMilliseconds();
-
-  // Timer satu kali ke jam berikutnya
   setTimeout(() => {
-    loadDashboardData(); // Update tepat di jam baru
-    setInterval(loadDashboardData, 60 * 60 * 1000); // Setelah itu, update tiap 1 jam
+    loadDashboardData();
+    setInterval(loadDashboardData, 60 * 60 * 1000);
   }, msToNextHour);
 }
 
@@ -916,9 +851,14 @@ authPromise.then(() => {
   scheduleHourlyUpdate();
 });
 
+/**
+ * Animasi naik angka persen pada donut chart
+ * @param {HTMLElement} element
+ * @param {number} targetValue
+ * @param {number} duration
+ */
 function animateCountUp(element, targetValue, duration = 800) {
   if (!element) return;
-  let start = 0;
   let startTimestamp = null;
   const step = (timestamp) => {
     if (!startTimestamp) startTimestamp = timestamp;
