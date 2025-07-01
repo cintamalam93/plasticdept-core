@@ -748,7 +748,6 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             offset: 16,
             clamp: true,
             formatter: (value, ctx) => {
-              if (value === 0 && planTargetArr[ctx.dataIndex].target !== 0 && planTargetArr[ctx.dataIndex].target !== null) return "";
               return value !== null ? value.toLocaleString() : "";
             }
           }
