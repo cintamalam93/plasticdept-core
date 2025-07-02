@@ -694,12 +694,22 @@ Object.keys(jobsByHour).forEach(jam => {
   // --- Akumulasi (untuk line grafik dan datalabel) ---
   let actualCumulative = [];
   let sum = 0;
+  let lastSumBeforeBreak = 0; // Tambah variable untuk menyimpan akumulasi sebelum istirahat
+
   for (let i = 0; i < actualPerJamArr.length; i++) {
-    if (planTargetArr[i].target === null) { // jam istirahat
+    if (planTargetArr[i].target === 0) { // Jam istirahat (13:00)
+      lastSumBeforeBreak = sum; // Simpan akumulasi sebelum istirahat
+      actualCumulative.push(0); // Push 0 untuk jam istirahat
+    } else if (planTargetArr[i].target === null) { // Jam pertama (8:00)
       actualCumulative.push(0);
       sum = 0;
     } else {
-      sum += actualPerJamArr[i];
+      // Untuk jam setelah istirahat (14:00 dst), tambahkan lastSumBeforeBreak
+      if (i > 0 && planTargetArr[i-1].target === 0) {
+        sum = lastSumBeforeBreak + actualPerJamArr[i];
+      } else {
+        sum += actualPerJamArr[i];
+      }
       actualCumulative.push(sum);
     }
   }
