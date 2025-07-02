@@ -529,18 +529,3 @@ body {
   margin: 0 auto;
   background: transparent;
 }
-
-/* Tambahkan di file dashboard-progress.css */
-@keyframes drawLine {
-  from {
-    stroke-dashoffset: 1000;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-.animated-line {
-  stroke-dasharray: 1000;
-  animation: drawLine 1.5s ease-in-out forwards;
-}

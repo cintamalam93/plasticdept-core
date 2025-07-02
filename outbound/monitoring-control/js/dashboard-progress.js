@@ -789,6 +789,18 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     },
     options: {
       responsive: true,
+      animation: {
+        y: {
+          type: 'number',
+          easing: 'linear',
+          duration: 900,
+          delay: function(context) {
+            // Hanya dataset actual (biasanya index 0)
+            if (context.type !== 'data' || context.datasetIndex !== 0) return 0;
+            return context.dataIndex * 120; // 120ms per titik, bisa diubah sesuai selera
+          }
+        }
+      },
       plugins: {
         legend: { display: true, position: "bottom" },
         tooltip: { mode: "index", intersect: false },
