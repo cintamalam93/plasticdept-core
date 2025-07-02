@@ -718,11 +718,14 @@ Object.keys(jobsByHour).forEach(jam => {
   let nowIdx = jamArr.findIndex(j => chartHour < j.jam);
   if (nowIdx === -1) nowIdx = planTargetArr.length;
 
-  // Datalabel actual: isi dengan akumulasi di semua jam yang SUDAH LEWAT (jam ke-0/awal tetap null), istirahat = 0, jam berikutnya null
+  // --- REVISI di sini agar grafik tetap muncul setelah jam shift berakhir ---
   let datalabelActualArr = [];
   for (let i = 0; i < actualCumulative.length; i++) {
     if (planTargetArr[i].target === null) {
       datalabelActualArr.push(0); // jam istirahat, label 0
+    } else if (nowIdx === 0 && i > 0 && actualCumulative[i] !== null) {
+      // Jika waktu sudah lewat semua jam shift, isi seluruh datalabel (selain index 0) agar grafik tetap muncul
+      datalabelActualArr.push(actualCumulative[i]);
     } else if (i > 0 && i < nowIdx && actualCumulative[i] !== null) {
       datalabelActualArr.push(actualCumulative[i]); // akumulasi, hanya jam yang sudah lewat
     } else {
