@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Outbound Achievement Report</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="achievement.css" />
+  <!-- Air Datepicker CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/air-datepicker@3.6.3/air-datepicker.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      🎯 Outbound Achievement Report
+    </div>
+    <div class="toolbar">
+      <label for="dateInput">Tanggal:</label>
+      <input id="dateInput" type="text" placeholder="Pilih tanggal..." readonly style="background:#f8fafc;cursor:pointer;" />
+      Shift:
+      <select id="shiftSelect">
+        <option value="DayShift">DayShift</option>
+        <option value="NightShift">NightShift</option>
+      </select>
+      Team:
+      <select id="teamSelect"></select>
+      <button class="btn" id="refreshBtn">⟳ Refresh</button>
+    </div>
+    <div class="summary" id="summaryBox">
+      <span class="summary-icon">📅</span>
+      <span id="summaryInfo">Pilih tanggal dan filter di atas</span>
+      <span id="summaryJobCount"></span>
+      <span id="summaryQty"></span>
+    </div>
+    <div class="header-detail" id="headerDetailBox" style="display:none"></div>
+    <div class="table-responsive">
+      <table id="achievementTable">
+        <thead>
+          <tr>
+            <th>Delivery Date</th>
+            <th>Delivery Note</th>
+            <th>Finish At</th>
+            <th>Job No</th>
+            <th>Job Type</th>
+            <th>Qty</th>
+            <th>Remark</th>
+            <th>Shift</th>
+            <th>Status</th>
+            <th>Team</th>
+            <th>Team Name</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data rows will be injected here -->
+        </tbody>
+      </table>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-export" id="exportBtn">⬇ Export Excel</button>
+    </div>
+  </div>
+  <!-- Air Datepicker JS -->
+  <script src="https://unpkg.com/air-datepicker@3.6.3/air-datepicker.js"></script>
+  <script src="achievement.js"></script>
+</body>
+</html>
