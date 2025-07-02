@@ -491,26 +491,38 @@ body {
 }
 
 /* === LINE CHART CONTAINER ALIGNMENT === */
+/* Perbarui gaya line-chart-container yang sudah ada */
 .line-chart-container {
-  /* Lebar mengikuti 2 card team (64% + 12px gap kiri, 12px gap kanan) */
   width: calc(64% + 0px);
-  max-width: none; /* override jika ada max-width sebelumnya */
-  margin-left: 0;  /* rata kiri dengan parent */
-  margin-right: 0; /* rata kanan */
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
   margin-top: 18px;
   margin-bottom: 38px;
   background: #fff;
   border-radius: 16px;
-  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.07);
+  box-shadow: var(--shadow); /* Menggunakan variabel shadow */
   padding: 24px 18px 24px 18px;
-  /* responsive, biar tidak mentok di layar kecil */
   min-width: 320px;
+  /* Tambahkan properti transisi */
+  transition: box-shadow .18s, transform .18s, border-color .18s, background .18s;
+  cursor: pointer;
+  border: 2px solid transparent;
 }
 
-/* Membuat kanvas selalu penuh container tapi tidak lebih */
+/* Tambahkan efek hover */
+.line-chart-container:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px) scale(1.025);
+  border-color: var(--hover-border);
+  background: var(--hover-bg);
+  z-index: 2;
+}
+
+/* Pertahankan gaya lineChartOutbound yang sudah ada */
 #lineChartOutbound {
   width: 100% !important;
-  height: 340px !important; /* set tinggi yang proporsional, bisa diubah sesuai preferensi */
+  height: 340px !important;
   display: block;
   max-width: 100%;
   max-height: 400px;
