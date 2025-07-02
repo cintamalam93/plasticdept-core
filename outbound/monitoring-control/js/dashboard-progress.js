@@ -595,12 +595,45 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     planTargetArr = (shiftType === "Day") ? [] : [];
   }
 
-  // --- Visible Plan Chart Array ---
+    // --- Visible Plan Chart Array ---
+  const now = new Date();
+  let currentHour = now.getHours();
+  let chartHour = currentHour;
+  if (shiftType === "Night" && currentHour < 6) chartHour += 24;
+
   let visiblePlanChartArr = planTargetArr.map((row, idx) => {
-    if (idx === 0) return 0;
-    if (row.target === 0) return 0;
+    if (idx === 0) return 0; // Jam pertama selalu 0
+    
+    let targetHour = parseInt(row.time);
+    // Konversi jam untuk shift malam
+    if (shiftType === "Night" && targetHour < 6) targetHour += 24;
+    
+    // Nilai null/undefined tetap null
     if (row.target === null || typeof row.target === "undefined") return null;
-    return row.target;
+    
+    // Jam istirahat (13:00 day shift atau 1:00 night shift) SELALU 0
+    if (row.target === 0) {
+      // Jika jam sebelumnya sudah lewat, tampilkan 0
+      let prevHour = parseInt(planTargetArr[idx-1].time);
+      if (shiftType === "Night" && prevHour < 6) prevHour += 24;
+      if (prevHour <= chartHour) {
+        return 0;
+      }
+      return null;
+    }
+    
+    // Untuk jam yang sudah lewat, tampilkan nilai targetnya
+    if (targetHour <= chartHour) {
+      return row.target;
+    }
+    
+    // Untuk 1 jam ke depan, tampilkan nilai targetnya
+    if (targetHour === chartHour + 1) {
+      return row.target;
+    }
+    
+    // Sembunyikan nilai target untuk jam-jam setelahnya
+    return null;
   });
 
   // --- Helper: Jam Range ---
@@ -666,20 +699,6 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       actualCumulative.push(sum);
     }
   }
-
-  // --- Datalabel per jam (tampilkan akumulasi, hanya di jam yang sudah lewat, jam istirahat = 0, jam berikutnya = null) ---
-  const now = new Date();
-  let currentHour = now.getHours();
-  let chartHour = currentHour;
-  if (shiftType === "Night" && currentHour < 6) chartHour += 24;
-
-  let jamArr = planTargetArr.map((row, idx) => {
-    let jam = parseInt(row.time);
-    if (shiftType === "Night" && jam < 6) jam += 24;
-    return {idx, jam};
-  });
-  let nowIdx = jamArr.findIndex(j => chartHour < j.jam);
-  if (nowIdx === -1) nowIdx = planTargetArr.length;
 
   // Datalabel actual: isi dengan akumulasi di semua jam yang SUDAH LEWAT (jam ke-0/awal tetap null), istirahat = 0, jam berikutnya null
   let datalabelActualArr = [];
