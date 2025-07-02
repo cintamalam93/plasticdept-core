@@ -677,6 +677,53 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     });
   }
 
+  // --- DEBUG: Log jobNo & qty selesai per jam ---
+const jobsByHour = {}; // {jam: [{jobNo, qty}]}
+for (let i = 1; i < hourRange.length; i++) {
+  const prev = hourRange[i - 1];
+  const curr = hourRange[i];
+  const jamLabel = curr.label;
+  jobsByHour[jamLabel] = [];
+  jobs.forEach(job => {
+    if ((job.shift || "") !== shiftLabel) return;
+    if (!job.finishAt) return;
+    const status = (job.status || '').toLowerCase();
+    if (!finishedStatus.includes(status)) return;
+    const fin = parseFinishAt(job.finishAt);
+    if (!fin) return;
+    let jamFin = fin.hour;
+    if (shiftType === "Night" && jamFin < 6) jamFin += 24;
+    let prevStart = prev.start;
+    let currStart = curr.start;
+    if (shiftType === "Night" && prevStart < 6) prevStart += 24;
+    if (shiftType === "Night" && currStart < 6) currStart += 24;
+    if (
+      (jamFin > prevStart && jamFin < currStart) ||
+      (jamFin === prevStart && fin.minute > 0) ||
+      (jamFin === currStart && fin.minute === 0)
+    ) {
+      jobsByHour[jamLabel].push({
+        jobNo: job.jobNo || "-",
+        qty: parseInt(job.qty) || 0
+      });
+    }
+  });
+}
+
+// Tampilkan di console
+Object.keys(jobsByHour).forEach(jam => {
+  const arr = jobsByHour[jam];
+  if (arr.length > 0) {
+    console.log(`jam ${jam}`);
+    let total = 0;
+    arr.forEach(j => {
+      console.log(`${j.jobNo}: ${j.qty}`);
+      total += j.qty;
+    });
+    console.log(`Total: ${total}\n`);
+  }
+});
+
   // --- Akumulasi (untuk line grafik dan datalabel) ---
   let actualCumulative = [];
   let sum = 0;
@@ -700,11 +747,13 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   }
 
-  // Datalabel actual: isi dengan akumulasi di semua jam yang SUDAH LEWAT (jam ke-0/awal tetap null), istirahat = 0, jam berikutnya null
   let datalabelActualArr = [];
   for (let i = 0; i < actualCumulative.length; i++) {
     if (planTargetArr[i].target === null) {
       datalabelActualArr.push(0); // jam istirahat, label 0
+    } else if (nowIdx === 0 && i > 0 && actualCumulative[i] !== null) {
+      // Jika waktu sudah lewat semua jam shift, isi seluruh datalabel (selain index 0) agar grafik tetap muncul
+      datalabelActualArr.push(actualCumulative[i]);
     } else if (i > 0 && i < nowIdx && actualCumulative[i] !== null) {
       datalabelActualArr.push(actualCumulative[i]); // akumulasi, hanya jam yang sudah lewat
     } else {

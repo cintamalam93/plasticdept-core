@@ -1020,38 +1020,11 @@ function checkPythonAPIAvailable() {
 }
 
 async function saveOutJobAchievement() {
-  // 1. Ambil semua job dari node PhxOutboundJobs (untuk achievement, jika perlu)
+  // Ambil semua job dari node PhxOutboundJobs
   const jobsSnap = await get(ref(db, "PhxOutboundJobs"));
   const jobs = jobsSnap.exists() ? Object.values(jobsSnap.val()) : [];
 
-  // 2. Ambil PlanTarget dan jumlahkan per shift
-  const planTargetSnap = await get(ref(db, "PlanTarget"));
-  const planTargetData = planTargetSnap.exists() ? planTargetSnap.val() : {};
-
-  // Helper: jumlahkan semua value pada node PlanTarget/{shift}
-  function sumPlanTargetForShift(shiftLabel) {
-    const node = planTargetData[shiftLabel];
-    if (!node || typeof node !== "object") return 0;
-    return Object.values(node).reduce((acc, v) => acc + (typeof v === "number" ? v : parseInt(v) || 0), 0);
-  }
-
-  // 3. Achievement per team (opsional, jika ingin tetap simpan BlueTeamAchvmnt/GreenTeamAchvmnt)
-  const achievementData = {};
-  jobs.forEach(job => {
-    const shiftRaw = job.shift || "";
-    const shiftType = shiftRaw === "Night Shift" ? "NightShift" : "DayShift";
-    const teamNameRaw = job.teamName || "";
-    let achKey = "";
-    if (/blue/i.test(teamNameRaw)) achKey = "BlueTeamAchvmnt";
-    else if (/green/i.test(teamNameRaw)) achKey = "GreenTeamAchvmnt";
-    else if (teamNameRaw) achKey = teamNameRaw.replace(/\s/g, "") + "Achvmnt";
-    else return;
-    if (!achievementData[shiftType]) achievementData[shiftType] = {};
-    if (!achievementData[shiftType][achKey]) achievementData[shiftType][achKey] = 0;
-    achievementData[shiftType][achKey] += Number(job.qty) || 0;
-  });
-
-  // 4. Struktur tanggal
+  // Buat struktur tanggal
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1060,25 +1033,34 @@ async function saveOutJobAchievement() {
   const nodeMonth = `${month}_${yearShort}`;
   const nodeDay = String(now.getDate()).padStart(2, '0');
 
-  // 5. Simpan PlanTarget ke path yang sesuai
-  for (const [shiftType, planTargetLabel] of [
-    ["NightShift", "Night Shift"],
-    ["DayShift", "Day Shift"]
-  ]) {
-    const dbPath = `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/${shiftType}`;
-    const updates = {};
+  // Kelompokkan data per shift & teamName
+  const result = { NightShift: {}, DayShift: {} };
+  for (const job of jobs) {
+    if (!job.teamName || !job.jobNo) continue;
+    const shiftPath = job.shift === "Night Shift" ? "NightShift" : "DayShift";
+    const teamName = job.teamName;
+    if (!result[shiftPath][teamName]) result[shiftPath][teamName] = {};
+    result[shiftPath][teamName][job.jobNo] = {
+      deliveryDate: job.deliveryDate,
+      deliveryNote: job.deliveryNote,
+      jobNo: job.jobNo,
+      jobType: job.jobType,
+      qty: job.qty,
+      remark: job.remark,
+      shift: job.shift,
+      status: job.status,
+      team: job.team,
+      teamName: job.teamName,
+      finishAt: job.finishAt || "" // Ambil dari PhxOutboundJobs, biarkan kosong kalau tidak ada
+    };
+  }
 
-    // (Opsional) Achievement jika ada
-    if (achievementData[shiftType]) {
-      for (const achKey in achievementData[shiftType]) {
-        updates[achKey] = achievementData[shiftType][achKey];
-      }
-    }
-    // PlanTarget dari hasil penjumlahan
-    updates["PlanTarget"] = sumPlanTargetForShift(planTargetLabel);
-
-    // Simpan
-    await update(ref(db, dbPath), updates);
+  // Simpan ke database
+  if (Object.keys(result.NightShift).length > 0) {
+    await set(ref(db, `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/NightShift`), result.NightShift);
+  }
+  if (Object.keys(result.DayShift).length > 0) {
+    await set(ref(db, `outJobAchievment/${nodeYear}/${nodeMonth}/${nodeDay}/DayShift`), result.DayShift);
   }
 }
 
