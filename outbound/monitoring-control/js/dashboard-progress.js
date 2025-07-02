@@ -797,7 +797,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
           delay: function(context) {
             // Hanya dataset actual (biasanya index 0)
             if (context.type !== 'data' || context.datasetIndex !== 0) return 0;
-            return context.dataIndex * 120; // 120ms per titik, bisa diubah sesuai selera
+            return context.dataIndex * 75; // 120ms per titik, bisa diubah sesuai selera
           }
         }
       },
