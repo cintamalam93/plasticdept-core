@@ -603,7 +603,40 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     return row.target;
   });
 
-  // --- Helper: Jam Range ---
+  // --- Helper: Jam Range updated ---
+  const hourRange = getHourRange(shiftType);
+  const finishedStatus = ["packed", "loaded", "completed"];
+  let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
+
+  function parseFinishAt(str) {
+    const m = String(str).match(/(\d{1,2}):(\d{2})/);
+    if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10) };
+    const iso = String(str).match(/T(\d{1,2}):(\d{2})/);
+    if (iso) return { hour: parseInt(iso[1], 10), minute: parseInt(iso[2], 10) };
+    return null;
+  }
+
+  // --- Qty Per Jam (bukan akumulasi) ---
+  let actualPerJamArr = Array(hourRange.length).fill(0);
+  for (let i = 1; i < hourRange.length; i++) {
+    const prev = hourRange[i - 1];
+    const curr = hourRange[i];
+    jobs.forEach(job => {
+      if ((job.shift || "") !== shiftLabel) return;
+      if (!job.finishAt) return;
+      const status = (job.status || '').toLowerCase();
+      if (!finishedStatus.includes(status)) return;
+      const fin = parseFinishAt(job.finishAt);
+      if (!fin) return;
+      let jamFin = fin.hour;
+      if (shiftType === "Night" && jamFin < 6) jamFin += 24;
+      let prevStart = prev.start;
+      let currStart = curr.start;
+      if (shiftType === "Night" && prevStart < 6) prevStart += 24;
+      if (shiftType === "Night" && currStart < 6) currStart += 24;
+      if (
+        (jamFin > prevStart && jamFin < currStart) ||
+        (jamFin === prevStart && fin.minute > 0) ||
         (jamFin === currStart && fin.minute === 0)
       ) {
         actualPerJamArr[i] += parseInt(job.qty) || 0;
@@ -641,12 +674,59 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   if (shiftType === "Night" && currentHour < 6) chartHour += 24;
 
   let jamArr = planTargetArr.map((row, idx) => {
-    });
+    let jam = parseInt(row.time);
+    if (shiftType === "Night" && jam < 6) jam += 24;
+    return {idx, jam};
+  });
+  let nowIdx = jamArr.findIndex(j => chartHour < j.jam);
+  if (nowIdx === -1) nowIdx = planTargetArr.length;
+
+  // Datalabel actual: isi dengan akumulasi di semua jam yang SUDAH LEWAT (jam ke-0/awal tetap null), istirahat = 0, jam berikutnya null
+  let datalabelActualArr = [];
+  for (let i = 0; i < actualCumulative.length; i++) {
+    if (planTargetArr[i].target === null) {
+      datalabelActualArr.push(0); // jam istirahat, label 0
+    } else if (i > 0 && i < nowIdx && actualCumulative[i] !== null) {
+      datalabelActualArr.push(actualCumulative[i]); // akumulasi, hanya jam yang sudah lewat
+    } else {
+      datalabelActualArr.push(null); // jam yang belum lewat atau jam ke-0
+    }
   }
 
-  // --- Akumulasi (untuk line grafik dan datalabel) ---
-  let actualCumulative = [];
-  let sum = 0;
+  // === LOG DEBUG (letakkan di sini) ===
+  console.log('actualCumulative:', actualCumulative);
+  console.log('datalabelActualArr:', datalabelActualArr);
+  console.log('nowIdx:', nowIdx);
+  console.log('chartHour:', chartHour);
+  console.log('jamArr:', jamArr);
+  console.log('planTargetArr:', planTargetArr);
+  // === END LOG DEBUG ===
+
+  // Sembunyikan data actualCumulative setelah jam saat ini (agar line putus di titik berikutnya)
+  for (let i = nowIdx; i < actualCumulative.length; i++) {
+    actualCumulative[i] = null;
+  }
+
+  const labels = planTargetArr.map(row => row.time);
+
+  // --- Render Chart.js ---
+  const canvas = document.getElementById("lineChartOutbound");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (window.lineChartOutbound && typeof window.lineChartOutbound.destroy === "function") {
+    window.lineChartOutbound.destroy();
+  }
+
+  window.lineChartOutbound = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: "Actual Target",
+          data: actualCumulative,
+          borderColor: "#FF9900",
+          backgroundColor: "rgba(255,153,0,0.10)",
           borderWidth: 3,
           pointBackgroundColor: "#FF9900",
           pointBorderColor: "#fff",
@@ -664,31 +744,19 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
             borderRadius: 4,
             padding: 6,
             font: { weight: "bold", size: 12 },
-    }
-  }
-
-  // --- Datalabel per jam (tampilkan akumulasi, hanya di jam yang sudah lewat, jam istirahat = 0, jam berikutnya = null) ---
-  const now = new Date();
-  let currentHour = now.getHours();
-  let chartHour = currentHour;
-  if (shiftType === "Night" && currentHour < 6) chartHour += 24;
-
-  let jamArr = planTargetArr.map((row, idx) => {
-    let jam = parseInt(row.time);
-    if (shiftType === "Night" && jam < 6) jam += 24;
-    return {idx, jam};
-  });
-  let nowIdx = jamArr.findIndex(j => chartHour < j.jam);
-  if (nowIdx === -1) nowIdx = planTargetArr.length;
-
-  // Datalabel actual: isi dengan akumulasi di semua jam yang SUDAH LEWAT (jam ke-0/awal tetap null), istirahat = 0, jam berikutnya null
-  let datalabelActualArr = [];
-  for (let i = 0; i < actualCumulative.length; i++) {
-    if (planTargetArr[i].target === null) {
-      datalabelActualArr.push(0); // jam istirahat, label 0
-    } else if (i > 0 && i < nowIdx && actualCumulative[i] !== null) {
-      datalabelActualArr.push(actualCumulative[i]); // akumulasi, hanya jam yang sudah lewat
-    } else {
+            anchor: 'end',
+            align: 'top',
+            offset: 16,
+            clamp: true,
+            formatter: function(value, ctx) {
+              return datalabelActualArr[ctx.dataIndex] !== null
+                ? datalabelActualArr[ctx.dataIndex].toLocaleString()
+                : "";
+            }
+          }
+        },
+        {
+          label: "Plan Target",
           data: visiblePlanChartArr,
           borderColor: "#2577F6",
           backgroundColor: "rgba(37,119,246,0.10)",
@@ -800,74 +868,6 @@ function animateCountUp(element, targetValue, duration = 800) {
       window.requestAnimationFrame(step);
     } else {
       element.textContent = targetValue + "%";
-    }
-  };
-  window.requestAnimationFrame(step);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
   };
   window.requestAnimationFrame(step);
