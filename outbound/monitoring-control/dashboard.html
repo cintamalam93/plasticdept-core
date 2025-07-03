@@ -9,11 +9,54 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/png" href="img/reverse-logistic.png"/>
+  <style>
+    /* Bulatan hijau berkedip */
+    .online-indicator {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #3fd770;
+      margin-right: 10px;
+      vertical-align: middle;
+      box-shadow: 0 0 0 0 rgba(63, 215, 112, 0.7);
+      animation: onlinePulse 1.2s infinite;
+    }
+    @keyframes onlinePulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(63, 215, 112, 0.7);
+        opacity: 1;
+      }
+      70% {
+        box-shadow: 0 0 0 10px rgba(63, 215, 112, 0.0);
+        opacity: .7;
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(63, 215, 112, 0.0);
+        opacity: 1;
+      }
+    }
+    .dashboard-date {
+      color: #555;
+      font-size: 1.08em;
+      margin-top: 6px;
+      letter-spacing: .01em;
+      font-weight: 500;
+    }
+    @media (max-width: 700px) {
+      .dashboard-header h1 { font-size: 1.4em; }
+      .dashboard-date { font-size: 0.98em; }
+    }
+  </style>
 </head>
 <body>
   <header class="dashboard-header">
-    <h1>Outbound Progress Dashboard</h1>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom:2px;">
+      <span class="online-indicator" title="Dashboard Online"></span>
+      <h1 style="display: inline; margin: 0;">Outbound Progress Dashboard</h1>
+    </div>
     <p class="subtitle">Live Overview of Team Sugity &amp; Reguler</p>
+    <div id="dashboardDate" class="dashboard-date"></div>
   </header>
   <section class="dashboard-main">
     <div class="grid-matrix">
@@ -164,5 +207,20 @@
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <script type="module" src="js/config.js"></script>
   <script type="module" src="js/dashboard-progress.js"></script>
+  <script>
+    // Tampilkan tanggal dan hari dalam format lokal Indonesia
+    function updateDashboardDate() {
+      const el = document.getElementById('dashboardDate');
+      if (!el) return;
+      const now = new Date();
+      const hari = now.toLocaleDateString('id-ID', { weekday: 'long' });
+      const tanggal = now.toLocaleDateString('id-ID', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+      el.textContent = `${hari}, ${tanggal}`;
+    }
+    updateDashboardDate();
+    setInterval(updateDashboardDate, 60 * 1000); // update tiap menit
+  </script>
 </body>
 </html>
