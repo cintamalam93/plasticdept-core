@@ -1,134 +1,93 @@
-// Dummy data for demo (replace with actual DB calls)
-const dummyDB = {
-  year2025: {
-    "07_25": {
-      "02": {
-        DayShift: {
-          "Blue Team": {
-            OUT2025070001E: {
-              deliveryDate: "30-Jun-2025",
-              deliveryNote: "900/PL_SCRAP/IDP1/VI/2025",
-              finishAt: "09:43",
-              jobNo: "OUT2025070001E",
-              jobType: "Remaining",
-              qty: "25",
-              remark: "SCRAP NON MSIG TGL 30/6/25",
-              shift: "Day Shift",
-              status: "Completed",
-              team: "Reguler",
-              teamName: "Blue Team"
-            },
-            OUT20250700021: {
-              deliveryDate: "30-Jun-2025",
-              deliveryNote: "892/PL_SCRAP/IDP1/VI/2025",
-              finishAt: "10:15",
-              jobNo: "OUT20250700021",
-              jobType: "Remaining",
-              qty: "50",
-              remark: "SCRAP NON MSIG TGL 30/6/25",
-              shift: "Day Shift",
-              status: "Completed",
-              team: "Reguler",
-              teamName: "Blue Team"
-            }
-          }
-        }
-      }
-    }
-  }
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAfIYig9-sv3RfazwAW6X937_5HJfgnYt4",
+  authDomain: "outobund.firebaseapp.com",
+  databaseURL: "https://outobund-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "outobund",
+  storageBucket: "outobund.firebasestorage.app",
+  messagingSenderId: "84643346476",
+  appId: "1:84643346476:web:beb19c5ea0884fcb083989"
 };
-
-// Parse dummyDB to get all available dates (for enable in datepicker)
-function getAvailableDates() {
-  const result = [];
-  for (const y of Object.keys(dummyDB)) {
-    const yearNum = y.replace("year", "");
-    for (const m of Object.keys(dummyDB[y])) {
-      const [_month, _yearShort] = m.split("_");
-      for (const d of Object.keys(dummyDB[y][m])) {
-        // Format date: yyyy-mm-dd
-        const dateStr = `${yearNum}-${_month.padStart(2, '0')}-${d.padStart(2, '0')}`;
-        result.push(dateStr);
-      }
-    }
-  }
-  return result;
-}
-
-// Helper: get available teams for the selected date/shift
-function getTeamsForDate(dateStr, shift) {
-  if (!dateStr) return [];
-  const [year, month, day] = dateStr.split('-');
-  const yKey = 'year' + year;
-  let mKey = null;
-  for (const m of Object.keys(dummyDB[yKey] || {})) {
-    if (m.startsWith(month)) mKey = m;
-  }
-  if (!mKey) return [];
-  const dayObj = dummyDB[yKey]?.[mKey]?.[day];
-  if (!dayObj) return [];
-  const shiftObj = dayObj[shift];
-  if (!shiftObj) return [];
-  return Object.keys(shiftObj);
-}
-
-// Helper: get jobs for the selected date/shift/team
-function getJobsForDate(dateStr, shift, team) {
-  if (!dateStr || !shift || !team) return [];
-  const [year, month, day] = dateStr.split('-');
-  const yKey = 'year' + year;
-  let mKey = null;
-  for (const m of Object.keys(dummyDB[yKey] || {})) {
-    if (m.startsWith(month)) mKey = m;
-  }
-  if (!mKey) return [];
-  const jobsObj = dummyDB[yKey]?.[mKey]?.[day]?.[shift]?.[team];
-  if (!jobsObj) return [];
-  return Object.values(jobsObj);
-}
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 // DOM refs
 const dateInput = document.getElementById('dateInput');
-const shiftSelect = document.getElementById('shiftSelect');
 const teamSelect = document.getElementById('teamSelect');
 const tableBody = document.querySelector('#achievementTable tbody');
 const summaryInfo = document.getElementById('summaryInfo');
-const summaryJobCount = document.getElementById('summaryJobCount');
-const summaryQty = document.getElementById('summaryQty');
+const matrixJobCount = document.getElementById('matrixJobCount');
+const matrixQty = document.getElementById('matrixQty');
 const headerDetailBox = document.getElementById('headerDetailBox');
 
-// Init Air Datepicker
 let selectedDate = null;
-const availableDates = getAvailableDates();
-const dp = new AirDatepicker('#dateInput', {
-  autoClose: true,
-  dateFormat: 'yyyy-MM-dd',
-  minDate: availableDates.length > 0 ? availableDates[0] : null,
-  maxDate: availableDates.length > 0 ? availableDates[availableDates.length-1] : null,
-  onRenderCell({date, cellType}) {
-    // Enable only available dates
-    if (cellType === 'day') {
-      const y = date.getFullYear();
-      const m = (date.getMonth()+1).toString().padStart(2,'0');
-      const d = date.getDate().toString().padStart(2,'0');
-      const key = `${y}-${m}-${d}`;
-      if (!availableDates.includes(key)) {
-        return { disabled: true };
-      }
+let currentTeams = [];
+
+// Format date to db path prefix
+function getDateDBPath(dateStr) {
+  if (!dateStr) return null;
+  const [year, month, day] = dateStr.split('-');
+  const yKey = 'year' + year;
+  const mKey = `${month}_${year.slice(2)}`;
+  return `${yKey}/${mKey}/${day}`;
+}
+
+// Get all teams available for the selected date (regardless of shift)
+async function getTeamsForDate(dateStr) {
+  if (!dateStr) return [];
+  const path = getDateDBPath(dateStr);
+  const dayRef = ref(db, path);
+  const snap = await get(dayRef);
+  if (!snap.exists()) return [];
+  const shifts = snap.val();
+  const teamSet = new Set();
+  Object.values(shifts).forEach(shiftObj => {
+    Object.keys(shiftObj).forEach(team => teamSet.add(team));
+  });
+  return Array.from(teamSet);
+}
+
+// Get all jobs for selected date and team (all shifts)
+async function getJobsForDateTeam(dateStr, team) {
+  if (!dateStr || !team) return [];
+  const path = getDateDBPath(dateStr);
+  const dayRef = ref(db, path);
+  const snap = await get(dayRef);
+  if (!snap.exists()) return [];
+  const shifts = snap.val();
+  let jobs = [];
+  Object.values(shifts).forEach(shiftObj => {
+    if (team in shiftObj) {
+      jobs = jobs.concat(Object.values(shiftObj[team]));
     }
-  },
-  onSelect({date, formattedDate}) {
-    selectedDate = formattedDate;
-    populateTeams();
-    renderTable();
-  }
-});
+  });
+  return jobs;
+}
+
+// Init FLATPICKR (all dates enabled)
+let fp = null;
+function initDatepicker() {
+  fp = flatpickr("#dateInput", {
+    dateFormat: "Y-m-d",
+    allowInput: false,
+    onChange: async function(selectedDates, dateStr, instance) {
+      selectedDate = dateStr;
+      await populateTeams();
+      await renderTable();
+    }
+  });
+}
 
 // Populate teams
-function populateTeams() {
+async function populateTeams() {
   teamSelect.innerHTML = '<option value="">Team</option>';
-  const shift = shiftSelect.value;
-  const teams = getTeamsForDate(selectedDate, shift);
+  if (!selectedDate) return;
+  const teams = await getTeamsForDate(selectedDate);
+  currentTeams = teams;
   teams.forEach(t => {
     teamSelect.innerHTML += `<option value="${t}">${t}</option>`;
   });
@@ -160,10 +119,12 @@ function renderHeaderDetail(job) {
 }
 
 // Render Table & Summary
-function renderTable() {
-  const shift = shiftSelect.value;
+async function renderTable() {
   const team = teamSelect.value;
-  const jobs = getJobsForDate(selectedDate, shift, team);
+  let jobs = [];
+  if (selectedDate && team) {
+    jobs = await getJobsForDateTeam(selectedDate, team);
+  }
 
   tableBody.innerHTML = '';
   let totalQty = 0;
@@ -200,21 +161,17 @@ function renderTable() {
     `;
   });
 
-  // Update summary & detail header
-  if (!selectedDate || !shift || !team) {
+  matrixJobCount.textContent = jobs.length;
+  matrixQty.textContent = totalQty;
+
+  if (!selectedDate || !team) {
     summaryInfo.textContent = 'Pilih tanggal dan filter di atas';
-    summaryJobCount.textContent = '';
-    summaryQty.textContent = '';
     renderHeaderDetail(null);
   } else if (jobs.length === 0) {
-    summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team}`;
-    summaryJobCount.textContent = 'Tidak ada data achievement pada tanggal ini.';
-    summaryQty.textContent = '';
+    summaryInfo.textContent = `Tanggal: ${selectedDate} | Team: ${team} - Tidak ada data.`;
     renderHeaderDetail(null);
   } else {
-    summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team}`;
-    summaryJobCount.textContent = `Total Job: ${jobs.length}`;
-    summaryQty.textContent = `Total Qty: ${totalQty}`;
+    summaryInfo.textContent = `Tanggal: ${selectedDate} | Team: ${team}`;
     renderHeaderDetail(jobs[0]);
   }
 }
@@ -225,35 +182,30 @@ window.showDetail = function(jobNo) {
   if (row) row.style.display = (row.style.display === 'none' ? 'table-row' : 'none');
 };
 
-// Export dummy
 document.getElementById('exportBtn').onclick = function() {
   alert('Export Excel: fitur dummy. Integrasikan dengan SheetJS/Excel sesuai kebutuhan.');
 }
 
-// Refresh
 document.getElementById('refreshBtn').onclick = function() {
-  // Reset date, shift, team
   dateInput.value = '';
   selectedDate = null;
-  shiftSelect.value = 'DayShift';
   teamSelect.innerHTML = '<option value="">Team</option>';
   summaryInfo.textContent = 'Pilih tanggal dan filter di atas';
-  summaryJobCount.textContent = '';
-  summaryQty.textContent = '';
+  matrixJobCount.textContent = '-';
+  matrixQty.textContent = '-';
   tableBody.innerHTML = '';
   headerDetailBox.style.display = "none";
   headerDetailBox.innerHTML = "";
-  dp.clear();
+  if (fp) fp.clear();
 };
 
-// Dropdown change logic
-shiftSelect.addEventListener('change', () => {
-  populateTeams();
-  renderTable();
-});
-teamSelect.addEventListener('change', () => {
-  renderTable();
+teamSelect.addEventListener('change', async () => {
+  await renderTable();
 });
 
-// Init view
-// (Let user pick date first)
+// INIT
+(async function() {
+  const auth = getAuth(app);
+  await signInAnonymously(auth);
+  initDatepicker();
+})();
