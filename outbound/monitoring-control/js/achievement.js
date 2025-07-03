@@ -138,30 +138,50 @@ async function renderTable() {
       data: rowData,
       pageLength: 40,
       destroy: true,
-      columns: [
-        { title: "Job No" },
-        { title: "Delivery Date" },
-        { title: "Delivery Note" },
-        { title: "Remark" },
-        { title: "Finish At" },
-        { title: "Job Type" },
-        { title: "Shift" },
-        { title: "Team" },
-        { title: "Team Name" },
-        { title: "Qty" }
-      ],
-      dom: 'Bfrtip',
+      columns: [...],
+      dom: 'Bft',
       buttons: [
         {
           extend: 'excelHtml5',
-          text: '⬇ Export Excel',
-          className: 'btn btn-export',
-          exportOptions: { columns: ':visible' }
+          text: '<span style="font-size:1.2em;vertical-align:middle;">&#128190;</span> Export Excel',
+          className: 'custom-excel-btn'
         }
       ],
-      language: {
-        emptyTable: "Data tidak tersedia."
-      }
+      language: { emptyTable: "Data tidak tersedia." }
+    });
+
+    // Custom posisi tombol export
+    setTimeout(() => {
+      const $filter = $('#achievementTable_filter');
+      const $buttons = $('.dt-buttons');
+      $filter.css({display:'flex','align-items':'center','justify-content':'flex-end',gap:'10px'});
+      $buttons.appendTo($filter).css({'margin':'0','float':'none'});
+    }, 0);
+
+    // Styling tombol export via JS
+    $(document).on('draw.dt', function() {
+      $('.custom-excel-btn')
+        .css({
+          'background': 'linear-gradient(90deg, #1e579c 75%, #4288e6)',
+          'color': '#fff',
+          'border': 'none',
+          'border-radius': '7px',
+          'padding': '0 18px',
+          'height': '36px',
+          'font-size': '1em',
+          'font-weight': '500',
+          'cursor': 'pointer',
+          'box-shadow': '0 1px 4px #b4c8e635',
+          'transition': 'background 0.2s, filter 0.2s',
+          'display': 'inline-flex',
+          'align-items': 'center',
+          'gap': '7px',
+          'margin-right': '10px'
+        })
+        .hover(
+          function() { $(this).css('filter', 'brightness(1.08)'); },
+          function() { $(this).css('filter', 'none'); }
+        );
     });
   }
   matrixJobCount.textContent = jobs.length;
