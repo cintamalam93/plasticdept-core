@@ -22,11 +22,9 @@ const teamSelect = document.getElementById('teamSelect');
 const tableBody = document.querySelector('#achievementTable tbody');
 const matrixJobCount = document.getElementById('matrixJobCount');
 const matrixQty = document.getElementById('matrixQty');
-const summaryInfo = document.getElementById('summaryInfo');
 const notifBox = document.getElementById('notifBox');
 
 let selectedDate = null;
-let selectedShift = null;
 
 // Helper: format tanggal ke path
 function getDateDBPath(dateStr) {
@@ -109,7 +107,6 @@ async function renderTable() {
         matrixJobCount.textContent = '0';
         matrixQty.textContent = '0';
         tableBody.innerHTML = '';
-        summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team} - Tidak ada data.`;
         return;
       }
       jobs = Object.values(snap.val());
@@ -142,14 +139,6 @@ async function renderTable() {
 
   matrixJobCount.textContent = jobs.length;
   matrixQty.textContent = totalQty;
-
-  if (!selectedDate || !shift || !team) {
-    summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
-  } else if (jobs.length === 0) {
-    summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team} - Tidak ada data.`;
-  } else {
-    summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team}`;
-  }
 }
 
 // Export dummy
@@ -167,7 +156,6 @@ document.getElementById('refreshBtn').onclick = function() {
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
   tableBody.innerHTML = '';
-  summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
   notifBox.innerHTML = '';
   if (fp) fp.clear();
 };
@@ -186,7 +174,6 @@ function initDatepicker() {
       matrixJobCount.textContent = '-';
       matrixQty.textContent = '-';
       tableBody.innerHTML = '';
-      summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
     }
   });
 }
@@ -195,7 +182,6 @@ shiftSelect.addEventListener('change', async () => {
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
   tableBody.innerHTML = '';
-  summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
 });
 teamSelect.addEventListener('change', async () => {
   await renderTable();
