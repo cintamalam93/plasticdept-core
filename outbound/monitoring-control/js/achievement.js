@@ -126,7 +126,7 @@ async function renderTable() {
     job.shift || '-',
     job.team || '-',
     job.teamName || '-',
-    job.qty || '-'
+    (job.qty !== undefined && job.qty !== null && job.qty !== "") ? Number(job.qty).toLocaleString('en-US') : '-'
   ]);
   // DataTables logic
   if (dataTable) {
@@ -165,7 +165,7 @@ async function renderTable() {
     });
   }
   matrixJobCount.textContent = jobs.length;
-  matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty)||0), 0);
+  matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty)||0), 0).toLocaleString('en-US');
 }
 
 // Export tombol DataTables, jadi tidak perlu tombol custom
