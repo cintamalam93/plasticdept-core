@@ -25,6 +25,7 @@ const matrixQty = document.getElementById('matrixQty');
 const notifBox = document.getElementById('notifBox');
 
 let selectedDate = null;
+let dataTable = null;
 
 // Helper: format tanggal ke path
 function getDateDBPath(dateStr) {
@@ -92,7 +93,7 @@ async function populateTeams() {
   }
 }
 
-// Ambil jobs untuk tabel
+// Render DataTable & Summary
 async function renderTable() {
   const team = teamSelect.value;
   const shift = shiftSelect.value;
@@ -106,7 +107,8 @@ async function renderTable() {
         showNotif({type:"error", message: "Tidak ada job untuk team ini."});
         matrixJobCount.textContent = '0';
         matrixQty.textContent = '0';
-        tableBody.innerHTML = '';
+        if (dataTable) dataTable.clear().draw();
+        else tableBody.innerHTML = '';
         return;
       }
       jobs = Object.values(snap.val());
@@ -117,28 +119,47 @@ async function renderTable() {
     }
   }
 
-  tableBody.innerHTML = '';
-  let totalQty = 0;
-  jobs.forEach(job => {
-    totalQty += parseInt(job.qty) || 0;
-    tableBody.innerHTML += `
-      <tr>
-        <td>${job.jobNo || '-'}</td>
-        <td>${job.deliveryDate || '-'}</td>
-        <td>${job.deliveryNote || '-'}</td>
-        <td>${job.remark || '-'}</td>
-        <td>${job.finishAt || '-'}</td>
-        <td>${job.jobType || '-'}</td>
-        <td>${job.shift || '-'}</td>
-        <td>${job.team || '-'}</td>
-        <td>${job.teamName || '-'}</td>
-        <td>${job.qty || '-'}</td>
-      </tr>
-    `;
-  });
-
+  // Render DataTable (gunakan DataTables JS)
+  const rowData = jobs.map(job => [
+    job.jobNo || '-',
+    job.deliveryDate || '-',
+    job.deliveryNote || '-',
+    job.remark || '-',
+    job.finishAt || '-',
+    job.jobType || '-',
+    job.shift || '-',
+    job.team || '-',
+    job.teamName || '-',
+    job.qty || '-'
+  ]);
+  if (dataTable) {
+    dataTable.clear();
+    dataTable.rows.add(rowData);
+    dataTable.draw();
+  } else {
+    dataTable = new window.DataTable('#achievementTable', {
+      data: rowData,
+      pageLength: 40,
+      destroy: true,
+      columns: [
+        { title: "Job No" },           // width diatur via CSS
+        { title: "Delivery Date" },
+        { title: "Delivery Note" },
+        { title: "Remark" },
+        { title: "Finish At" },
+        { title: "Job Type" },
+        { title: "Shift" },
+        { title: "Team" },
+        { title: "Team Name" },
+        { title: "Qty" }
+      ],
+      language: {
+        emptyTable: "Data tidak tersedia."
+      }
+    });
+  }
   matrixJobCount.textContent = jobs.length;
-  matrixQty.textContent = totalQty;
+  matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty)||0), 0);
 }
 
 document.getElementById('exportBtn').onclick = function() {
@@ -164,8 +185,8 @@ document.getElementById('refreshBtn').onclick = function() {
   teamSelect.disabled = true;
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
-  tableBody.innerHTML = '';
   notifBox.innerHTML = '';
+  if (dataTable) dataTable.clear().draw();
   if (fp) fp.clear();
 };
 
@@ -182,7 +203,7 @@ function initDatepicker() {
       teamSelect.disabled = true;
       matrixJobCount.textContent = '-';
       matrixQty.textContent = '-';
-      tableBody.innerHTML = '';
+      if (dataTable) dataTable.clear().draw();
     }
   });
 }
@@ -190,7 +211,7 @@ shiftSelect.addEventListener('change', async () => {
   await populateTeams();
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
-  tableBody.innerHTML = '';
+  if (dataTable) dataTable.clear().draw();
 });
 teamSelect.addEventListener('change', async () => {
   await renderTable();
