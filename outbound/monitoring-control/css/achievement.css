@@ -6,7 +6,7 @@ body {
   padding: 0;
 }
 .container {
-  max-width: 1100px;
+  max-width: 85%;
   margin: 30px auto;
   background: #fff;
   border-radius: 14px;
@@ -167,6 +167,38 @@ body {
   color: #b82d2d;
   background: #fbefef;
   border: 1px solid #f3bcbc;
+}
+/* Style DataTables Export Excel button agar konsisten dengan tombol utama */
+.dt-buttons .dt-button, 
+.dt-button.buttons-excel, 
+button.dt-button {
+  background: linear-gradient(90deg, #1e579c 75%, #4288e6);
+  color: #fff !important;
+  border: none;
+  border-radius: 7px;
+  padding: 0 18px;
+  height: 36px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 15px;
+  box-shadow: 0 1px 4px #b4c8e635;
+  transition: background 0.2s, filter 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.dt-buttons .dt-button:hover, 
+.dt-button.buttons-excel:hover, 
+button.dt-button:hover {
+  filter: brightness(1.08);
+  background: linear-gradient(90deg, #1857a9 90%, #2192d6);
+}
+.dt-buttons {
+  margin-bottom: 14px;
+}
+.dt-buttons .dt-button {
+  min-width: 120px;
 }
 @media (max-width: 850px) {
   .container { padding: 10px 2vw; }
