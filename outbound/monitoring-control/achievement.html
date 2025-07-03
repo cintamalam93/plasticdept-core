@@ -6,13 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/achievement.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <link rel="stylesheet" href="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.css"/>
 </head>
 <body>
   <div class="container">
     <div class="header">
       🎯 Outbound Achievement Report
     </div>
-
     <div class="toolbar">
       <label for="dateInput">Tanggal:</label>
       <input id="dateInput" type="text" placeholder="Pilih tanggal..." readonly />
@@ -27,9 +27,7 @@
       <button class="btn" id="refreshBtn">⟳ Refresh</button>
       <button class="btn btn-export" id="exportBtn">⬇ Export Excel</button>
     </div>
-
     <div id="notifBox"></div>
-
     <div class="cards-row">
       <div class="summary-card">
         <div class="summary-title">Total Job</div>
@@ -40,9 +38,8 @@
         <div class="summary-value" id="matrixQty">-</div>
       </div>
     </div>
-
     <div class="table-container">
-      <table id="achievementTable">
+      <table id="achievementTable" class="display" style="width:100%">
         <thead>
           <tr>
             <th>Job No</th>
@@ -63,8 +60,8 @@
       </table>
     </div>
   </div>
-
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.js"></script>
   <script type="module" src="js/achievement.js"></script>
 </body>
 </html>
