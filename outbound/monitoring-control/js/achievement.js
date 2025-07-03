@@ -141,10 +141,19 @@ async function renderTable() {
   matrixQty.textContent = totalQty;
 }
 
-// Export dummy
 document.getElementById('exportBtn').onclick = function() {
-  showNotif({type: "success", message:"Export Excel: fitur dummy."});
-}
+  // Ambil data dari tabel
+  const rows = dataTable ? dataTable.data().toArray() : [];
+  const headers = [
+    "Job No", "Delivery Date", "Delivery Note", "Remark", "Finish At",
+    "Job Type", "Shift", "Team", "Team Name", "Qty"
+  ];
+  const ws_data = [headers, ...rows];
+  const ws = XLSX.utils.aoa_to_sheet(ws_data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Achievement");
+  XLSX.writeFile(wb, "achievement.xlsx");
+};
 
 document.getElementById('refreshBtn').onclick = function() {
   dateInput.value = '';
