@@ -5,49 +5,48 @@
   <title>Outbound Achievement Report</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/achievement.css" />
-  <!-- Air Datepicker CSS (use version 3.4.0 for best compatibility) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.4.0/air-datepicker.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
   <div class="container">
     <div class="header">
       🎯 Outbound Achievement Report
     </div>
+
     <div class="toolbar">
       <label for="dateInput">Tanggal:</label>
-      <input id="dateInput" type="text" placeholder="Pilih tanggal..." readonly style="background:#f8fafc;cursor:pointer;" />
-      Shift:
-      <select id="shiftSelect">
-        <option value="DayShift">DayShift</option>
-        <option value="NightShift">NightShift</option>
-      </select>
+      <input id="dateInput" type="text" placeholder="Pilih tanggal..." readonly />
       Team:
       <select id="teamSelect"></select>
       <button class="btn" id="refreshBtn">⟳ Refresh</button>
       <button class="btn btn-export" id="exportBtn">⬇ Export Excel</button>
     </div>
-    <div class="summary" id="summaryBox">
-      <span class="summary-icon">📅</span>
-      <span id="summaryJobCount"></span>
-      <span id="summaryQty"></span>
+
+    <div class="cards-row">
+      <div class="summary-card">
+        <div class="summary-title">Total Job</div>
+        <div class="summary-value" id="matrixJobCount">-</div>
+      </div>
+      <div class="summary-card">
+        <div class="summary-title">Total Qty</div>
+        <div class="summary-value" id="matrixQty">-</div>
+      </div>
     </div>
-    <div class="header-detail" id="headerDetailBox" style="display:none"></div>
-    <div class="table-responsive">
+
+    <div class="table-container">
       <table id="achievementTable">
         <thead>
           <tr>
+            <th>Job No</th>
             <th>Delivery Date</th>
             <th>Delivery Note</th>
-            <th>Finish At</th>
-            <th>Job No</th>
-            <th>Job Type</th>
-            <th>Qty</th>
             <th>Remark</th>
+            <th>Finish At</th>
+            <th>Job Type</th>
             <th>Shift</th>
-            <th>Status</th>
             <th>Team</th>
             <th>Team Name</th>
-            <th>Action</th>
+            <th>Qty</th>
           </tr>
         </thead>
         <tbody>
@@ -56,8 +55,8 @@
       </table>
     </div>
   </div>
-  <!-- Air Datepicker JS (use version 3.4.0 for best compatibility) -->
-  <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.4.0/air-datepicker.min.js"></script>
-  <script src="js/achievement.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script type="module" src="js/achievement.js"></script>
 </body>
 </html>
