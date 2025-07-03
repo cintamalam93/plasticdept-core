@@ -109,7 +109,11 @@ async function renderTable() {
         showNotif({type:"error", message: "Tidak ada job untuk team ini."});
         matrixJobCount.textContent = '0';
         matrixQty.textContent = '0';
+        matrixQtyOvertime.textContent = '0';
+        matrixQtyAdditional.textContent = '0';
+        matrixQtyRemaining.textContent = '0';
         if (dataTable) dataTable.clear().draw();
+        else $('#achievementTable').DataTable().clear().draw();
         return;
       }
       jobs = Object.values(snap.val());
@@ -119,6 +123,22 @@ async function renderTable() {
       jobs = [];
     }
   }
+
+  // Hitung summary card (qty per tipe job)
+  let qtyOvertime = 0, qtyAdditional = 0, qtyRemaining = 0;
+  jobs.forEach(job => {
+    if (!job.qty) return;
+    if (job.jobType && typeof job.jobType === 'string') {
+      if (job.jobType.toLowerCase().includes('ot')) {
+        qtyOvertime += parseInt(job.qty) || 0;
+      } else if (job.jobType.toLowerCase().includes('add')) {
+        qtyAdditional += parseInt(job.qty) || 0;
+      } else if (job.jobType.toLowerCase().includes('remaining')) {
+        qtyRemaining += parseInt(job.qty) || 0;
+      }
+    }
+  });
+
   const rowData = jobs.map(job => [
     job.jobNo || '-',
     job.deliveryDate || '-',
@@ -131,6 +151,7 @@ async function renderTable() {
     job.teamName || '-',
     (job.qty !== undefined && job.qty !== null && job.qty !== "") ? Number(job.qty).toLocaleString('en-US') : '-'
   ]);
+
   // DataTables logic
   if (dataTable) {
     dataTable.clear();
@@ -163,20 +184,6 @@ async function renderTable() {
       ],
       language: {
         emptyTable: "Data tidak tersedia."
-      }
-    });
-
-    let qtyOvertime = 0, qtyAdditional = 0, qtyRemaining = 0;
-    jobs.forEach(job => {
-      if (!job.qty) return;
-      if (job.jobType && typeof job.jobType === 'string') {
-        if (job.jobType.toLowerCase().includes('ot')) {
-          qtyOvertime += parseInt(job.qty) || 0;
-        } else if (job.jobType.toLowerCase().includes('add')) {
-          qtyAdditional += parseInt(job.qty) || 0;
-        } else if (job.jobType.toLowerCase().includes('remaining')) {
-          qtyRemaining += parseInt(job.qty) || 0;
-        }
       }
     });
 
@@ -236,6 +243,9 @@ document.getElementById('refreshBtn').onclick = function() {
   teamSelect.disabled = true;
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
+  matrixQtyOvertime.textContent = '-';
+  matrixQtyAdditional.textContent = '-';
+  matrixQtyRemaining.textContent = '-';
   notifBox.innerHTML = '';
   if (dataTable) dataTable.clear().draw();
   if (fp) fp.clear();
@@ -253,6 +263,9 @@ function initDatepicker() {
       teamSelect.disabled = true;
       matrixJobCount.textContent = '-';
       matrixQty.textContent = '-';
+      matrixQtyOvertime.textContent = '-';
+      matrixQtyAdditional.textContent = '-';
+      matrixQtyRemaining.textContent = '-';
       if (dataTable) dataTable.clear().draw();
     }
   });
@@ -261,6 +274,9 @@ shiftSelect.addEventListener('change', async () => {
   await populateTeams();
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
+  matrixQtyOvertime.textContent = '-';
+  matrixQtyAdditional.textContent = '-';
+  matrixQtyRemaining.textContent = '-';
   if (dataTable) dataTable.clear().draw();
 });
 teamSelect.addEventListener('change', async () => {
