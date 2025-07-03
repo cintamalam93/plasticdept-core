@@ -293,3 +293,51 @@ teamSelect.addEventListener('change', async () => {
   await signInAnonymously(auth);
   initDatepicker();
 })();
+
+document.getElementById('customExportBtn').onclick = function() {
+  // Ambil nilai summary card
+  const summary = [
+    ['Total Job', ':', matrixJobCount.textContent],
+    ['Total Qty', ':', matrixQty.textContent],
+    ['Qty Remaining', ':', matrixQtyRemaining.textContent],
+    ['Qty Additional', ':', matrixQtyAdditional.textContent],
+    ['Qty H-1', ':', matrixQtyH1.textContent],
+    ['Qty Overtime', ':', matrixQtyOvertime.textContent]
+  ];
+
+  // Title row (merge nanti)
+  const title = [['', '', '', 'Outbound Achievement Report']];
+
+  // Table header (samakan dengan DataTables)
+  const tableHeaders = [
+    ['Job No', 'Delivery Date', 'Delivery Note', 'Remark', 'Finish At', 'Job Type', 'Shift', 'Team', 'Team Name', 'Qty']
+  ];
+
+  // Table data (ambil dari DataTables saja supaya pasti urut dan sesuai filter)
+  const tableData = dataTable.rows({search: 'applied'}).data().toArray();
+
+  // Gabungkan semua
+  const wsData = [
+    ...summary,
+    [],
+    ...title,
+    [],
+    ...tableHeaders,
+    ...tableData
+  ];
+
+  // Buat worksheet & workbook
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // Merge judul
+  ws['!merges'] = [
+    {s: {r: 7, c: 3}, e: {r: 7, c: 8}} // merge Outbound Achievement Report (baris ke-8, kolom D sampai I)
+  ];
+
+  // Buat workbook
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Outbound Report");
+
+  // Export
+  XLSX.writeFile(wb, `Outbound_Achievement_Report.xlsx`);
+};
