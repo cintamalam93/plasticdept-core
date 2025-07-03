@@ -16,11 +16,19 @@
     <div class="toolbar">
       <label for="dateInput">Tanggal:</label>
       <input id="dateInput" type="text" placeholder="Pilih tanggal..." readonly />
+      Shift:
+      <select id="shiftSelect">
+        <option value="">Pilih shift</option>
+        <option value="DayShift">DayShift</option>
+        <option value="NightShift">NightShift</option>
+      </select>
       Team:
       <select id="teamSelect"></select>
       <button class="btn" id="refreshBtn">⟳ Refresh</button>
       <button class="btn btn-export" id="exportBtn">⬇ Export Excel</button>
     </div>
+
+    <div id="notifBox"></div>
 
     <div class="cards-row">
       <div class="summary-card">
