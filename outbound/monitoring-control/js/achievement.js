@@ -24,6 +24,7 @@ const matrixQty = document.getElementById('matrixQty');
 const notifBox = document.getElementById('notifBox');
 let selectedDate = null;
 let dataTable = null;
+let fp = null;
 
 // Helper: format tanggal ke path
 function getDateDBPath(dateStr) {
@@ -58,7 +59,7 @@ async function populateShifts() {
     const shifts = Object.keys(snap.val());
     shiftSelect.innerHTML = `<option value="">Pilih shift</option>`;
     shifts.forEach(shift => {
-      shiftSelect.innerHTML += `<option value="${shift}">${shift.replace(/Shift$/,' Shift')}</option>`;
+      shiftSelect.innerHTML += `<option value="${shift}">${shift.replace(/Shift$/, ' Shift')}</option>`;
     });
     shiftSelect.disabled = false;
     showNotif({type:"success", message:"Shift ditemukan!"});
@@ -106,7 +107,6 @@ async function renderTable() {
         matrixJobCount.textContent = '0';
         matrixQty.textContent = '0';
         if (dataTable) dataTable.clear().draw();
-        else $('#achievementTable').DataTable().clear().draw();
         return;
       }
       jobs = Object.values(snap.val());
@@ -138,27 +138,45 @@ async function renderTable() {
       data: rowData,
       pageLength: 40,
       destroy: true,
-      columns: [...],
-      dom: 'Bft',
+      columns: [
+        { title: "Job No" },
+        { title: "Delivery Date" },
+        { title: "Delivery Note" },
+        { title: "Remark" },
+        { title: "Finish At" },
+        { title: "Job Type" },
+        { title: "Shift" },
+        { title: "Team" },
+        { title: "Team Name" },
+        { title: "Qty" }
+      ],
+      dom: 'Bft', // Buttons + search filter + table
       buttons: [
         {
           extend: 'excelHtml5',
-          text: '<span style="font-size:1.2em;vertical-align:middle;">&#128190;</span> Export Excel',
+          text: '⬇ Export Excel',
           className: 'custom-excel-btn'
         }
       ],
-      language: { emptyTable: "Data tidak tersedia." }
+      language: {
+        emptyTable: "Data tidak tersedia."
+      }
     });
 
-    // Custom posisi tombol export
+    // Custom posisi tombol export agar sejajar dengan search box di dalam #achievementTable_filter
     setTimeout(() => {
       const $filter = $('#achievementTable_filter');
       const $buttons = $('.dt-buttons');
-      $filter.css({display:'flex','align-items':'center','justify-content':'flex-end',gap:'10px'});
-      $buttons.appendTo($filter).css({'margin':'0','float':'none'});
+      $filter.css({
+        display: 'flex',
+        'align-items': 'center',
+        'justify-content': 'flex-end',
+        gap: '10px'
+      });
+      $buttons.appendTo($filter).css({'margin': '0', 'float': 'none'});
     }, 0);
 
-    // Styling tombol export via JS
+    // Styling tombol export Excel via JS (bukan CSS)
     $(document).on('draw.dt', function() {
       $('.custom-excel-btn')
         .css({
@@ -185,11 +203,10 @@ async function renderTable() {
     });
   }
   matrixJobCount.textContent = jobs.length;
-  matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty)||0), 0).toLocaleString('en-US');
+  matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty) || 0), 0).toLocaleString('en-US');
 }
 
-// Export tombol DataTables, jadi tidak perlu tombol custom
-
+// Reset/refresh event
 document.getElementById('refreshBtn').onclick = function() {
   dateInput.value = '';
   selectedDate = null;
@@ -205,7 +222,6 @@ document.getElementById('refreshBtn').onclick = function() {
 };
 
 // Event binding
-let fp = null;
 function initDatepicker() {
   fp = flatpickr("#dateInput", {
     dateFormat: "Y-m-d",
