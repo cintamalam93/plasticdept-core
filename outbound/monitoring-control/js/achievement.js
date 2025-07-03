@@ -17,17 +17,18 @@ const db = getDatabase(app);
 
 // DOM refs
 const dateInput = document.getElementById('dateInput');
+const shiftSelect = document.getElementById('shiftSelect');
 const teamSelect = document.getElementById('teamSelect');
 const tableBody = document.querySelector('#achievementTable tbody');
-const summaryInfo = document.getElementById('summaryInfo');
 const matrixJobCount = document.getElementById('matrixJobCount');
 const matrixQty = document.getElementById('matrixQty');
-const headerDetailBox = document.getElementById('headerDetailBox');
+const summaryInfo = document.getElementById('summaryInfo');
+const notifBox = document.getElementById('notifBox');
 
 let selectedDate = null;
-let currentTeams = [];
+let selectedShift = null;
 
-// Format date to db path prefix
+// Helper: format tanggal ke path
 function getDateDBPath(dateStr) {
   if (!dateStr) return null;
   const [year, month, day] = dateStr.split('-');
@@ -36,94 +37,87 @@ function getDateDBPath(dateStr) {
   return `${yKey}/${mKey}/${day}`;
 }
 
-// Get all teams available for the selected date (regardless of shift)
-async function getTeamsForDate(dateStr) {
-  if (!dateStr) return [];
-  const path = getDateDBPath(dateStr);
-  const dayRef = ref(db, path);
-  const snap = await get(dayRef);
-  if (!snap.exists()) return [];
-  const shifts = snap.val();
-  const teamSet = new Set();
-  Object.values(shifts).forEach(shiftObj => {
-    Object.keys(shiftObj).forEach(team => teamSet.add(team));
-  });
-  return Array.from(teamSet);
+// Show notification
+function showNotif({type, message}) {
+  notifBox.innerHTML = `<div class="notif-${type}">${message}</div>`;
+  setTimeout(() => notifBox.innerHTML = '', 3000);
 }
 
-// Get all jobs for selected date and team (all shifts)
-async function getJobsForDateTeam(dateStr, team) {
-  if (!dateStr || !team) return [];
-  const path = getDateDBPath(dateStr);
-  const dayRef = ref(db, path);
-  const snap = await get(dayRef);
-  if (!snap.exists()) return [];
-  const shifts = snap.val();
-  let jobs = [];
-  Object.values(shifts).forEach(shiftObj => {
-    if (team in shiftObj) {
-      jobs = jobs.concat(Object.values(shiftObj[team]));
+// Populate shift selector (cek shift apa yang ada pada tanggal)
+async function populateShifts() {
+  shiftSelect.value = "";
+  shiftSelect.disabled = true;
+  teamSelect.innerHTML = '<option value="">Team</option>';
+  teamSelect.disabled = true;
+  if (!selectedDate) return;
+  try {
+    const path = `outJobAchievment/${getDateDBPath(selectedDate)}`;
+    const dayRef = ref(db, path);
+    const snap = await get(dayRef);
+    if (!snap.exists()) {
+      showNotif({type: "error", message: "Data tidak ditemukan untuk tanggal ini."});
+      return;
     }
-  });
-  return jobs;
+    const shifts = Object.keys(snap.val());
+    shiftSelect.innerHTML = `<option value="">Pilih shift</option>`;
+    shifts.forEach(shift => {
+      shiftSelect.innerHTML += `<option value="${shift}">${shift.replace(/Shift$/,' Shift')}</option>`;
+    });
+    shiftSelect.disabled = false;
+    showNotif({type:"success", message:"Shift ditemukan!"});
+  } catch (err) {
+    showNotif({type: "error", message: "Gagal mengambil shift: " + err.message});
+  }
 }
 
-// Init FLATPICKR (all dates enabled)
-let fp = null;
-function initDatepicker() {
-  fp = flatpickr("#dateInput", {
-    dateFormat: "Y-m-d",
-    allowInput: false,
-    onChange: async function(selectedDates, dateStr, instance) {
-      selectedDate = dateStr;
-      await populateTeams();
-      await renderTable();
-    }
-  });
-}
-
-// Populate teams
+// Populate team selector
 async function populateTeams() {
   teamSelect.innerHTML = '<option value="">Team</option>';
-  if (!selectedDate) return;
-  const teams = await getTeamsForDate(selectedDate);
-  currentTeams = teams;
-  teams.forEach(t => {
-    teamSelect.innerHTML += `<option value="${t}">${t}</option>`;
-  });
-}
-
-// Render detail di atas tabel (ambil job pertama)
-function renderHeaderDetail(job) {
-  if (!job) {
-    headerDetailBox.style.display = "none";
-    headerDetailBox.innerHTML = "";
-    return;
+  teamSelect.disabled = true;
+  if (!selectedDate || !shiftSelect.value) return;
+  try {
+    const path = `outJobAchievment/${getDateDBPath(selectedDate)}/${shiftSelect.value}`;
+    const shiftRef = ref(db, path);
+    const snap = await get(shiftRef);
+    if (!snap.exists()) {
+      showNotif({type: "error", message: "Tidak ada team untuk shift ini."});
+      return;
+    }
+    const teams = Object.keys(snap.val());
+    teams.forEach(t => {
+      teamSelect.innerHTML += `<option value="${t}">${t}</option>`;
+    });
+    teamSelect.disabled = false;
+    showNotif({type:"success", message:"Team ditemukan!"});
+  } catch (err) {
+    showNotif({type: "error", message: "Gagal mengambil team: " + err.message});
   }
-  headerDetailBox.style.display = "block";
-  headerDetailBox.innerHTML = `
-    <div class="detail-row">
-      <div class="detail-item"><span class="label">deliveryDate:</span> <span class="value">"${job.deliveryDate || '-'}"</span></div>
-      <div class="detail-item"><span class="label">deliveryNote:</span> <span class="value">"${job.deliveryNote || '-'}"</span></div>
-      <div class="detail-item"><span class="label">finishAt:</span> <span class="value">"${job.finishAt || '-'}"</span></div>
-      <div class="detail-item"><span class="label">jobNo:</span> <span class="value">"${job.jobNo || '-'}"</span></div>
-      <div class="detail-item"><span class="label">jobType:</span> <span class="value">"${job.jobType || '-'}"</span></div>
-      <div class="detail-item"><span class="label">qty:</span> <span class="value">"${job.qty || '-'}"</span></div>
-      <div class="detail-item"><span class="label">remark:</span> <span class="value">"${job.remark || '-'}"</span></div>
-      <div class="detail-item"><span class="label">shift:</span> <span class="value">"${job.shift || '-'}"</span></div>
-      <div class="detail-item"><span class="label">status:</span> <span class="value">"${job.status || '-'}"</span></div>
-      <div class="detail-item"><span class="label">team:</span> <span class="value">"${job.team || '-'}"</span></div>
-      <div class="detail-item"><span class="label">teamName:</span> <span class="value">"${job.teamName || '-'}"</span></div>
-    </div>
-  `;
 }
 
-// Render Table & Summary
+// Ambil jobs untuk tabel
 async function renderTable() {
   const team = teamSelect.value;
+  const shift = shiftSelect.value;
   let jobs = [];
-  if (selectedDate && team) {
-    jobs = await getJobsForDateTeam(selectedDate, team);
+  if (selectedDate && shift && team) {
+    try {
+      const path = `outJobAchievment/${getDateDBPath(selectedDate)}/${shift}/${team}`;
+      const teamRef = ref(db, path);
+      const snap = await get(teamRef);
+      if (!snap.exists()) {
+        showNotif({type:"error", message: "Tidak ada job untuk team ini."});
+        matrixJobCount.textContent = '0';
+        matrixQty.textContent = '0';
+        tableBody.innerHTML = '';
+        summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team} - Tidak ada data.`;
+        return;
+      }
+      jobs = Object.values(snap.val());
+      showNotif({type:"success", message:"Data berhasil di-load!"});
+    } catch (err) {
+      showNotif({type: "error", message: "Gagal load data: " + err.message});
+      jobs = [];
+    }
   }
 
   tableBody.innerHTML = '';
@@ -132,31 +126,16 @@ async function renderTable() {
     totalQty += parseInt(job.qty) || 0;
     tableBody.innerHTML += `
       <tr>
+        <td>${job.jobNo || '-'}</td>
         <td>${job.deliveryDate || '-'}</td>
         <td>${job.deliveryNote || '-'}</td>
-        <td>${job.finishAt || '-'}</td>
-        <td>${job.jobNo || '-'}</td>
-        <td>${job.jobType || '-'}</td>
-        <td>${job.qty || '-'}</td>
         <td>${job.remark || '-'}</td>
+        <td>${job.finishAt || '-'}</td>
+        <td>${job.jobType || '-'}</td>
         <td>${job.shift || '-'}</td>
-        <td>
-          <span class="badge ${
-            job.status === "Completed" ? "badge-completed" :
-            job.status === "In Progress" ? "badge-inprogress" : "badge-other"
-          }">${job.status || '-'}</span>
-        </td>
         <td>${job.team || '-'}</td>
         <td>${job.teamName || '-'}</td>
-        <td>
-          <button class="btn btn-detail" onclick="showDetail('${job.jobNo}')">Detail</button>
-        </td>
-      </tr>
-      <tr class="detail-row" style="display:none;" id="detail-${job.jobNo}">
-        <td colspan="12">
-          <b>Delivery Note:</b> ${job.deliveryNote || '-'}<br>
-          <b>Remark:</b> ${job.remark || '-'}
-        </td>
+        <td>${job.qty || '-'}</td>
       </tr>
     `;
   });
@@ -164,41 +143,60 @@ async function renderTable() {
   matrixJobCount.textContent = jobs.length;
   matrixQty.textContent = totalQty;
 
-  if (!selectedDate || !team) {
-    summaryInfo.textContent = 'Pilih tanggal dan filter di atas';
-    renderHeaderDetail(null);
+  if (!selectedDate || !shift || !team) {
+    summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
   } else if (jobs.length === 0) {
-    summaryInfo.textContent = `Tanggal: ${selectedDate} | Team: ${team} - Tidak ada data.`;
-    renderHeaderDetail(null);
+    summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team} - Tidak ada data.`;
   } else {
-    summaryInfo.textContent = `Tanggal: ${selectedDate} | Team: ${team}`;
-    renderHeaderDetail(jobs[0]);
+    summaryInfo.textContent = `Tanggal: ${selectedDate} | Shift: ${shift} | Team: ${team}`;
   }
 }
 
-// Detail row toggle
-window.showDetail = function(jobNo) {
-  const row = document.getElementById('detail-'+jobNo);
-  if (row) row.style.display = (row.style.display === 'none' ? 'table-row' : 'none');
-};
-
+// Export dummy
 document.getElementById('exportBtn').onclick = function() {
-  alert('Export Excel: fitur dummy. Integrasikan dengan SheetJS/Excel sesuai kebutuhan.');
+  showNotif({type: "success", message:"Export Excel: fitur dummy."});
 }
 
 document.getElementById('refreshBtn').onclick = function() {
   dateInput.value = '';
   selectedDate = null;
+  shiftSelect.innerHTML = `<option value="">Pilih shift</option>`;
+  shiftSelect.disabled = true;
   teamSelect.innerHTML = '<option value="">Team</option>';
-  summaryInfo.textContent = 'Pilih tanggal dan filter di atas';
+  teamSelect.disabled = true;
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
   tableBody.innerHTML = '';
-  headerDetailBox.style.display = "none";
-  headerDetailBox.innerHTML = "";
+  summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
+  notifBox.innerHTML = '';
   if (fp) fp.clear();
 };
 
+// Event binding
+let fp = null;
+function initDatepicker() {
+  fp = flatpickr("#dateInput", {
+    dateFormat: "Y-m-d",
+    allowInput: false,
+    onChange: async function(selectedDates, dateStr, instance) {
+      selectedDate = dateStr;
+      await populateShifts();
+      teamSelect.innerHTML = '<option value="">Team</option>';
+      teamSelect.disabled = true;
+      matrixJobCount.textContent = '-';
+      matrixQty.textContent = '-';
+      tableBody.innerHTML = '';
+      summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
+    }
+  });
+}
+shiftSelect.addEventListener('change', async () => {
+  await populateTeams();
+  matrixJobCount.textContent = '-';
+  matrixQty.textContent = '-';
+  tableBody.innerHTML = '';
+  summaryInfo.textContent = 'Pilih tanggal, shift, dan team di atas';
+});
 teamSelect.addEventListener('change', async () => {
   await renderTable();
 });
