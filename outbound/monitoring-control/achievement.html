@@ -5,34 +5,8 @@
   <title>Outbound Achievement Report</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/achievement.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <style>
-    .matrix-summary {
-      display: flex;
-      gap: 2rem;
-      margin: 1rem 0;
-      justify-content: flex-start;
-      align-items: center;
-    }
-    .matrix-card {
-      background: #f0f7ff;
-      border-radius: 8px;
-      padding: 1.2em 2em;
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #1d4c7d;
-      box-shadow: 0 1px 8px #b4c8e6;
-      min-width: 100px;
-      text-align: center;
-    }
-    .matrix-label {
-      font-size: 0.93em;
-      color: #4a719d;
-      font-weight: normal;
-      margin-top: 0.2em;
-      display: block;
-    }
-  </style>
+  <!-- Air Datepicker CSS (use version 3.4.0 for best compatibility) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/air-datepicker@3.4.0/air-datepicker.min.css">
 </head>
 <body>
   <div class="container">
@@ -42,22 +16,20 @@
     <div class="toolbar">
       <label for="dateInput">Tanggal:</label>
       <input id="dateInput" type="text" placeholder="Pilih tanggal..." readonly style="background:#f8fafc;cursor:pointer;" />
+      Shift:
+      <select id="shiftSelect">
+        <option value="DayShift">DayShift</option>
+        <option value="NightShift">NightShift</option>
+      </select>
       Team:
       <select id="teamSelect"></select>
       <button class="btn" id="refreshBtn">⟳ Refresh</button>
+      <button class="btn btn-export" id="exportBtn">⬇ Export Excel</button>
     </div>
     <div class="summary" id="summaryBox">
-      <div class="matrix-summary" id="matrixSummary">
-        <div class="matrix-card">
-          <span id="matrixJobCount">-</span>
-          <span class="matrix-label">Total Job</span>
-        </div>
-        <div class="matrix-card">
-          <span id="matrixQty">-</span>
-          <span class="matrix-label">Total Qty</span>
-        </div>
-      </div>
-      <span id="summaryInfo">Pilih tanggal dan filter di atas</span>
+      <span class="summary-icon">📅</span>
+      <span id="summaryJobCount"></span>
+      <span id="summaryQty"></span>
     </div>
     <div class="header-detail" id="headerDetailBox" style="display:none"></div>
     <div class="table-responsive">
@@ -83,13 +55,9 @@
         </tbody>
       </table>
     </div>
-    <div class="action-row">
-      <button class="btn btn-export" id="exportBtn">⬇ Export Excel</button>
-    </div>
   </div>
-  <!-- Flatpickr JS -->
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <!-- Firebase SDKs -->
-  <script type="module" src="js/achievement.js"></script>
+  <!-- Air Datepicker JS (use version 3.4.0 for best compatibility) -->
+  <script src="https://cdn.jsdelivr.net/npm/air-datepicker@3.4.0/air-datepicker.min.js"></script>
+  <script src="js/achievement.js"></script>
 </body>
 </html>
