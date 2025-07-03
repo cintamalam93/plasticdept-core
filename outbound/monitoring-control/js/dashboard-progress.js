@@ -613,17 +613,18 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   let jobsPerHour = {};
   const hourRanges = getHourRange(shiftType);
 
+  // Inisialisasi slot jam
   for (let i = 0; i < hourRanges.length; i++) {
     const range = hourRanges[i];
     jobsPerHour[range.label] = [];
   }
 
+  // Kelompokkan job ke jam
   jobs.forEach(job => {
     if ((job.shift || "") !== shiftLabel) return;
     if (!job.finishAt) return;
     const status = (job.status || '').toLowerCase();
     if (!finishedStatus.includes(status)) return;
-    // Parse finishAt
     const fin = parseFinishAt(job.finishAt);
     if (!fin) return;
     let jamFin = fin.hour;
@@ -646,16 +647,36 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     });
   });
 
-  // Print log
-  Object.keys(jobsPerHour).forEach(jamLabel => {
+  // --- Tentukan jam sekarang (index batas log) ---
+  const now = new Date();
+  let currentHour = now.getHours();
+  let currentMinute = now.getMinutes();
+  let curr = currentHour;
+  if (shiftType === "Night" && curr < 6) curr += 24;
+
+  // Cari index jam terakhir yang sudah dilewati (currentIdx)
+  let currentIdx = -1;
+  for (let i = 0; i < hourRanges.length; i++) {
+    let start = hourRanges[i].start;
+    if (shiftType === "Night" && start < 6) start += 24;
+    if (curr > start || (curr === start && currentMinute > 0)) {
+      currentIdx = i;
+    }
+  }
+
+  // Log jam yang sudah lewat saja
+  for (let i = 0; i <= currentIdx; i++) {
+    const jamLabel = hourRanges[i].label;
+    console.log(`Jam ${jamLabel}`);
     if (jobsPerHour[jamLabel].length > 0) {
-      console.log(`Jam ${jamLabel}`);
       jobsPerHour[jamLabel].forEach(j =>
         console.log(`${j.jobNo}: ${j.qty} finish at ${j.finishAt}`)
       );
-      console.log(""); // spasi antar jam
+    } else {
+      console.log("Tidak ada job (0)");
     }
-  });
+    console.log(""); // spasi antar jam
+  }
 })();
 
   function parseFinishAt(str) {
