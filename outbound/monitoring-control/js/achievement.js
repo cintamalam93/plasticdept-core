@@ -180,13 +180,6 @@ async function renderTable() {
         { title: "Qty" }
       ],
       dom: 'Bft',
-      buttons: [
-        {
-          extend: 'excelHtml5',
-          text: '⬇ Export Excel',
-          className: 'custom-excel-btn'
-        }
-      ],
       language: {
         emptyTable: "Data tidak tersedia."
       }
