@@ -21,6 +21,9 @@ const shiftSelect = document.getElementById('shiftSelect');
 const teamSelect = document.getElementById('teamSelect');
 const matrixJobCount = document.getElementById('matrixJobCount');
 const matrixQty = document.getElementById('matrixQty');
+const matrixQtyOvertime = document.getElementById('matrixQtyOvertime');
+const matrixQtyAdditional = document.getElementById('matrixQtyAdditional');
+const matrixQtyRemaining = document.getElementById('matrixQtyRemaining');
 const notifBox = document.getElementById('notifBox');
 let selectedDate = null;
 let dataTable = null;
@@ -163,6 +166,20 @@ async function renderTable() {
       }
     });
 
+    let qtyOvertime = 0, qtyAdditional = 0, qtyRemaining = 0;
+    jobs.forEach(job => {
+      if (!job.qty) return;
+      if (job.jobType && typeof job.jobType === 'string') {
+        if (job.jobType.toLowerCase().includes('ot')) {
+          qtyOvertime += parseInt(job.qty) || 0;
+        } else if (job.jobType.toLowerCase().includes('add')) {
+          qtyAdditional += parseInt(job.qty) || 0;
+        } else if (job.jobType.toLowerCase().includes('remaining')) {
+          qtyRemaining += parseInt(job.qty) || 0;
+        }
+      }
+    });
+
     // Custom posisi tombol export agar sejajar dengan search box di dalam #achievementTable_filter
     setTimeout(() => {
       const $filter = $('#achievementTable_filter');
@@ -204,6 +221,9 @@ async function renderTable() {
   }
   matrixJobCount.textContent = jobs.length;
   matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty) || 0), 0).toLocaleString('en-US');
+  matrixQtyOvertime.textContent = qtyOvertime.toLocaleString('en-US');
+  matrixQtyAdditional.textContent = qtyAdditional.toLocaleString('en-US');
+  matrixQtyRemaining.textContent = qtyRemaining.toLocaleString('en-US');
 }
 
 // Reset/refresh event
