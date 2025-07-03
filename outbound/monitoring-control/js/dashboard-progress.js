@@ -640,7 +640,7 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
       ) {
         jobsPerHour[range.label].push({
           jobNo: job.jobNo || job.no || "-",
-          qty: job.qty,
+          qty: parseInt(job.qty) || 0,
           finishAt: job.finishAt
         });
       }
@@ -664,17 +664,22 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
     }
   }
 
-  // Log jam yang sudah lewat saja
+  // Akumulasi total per jam
+  let totalAkhir = 0;
   for (let i = 0; i <= currentIdx; i++) {
     const jamLabel = hourRanges[i].label;
-    console.log(`Jam ${jamLabel}`);
+    let totalJamIni = 0;
+
     if (jobsPerHour[jamLabel].length > 0) {
-      jobsPerHour[jamLabel].forEach(j =>
-        console.log(`${j.jobNo}: ${j.qty} finish at ${j.finishAt}`)
-      );
+      jobsPerHour[jamLabel].forEach(j => {
+        console.log(`${j.jobNo}: ${j.qty} finish at ${j.finishAt}`);
+        totalJamIni += j.qty;
+      });
     } else {
       console.log("Tidak ada job (0)");
     }
+    totalAkhir += totalJamIni;
+    console.log(`Akumulasi s.d jam ${jamLabel}: ${totalAkhir}`);
     console.log(""); // spasi antar jam
   }
 })();
