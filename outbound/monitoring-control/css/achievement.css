@@ -216,3 +216,11 @@ button.dt-button:hover {
   border-color: #1e579c;
   color: #fff;
 }
+
+.summary-title {
+  border-bottom: 2px solid #c5c5c5;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 1.1em;
+}
