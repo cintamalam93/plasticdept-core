@@ -224,3 +224,61 @@ button.dt-button:hover {
   font-weight: 600;
   font-size: 1.1em;
 }
+.summary-card {
+  background: linear-gradient(90deg, #f7fbff 60%, #e6f4fa 100%);
+  border: 1.5px solid #e0eafd;
+  border-radius: 12px;
+  padding: 18px 26px 12px 26px;
+  min-width: 180px;
+  box-shadow: 0 4px 24px #d8ebfa22;
+  transition: box-shadow .2s;
+  margin-right: 22px;
+  display: inline-block;
+  vertical-align: top;
+  text-align: center;
+}
+
+.summary-title {
+  font-weight: 700;
+  color: #2176c1;
+  font-size: 1.08em;
+  margin-bottom: 16px;
+  position: relative;
+  padding-bottom: 10px;
+}
+.summary-title::after {
+  content: "";
+  display: block;
+  margin: 0 auto;
+  margin-top: 7px;
+  height: 3px;
+  width: 48px;     /* <= pendek, tidak full */
+  border-radius: 2px;
+  /* Default fallback color */
+  background: #a2c7e7;
+}
+
+/* Card 1: Total Job */
+.summary-card:nth-child(1) .summary-title::after {
+  background: linear-gradient(90deg, #5ea3f8, #3fc1c9);
+}
+/* Card 2: Total Qty */
+.summary-card:nth-child(2) .summary-title::after {
+  background: linear-gradient(90deg, #38b2ac, #5ea3f8);
+}
+/* Card 3: Qty Remaining */
+.summary-card:nth-child(3) .summary-title::after {
+  background: linear-gradient(90deg, #f6c343, #38b2ac);
+}
+/* Card 4: Qty Additional */
+.summary-card:nth-child(4) .summary-title::after {
+  background: linear-gradient(90deg, #fc5185, #f6c343);
+}
+/* Card 5: Qty H-1 */
+.summary-card:nth-child(5) .summary-title::after {
+  background: linear-gradient(90deg, #a259f7, #3fc1c9);
+}
+/* Card 6: Qty Overtime */
+.summary-card:nth-child(6) .summary-title::after {
+  background: linear-gradient(90deg, #2176c1, #fc5185);
+}
