@@ -608,6 +608,56 @@ function renderLineChartOutbound(jobs, shiftType, manPowerTotal) {
   const finishedStatus = ["packed", "loaded", "completed"];
   let shiftLabel = shiftType === "Day" ? "Day Shift" : "Night Shift";
 
+  // === LOG OUTBOUND PER JAM ===
+(function logOutboundPerHour() {
+  let jobsPerHour = {};
+  const hourRanges = getHourRange(shiftType);
+
+  for (let i = 0; i < hourRanges.length; i++) {
+    const range = hourRanges[i];
+    jobsPerHour[range.label] = [];
+  }
+
+  jobs.forEach(job => {
+    if ((job.shift || "") !== shiftLabel) return;
+    if (!job.finishAt) return;
+    const status = (job.status || '').toLowerCase();
+    if (!finishedStatus.includes(status)) return;
+    // Parse finishAt
+    const fin = parseFinishAt(job.finishAt);
+    if (!fin) return;
+    let jamFin = fin.hour;
+    if (shiftType === "Night" && jamFin < 6) jamFin += 24;
+    hourRanges.forEach((range) => {
+      let start = range.start;
+      let end = range.end;
+      if (shiftType === "Night" && start < 6) start += 24;
+      if (shiftType === "Night" && end < 6) end += 24;
+      if (
+        (jamFin >= start && jamFin < end) ||
+        (jamFin === start && fin.minute > 0)
+      ) {
+        jobsPerHour[range.label].push({
+          jobNo: job.jobNo || job.no || "-",
+          qty: job.qty,
+          finishAt: job.finishAt
+        });
+      }
+    });
+  });
+
+  // Print log
+  Object.keys(jobsPerHour).forEach(jamLabel => {
+    if (jobsPerHour[jamLabel].length > 0) {
+      console.log(`Jam ${jamLabel}`);
+      jobsPerHour[jamLabel].forEach(j =>
+        console.log(`${j.jobNo}: ${j.qty} finish at ${j.finishAt}`)
+      );
+      console.log(""); // spasi antar jam
+    }
+  });
+})();
+
   function parseFinishAt(str) {
     const m = String(str).match(/(\d{1,2}):(\d{2})/);
     if (m) return { hour: parseInt(m[1], 10), minute: parseInt(m[2], 10) };
