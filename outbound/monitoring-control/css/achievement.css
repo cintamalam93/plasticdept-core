@@ -116,16 +116,25 @@ body {
   background: #eaf4fc;
   color: #1e579c;
   font-weight: 600;
-  padding: 12px 6px;
   border-bottom: 2px solid #b3d1f1;
   text-align: left;
   font-size: 1.05em;
   letter-spacing: 0.5px;
 }
+/* Atur lebar kolom datatable */
+#achievementTable thead th:nth-child(1) { width: 110px; min-width: 90px; }   /* Job No */
+#achievementTable thead th:nth-child(2) { width: 110px; min-width: 80px; }   /* Delivery Date */
+#achievementTable thead th:nth-child(3) { width: 180px; min-width: 120px; }  /* Delivery Note */
+#achievementTable thead th:nth-child(4) { width: 210px; min-width: 140px; }  /* Remark */
+#achievementTable thead th:nth-child(5) { width: 80px; min-width: 60px; }    /* Finish At */
+#achievementTable thead th:nth-child(6) { width: 95px; min-width: 80px; }    /* Job Type */
+#achievementTable thead th:nth-child(7) { width: 70px; min-width: 60px; }    /* Shift */
+#achievementTable thead th:nth-child(8) { width: 80px; min-width: 60px; }    /* Team */
+#achievementTable thead th:nth-child(9) { width: 110px; min-width: 80px; }   /* Team Name */
+#achievementTable thead th:nth-child(10){ width: 75px; min-width: 60px; }    /* Qty */
 #achievementTable tbody td {
   background: #fff;
   color: #223d5e;
-  padding: 10px 6px;
   border-bottom: 1px solid #e6f1fb;
   vertical-align: top;
   font-size: 1em;
@@ -136,13 +145,6 @@ body {
 #achievementTable tbody tr:hover td {
   background: #e7f4ff;
   transition: background 0.15s;
-}
-.summary-info {
-  margin-top: 16px;
-  color: #2e679c;
-  font-size: 1.08em;
-  font-weight: 500;
-  padding-left: 2px;
 }
 #notifBox {
   min-height: 36px;
@@ -171,10 +173,6 @@ body {
   .cards-row { gap:10px; flex-wrap: wrap; }
   .summary-card { min-width: 120px; }
   .toolbar { gap: 8px; }
-  #achievementTable thead th, #achievementTable tbody td {
-    font-size: 0.95em;
-    padding: 7px 2px;
-  }
 }
 .flatpickr-calendar {
   font-family: inherit;
