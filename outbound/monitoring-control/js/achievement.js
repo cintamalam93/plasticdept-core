@@ -226,6 +226,7 @@ async function renderTable() {
         );
     });
   }
+  // Update summary card di luar blok if-else!
   matrixJobCount.textContent = jobs.length;
   matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty) || 0), 0).toLocaleString('en-US');
   matrixQtyOvertime.textContent = qtyOvertime.toLocaleString('en-US');
