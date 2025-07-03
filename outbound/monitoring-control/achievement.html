@@ -6,7 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="css/achievement.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="stylesheet" href="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.css"/>
+  <!-- DataTables & Buttons -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/2.0.8/css/dataTables.bootstrap5.min.css"/>
+  <link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.0.2/css/buttons.bootstrap5.min.css"/>
 </head>
 <body>
   <div class="container">
@@ -25,7 +27,6 @@
       Team:
       <select id="teamSelect"></select>
       <button class="btn" id="refreshBtn">⟳ Refresh</button>
-      <button class="btn btn-export" id="exportBtn">⬇ Export Excel</button>
     </div>
     <div id="notifBox"></div>
     <div class="cards-row">
@@ -39,7 +40,7 @@
       </div>
     </div>
     <div class="table-container">
-      <table id="achievementTable" class="display" style="width:100%">
+      <table id="achievementTable" class="table table-striped table-bordered" style="width:100%">
         <thead>
           <tr>
             <th>Job No</th>
@@ -60,9 +61,17 @@
       </table>
     </div>
   </div>
+  <!-- jQuery first! -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Flatpickr -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-  <script src="https://cdn.datatables.net/v/bs5/dt-2.0.8/datatables.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- DataTables, Bootstrap 5, Buttons, JSZip -->
+  <script src="https://cdn.datatables.net/2.0.8/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/dataTables.buttons.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.bootstrap5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdn.datatables.net/buttons/3.0.2/js/buttons.html5.min.js"></script>
   <script type="module" src="js/achievement.js"></script>
 </body>
 </html>

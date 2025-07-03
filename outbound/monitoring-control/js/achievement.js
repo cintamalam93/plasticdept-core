@@ -19,11 +19,9 @@ const db = getDatabase(app);
 const dateInput = document.getElementById('dateInput');
 const shiftSelect = document.getElementById('shiftSelect');
 const teamSelect = document.getElementById('teamSelect');
-const tableBody = document.querySelector('#achievementTable tbody');
 const matrixJobCount = document.getElementById('matrixJobCount');
 const matrixQty = document.getElementById('matrixQty');
 const notifBox = document.getElementById('notifBox');
-
 let selectedDate = null;
 let dataTable = null;
 
@@ -108,7 +106,7 @@ async function renderTable() {
         matrixJobCount.textContent = '0';
         matrixQty.textContent = '0';
         if (dataTable) dataTable.clear().draw();
-        else tableBody.innerHTML = '';
+        else $('#achievementTable').DataTable().clear().draw();
         return;
       }
       jobs = Object.values(snap.val());
@@ -118,8 +116,6 @@ async function renderTable() {
       jobs = [];
     }
   }
-
-  // Render DataTable (gunakan DataTables JS)
   const rowData = jobs.map(job => [
     job.jobNo || '-',
     job.deliveryDate || '-',
@@ -132,17 +128,18 @@ async function renderTable() {
     job.teamName || '-',
     job.qty || '-'
   ]);
+  // DataTables logic
   if (dataTable) {
     dataTable.clear();
     dataTable.rows.add(rowData);
     dataTable.draw();
   } else {
-    dataTable = new window.DataTable('#achievementTable', {
+    dataTable = $('#achievementTable').DataTable({
       data: rowData,
       pageLength: 40,
       destroy: true,
       columns: [
-        { title: "Job No" },           // width diatur via CSS
+        { title: "Job No" },
         { title: "Delivery Date" },
         { title: "Delivery Note" },
         { title: "Remark" },
@@ -153,6 +150,15 @@ async function renderTable() {
         { title: "Team Name" },
         { title: "Qty" }
       ],
+      dom: 'Bfrtip',
+      buttons: [
+        {
+          extend: 'excelHtml5',
+          text: '⬇ Export Excel',
+          className: 'btn btn-export',
+          exportOptions: { columns: ':visible' }
+        }
+      ],
       language: {
         emptyTable: "Data tidak tersedia."
       }
@@ -162,19 +168,7 @@ async function renderTable() {
   matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty)||0), 0);
 }
 
-document.getElementById('exportBtn').onclick = function() {
-  // Ambil data dari tabel
-  const rows = dataTable ? dataTable.data().toArray() : [];
-  const headers = [
-    "Job No", "Delivery Date", "Delivery Note", "Remark", "Finish At",
-    "Job Type", "Shift", "Team", "Team Name", "Qty"
-  ];
-  const ws_data = [headers, ...rows];
-  const ws = XLSX.utils.aoa_to_sheet(ws_data);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Achievement");
-  XLSX.writeFile(wb, "achievement.xlsx");
-};
+// Export tombol DataTables, jadi tidak perlu tombol custom
 
 document.getElementById('refreshBtn').onclick = function() {
   dateInput.value = '';
