@@ -24,6 +24,7 @@ const matrixQty = document.getElementById('matrixQty');
 const matrixQtyOvertime = document.getElementById('matrixQtyOvertime');
 const matrixQtyAdditional = document.getElementById('matrixQtyAdditional');
 const matrixQtyRemaining = document.getElementById('matrixQtyRemaining');
+const matrixQtyH1 = document.getElementById('matrixQtyH1');
 const notifBox = document.getElementById('notifBox');
 let selectedDate = null;
 let dataTable = null;
@@ -109,9 +110,10 @@ async function renderTable() {
         showNotif({type:"error", message: "Tidak ada job untuk team ini."});
         matrixJobCount.textContent = '0';
         matrixQty.textContent = '0';
-        matrixQtyOvertime.textContent = '0';
-        matrixQtyAdditional.textContent = '0';
         matrixQtyRemaining.textContent = '0';
+        matrixQtyAdditional.textContent = '0';
+        matrixQtyH1.textContent = '0';
+        matrixQtyOvertime.textContent = '0';
         if (dataTable) dataTable.clear().draw();
         else $('#achievementTable').DataTable().clear().draw();
         return;
@@ -125,16 +127,19 @@ async function renderTable() {
   }
 
   // Hitung summary card (qty per tipe job)
-  let qtyOvertime = 0, qtyAdditional = 0, qtyRemaining = 0;
+  let qtyRemaining = 0, qtyAdditional = 0, qtyH1 = 0, qtyOvertime = 0;
   jobs.forEach(job => {
     if (!job.qty) return;
     if (job.jobType && typeof job.jobType === 'string') {
-      if (job.jobType.toLowerCase().includes('ot')) {
-        qtyOvertime += parseInt(job.qty) || 0;
-      } else if (job.jobType.toLowerCase().includes('add')) {
-        qtyAdditional += parseInt(job.qty) || 0;
-      } else if (job.jobType.toLowerCase().includes('remaining')) {
+      const type = job.jobType.toLowerCase();
+      if (type.includes('remaining')) {
         qtyRemaining += parseInt(job.qty) || 0;
+      } else if (type.includes('add')) {
+        qtyAdditional += parseInt(job.qty) || 0;
+      } else if (type.includes('h-1')) {
+        qtyH1 += parseInt(job.qty) || 0;
+      } else if (type.includes('ot')) {
+        qtyOvertime += parseInt(job.qty) || 0;
       }
     }
   });
@@ -174,7 +179,7 @@ async function renderTable() {
         { title: "Team Name" },
         { title: "Qty" }
       ],
-      dom: 'Bft', // Buttons + search filter + table
+      dom: 'Bft',
       buttons: [
         {
           extend: 'excelHtml5',
@@ -187,7 +192,6 @@ async function renderTable() {
       }
     });
 
-    // Custom posisi tombol export agar sejajar dengan search box di dalam #achievementTable_filter
     setTimeout(() => {
       const $filter = $('#achievementTable_filter');
       const $buttons = $('.dt-buttons');
@@ -200,7 +204,6 @@ async function renderTable() {
       $buttons.appendTo($filter).css({'margin': '0', 'float': 'none'});
     }, 0);
 
-    // Styling tombol export Excel via JS (bukan CSS)
     $(document).on('draw.dt', function() {
       $('.custom-excel-btn')
         .css({
@@ -226,15 +229,15 @@ async function renderTable() {
         );
     });
   }
-  // Update summary card di luar blok if-else!
   matrixJobCount.textContent = jobs.length;
   matrixQty.textContent = jobs.reduce((acc, job) => acc + (parseInt(job.qty) || 0), 0).toLocaleString('en-US');
-  matrixQtyOvertime.textContent = qtyOvertime.toLocaleString('en-US');
-  matrixQtyAdditional.textContent = qtyAdditional.toLocaleString('en-US');
   matrixQtyRemaining.textContent = qtyRemaining.toLocaleString('en-US');
+  matrixQtyAdditional.textContent = qtyAdditional.toLocaleString('en-US');
+  matrixQtyH1.textContent = qtyH1.toLocaleString('en-US');
+  matrixQtyOvertime.textContent = qtyOvertime.toLocaleString('en-US');
 }
 
-// Reset/refresh event
+// Jangan lupa di bagian reset juga!
 document.getElementById('refreshBtn').onclick = function() {
   dateInput.value = '';
   selectedDate = null;
@@ -244,14 +247,14 @@ document.getElementById('refreshBtn').onclick = function() {
   teamSelect.disabled = true;
   matrixJobCount.textContent = '-';
   matrixQty.textContent = '-';
-  matrixQtyOvertime.textContent = '-';
-  matrixQtyAdditional.textContent = '-';
   matrixQtyRemaining.textContent = '-';
+  matrixQtyAdditional.textContent = '-';
+  matrixQtyH1.textContent = '-';
+  matrixQtyOvertime.textContent = '-';
   notifBox.innerHTML = '';
   if (dataTable) dataTable.clear().draw();
   if (fp) fp.clear();
 };
-
 // Event binding
 function initDatepicker() {
   fp = flatpickr("#dateInput", {
