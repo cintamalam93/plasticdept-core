@@ -304,3 +304,54 @@ button:hover {
     font-size: 1.2em;
   }
 }
+
+/* ... kode lama tetap ... */
+
+/* Responsive improvement */
+@media (max-width: 700px) {
+  .container {
+    padding: 8px 2vw !important;
+    max-width: 100vw !important;
+  }
+  h1 {
+    font-size: 1.1em !important;
+    margin-bottom: 8px !important;
+  }
+  .metrics-container {
+    flex-direction: column !important;
+    gap: 8px !important;
+    align-items: stretch !important;
+  }
+  .metrics {
+    gap: 8px !important;
+  }
+  .metric-box {
+    min-width: 80px !important;
+    font-size: 0.98em !important;
+    padding: 7px 6px !important;
+  }
+  .chart-section, .donut-container {
+    max-width: 100% !important;
+    width: 90vw !important;
+    min-width: 0 !important;
+    height: auto !important;
+  }
+  .donut-center-text {
+    font-size: 1em !important;
+  }
+  table, thead, tbody, th, td, tr {
+    display: block;
+    width: 100% !important;
+    font-size: 0.97em !important;
+    word-break: break-all;
+  }
+  th, td {
+    text-align: left !important;
+    padding: 8px 4px !important;
+  }
+  button {
+    font-size: 0.96em !important;
+    padding: 7px 10px !important;
+    min-width: 60px !important;
+  }
+}
