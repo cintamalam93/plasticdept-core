@@ -1,0 +1,192 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f4f6f8;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  width: 95%;
+  max-width: none;
+  margin: 20px auto;
+  padding: 0; /* kita letakkan padding pada table-wrapper */
+  box-sizing: border-box;
+}
+
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 30px;
+}
+
+.upload-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.upload-label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+#csvFile {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+}
+
+#uploadBtn {
+  padding: 10px 20px;
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+
+#uploadBtn:hover {
+  background-color: #125aaa;
+}
+
+#uploadStatus {
+  margin-top: 10px;
+  font-weight: bold;
+}
+
+.status.info {
+  color: #333;
+}
+
+.status.success {
+  color: green;
+}
+
+.status.error {
+  color: red;
+}
+
+.table-wrapper {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  margin: 20px auto;
+  overflow-x: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+table.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table.dataTable thead th {
+  background-color: #1976d2;
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+  border: 1px solid #e0e0e0;
+}
+
+table.dataTable tbody td {
+  text-align: center;
+  white-space: nowrap;
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+}
+
+table.dataTable tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table.dataTable tbody tr:hover {
+  background-color: #e3f2fd;
+}
+
+/* Status Label Badges */
+.label {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  color: white;
+}
+
+.label-outstanding {
+  background-color: #ff9800;
+}
+
+.label-waiting {
+  background-color: #f44336;
+}
+
+.label-processing {
+  background-color: #03a9f4;
+}
+
+.label-finish {
+  background-color: #4caf50;
+}
+
+.label-reschedule {
+  background-color: #000000;
+}
+
+/* Table Cell Spacing */
+table.dataTable thead th,
+table.dataTable tbody td {
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+/* Judul dashboard */
+.dashboard-title {
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 10px;
+  position: relative;
+}
+
+.dashboard-title::after {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 4px;
+  background-color: #007bff;
+  margin: 10px auto 0;
+  border-radius: 2px;
+}
+
+/* Jam Digital & Tanggal */
+.clock-container {
+  text-align: center;
+  margin: 20px auto 10px;
+  padding: 12px 20px;
+  background-color: #e3f2fd; /* Ganti sesuai pilihan */
+  border-radius: 10px;
+  width: fit-content;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+.digital-clock {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1976d2;
+  font-family: 'Courier New', monospace;
+  margin: 10px auto 0 auto;
+  text-align: center;
+}
+
+.date-display {
+  font-size: 18px;
+  color: #555;
+  margin: 4px auto 20px auto;
+  text-align: center;
+}
